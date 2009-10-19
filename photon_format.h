@@ -1,3 +1,6 @@
+#ifndef _PHOTON_FORMAT_H
+#define _PHOTON_FORMAT_H
+
 typedef unsigned long long record_t;
 typedef unsigned long long count_t; // Represents a time counter value
 
@@ -10,4 +13,6 @@ typedef unsigned long long count_t; // Represents a time counter value
 #define CHAN_3_MASK (1ULL << 43)
 #define CHAN_4_MASK (1ULL << 44)
 #define CHANNEL_MASK (CHAN_1_MASK | CHAN_2_MASK | CHAN_3_MASK | CHAN_4_MASK)
+
+#endif
 
