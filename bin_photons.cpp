@@ -4,14 +4,25 @@
 #include "photon_format.h"
 
 /*
+ *
+ * Temporally bins a photon stream
+ *
  * Usage:
  *   bin_photons [BIN_LENGTH]
  *
  * Where BIN_LENGTH is the length of each bin in counter units.
  *
- * We handle wrap-around here by simply keeping all times as 64 bit and assume
- * that we wrap-around at most once.
- * With 1 nanosecond clock units, this gives us 500 years of acquisition time.
+ * Input:
+ *   A binary photon stream
+ *
+ * Output:
+ *   A list of records in the following format:
+ *   [CHAN]	[BIN_START_TIME]	[BIN_PHOTON_COUNT]
+ *
+ * Notes:
+ *   We handle wrap-around here by simply keeping all times as 64 bit and assume
+ *   that we wrap-around at most once.
+ *   With 1 nanosecond clock units, this gives us 500 years of acquisition time.
  */
 
 

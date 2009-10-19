@@ -12,10 +12,16 @@ using namespace std;
 #define DEVIATION 0.4
 
 /*
+ *
+ * Generates a reasonably realistic photon stream.
+ *
  * Usage:
  *   photon_generator [HZ]
  *
  * Where HZ is photon frequency in Hertz.
+ *
+ * Output:
+ *   A binary photon stream.
  *
  */
 

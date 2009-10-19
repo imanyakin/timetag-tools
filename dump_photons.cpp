@@ -4,11 +4,16 @@
 #include "photon_format.h"
 
 /*
+ *
+ * Decodes a binary photon stream to human readable format.
  * Usage:
  *   dump_photons
  *
+ * Input:
+ *   A binary photon stream
+ *
  * Output:
- *	COUNT_NUM	TIME		A B C D
+ *   COUNT_NUM	TIME		A B C D
  *
  * Where A, B, C, D are flag statuses
  */
