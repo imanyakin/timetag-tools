@@ -47,10 +47,12 @@ int main(int argc, char** argv) {
 	// For handling wraparound
 	count_t last_time = 0;
 	count_t time_offset = 0;
-	
+	setvbuf(stdout, NULL, _IONBF, NULL);
+
 	while (true) {
 		record_t photon;
-		fread(&photon, RECORD_LENGTH, 1, stdin);
+		if (fread(&photon, RECORD_LENGTH, 1, stdin) != 1)
+			exit(!feof(stdin));
 		count_t time = photon & TIME_MASK;
 
 		// Handle wrap-around
@@ -61,13 +63,12 @@ int main(int argc, char** argv) {
 		time += time_offset;
 
 		for (int c=0; c < 4; c++) {
-			if (chans[c].mask & photon) {
+			if (chans[c].mask & photon)
 				chans[c].count++;
-				if (time > (chans[c].bin_start + bin_length)) {
-					printf("%d\t%llu\t%d\n", c+1, chans[c].bin_start, chans[c].count);
-					chans[c].count = 0;
-					chans[c].bin_start = time;
-				}
+			if (time > (chans[c].bin_start + bin_length)) {
+				printf("%d\t%llu\t%d\n", c+1, chans[c].bin_start, chans[c].count);
+				chans[c].count = 0;
+				chans[c].bin_start = time;
 			}
 		}
 	}

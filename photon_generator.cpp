@@ -31,6 +31,7 @@ int main(int argc, char** argv) {
 	const int period = 1.0 / atoi(argv[1]) * 1e9; // in nanoseconds
 	count_t counter = 0;
 
+	setvbuf(stdout, NULL, _IONBF, NULL);
 	while (true) {
 		record_t data;
 		// Generate channel mask

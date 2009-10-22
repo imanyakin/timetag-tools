@@ -24,7 +24,8 @@ int main(int argc, char** argv) {
 		count++;
 
 		record_t photon;
-		fread(&photon, RECORD_LENGTH, 1, stdin);
+		if (fread(&photon, RECORD_LENGTH, 1, stdin) != 1)
+			exit(!feof(stdin));
 		count_t time = photon & TIME_MASK;
 
 		printf("%d\t%lld\t%s %s %s %s\n",

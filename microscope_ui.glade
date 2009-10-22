@@ -3,6 +3,8 @@
   <requires lib="gtk+" version="2.16"/>
   <!-- interface-naming-policy project-wide -->
   <object class="GtkWindow" id="main_window">
+    <property name="default_width">500</property>
+    <property name="default_height">400</property>
     <child>
       <object class="GtkVBox" id="vbox1">
         <property name="visible">True</property>
@@ -30,7 +32,6 @@
                 <property name="create_folders">False</property>
               </object>
               <packing>
-                <property name="expand">False</property>
                 <property name="position">1</property>
               </packing>
             </child>
@@ -229,9 +230,11 @@
   <object class="GtkToggleAction" id="running_action">
     <property name="label">Running</property>
     <property name="stock_id">gtk-media-play</property>
+    <signal name="toggled" handler="running_toggled_cb"/>
   </object>
   <object class="GtkToggleAction" id="file_output_action">
     <property name="label">File Output Enabled</property>
+    <signal name="toggled" handler="file_output_toggled_cb"/>
   </object>
   <object class="GtkAdjustment" id="plot_time">
     <property name="upper">1000</property>
