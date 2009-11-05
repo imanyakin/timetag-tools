@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
 		record_t photon;
 		if (fread(&photon, RECORD_LENGTH, 1, stdin) != 1)
 			exit(!feof(stdin));
-		count_t time = photon & TIME_MASK;
+		count_t time = be64toh(photon & TIME_MASK);
 
 		// Handle wrap-around
 		if (time < last_time)

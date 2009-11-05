@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <cstdlib>
+#include <endian.h>
 
 #include "photon_format.h"
 
@@ -19,16 +20,16 @@
  */
 
 int main(int argc, char** argv) {
-	int count = 0;
+	unsigned int count = 0;
 	while (true) {
 		count++;
 
 		record_t photon;
 		if (fread(&photon, RECORD_LENGTH, 1, stdin) != 1)
 			exit(!feof(stdin));
-		count_t time = photon & TIME_MASK;
+		count_t time = be64toh(photon & TIME_MASK);
 
-		printf("%d\t%lld\t%s %s %s %s\n",
+		printf("%u\t%llu\t%s %s %s %s\n",
 				count, time,
 				photon & CHAN_1_MASK ? "1" : "",
 				photon & CHAN_2_MASK ? "2" : "",

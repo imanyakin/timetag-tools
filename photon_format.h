@@ -5,7 +5,7 @@ typedef unsigned long long record_t;
 typedef unsigned long long count_t; // Represents a time counter value
 
 #define RECORD_LENGTH 6
-#define TIME_BITS 40
+#define TIME_BITS 38
 #define TIME_MASK ((1ULL<<TIME_BITS) - 1)
 
 #define CHAN_1_MASK (1ULL << 41)
