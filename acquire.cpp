@@ -140,17 +140,9 @@ int main(int argc, char** argv) {
 
 
 	get_status(dev);
-	//stop_capture(dev);
-	//for (int i=0; i<3; i++) test2(dev);
 
 	start_capture(dev);
-	//for (int i=0; i>-1; i++) test2(dev);
-
-	stop_capture(dev);
-	//for (int i=0; i<3; i++) test2(dev);
-
 	configure_pulse_sequencer(dev, 0x70, true, 10000, 20000, 30000);
-	fprintf(stderr, "Done\n");
 
 	read_loop(dev);
 
