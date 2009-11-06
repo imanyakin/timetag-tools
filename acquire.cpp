@@ -43,48 +43,39 @@ static void send_simple_command(libusb_device_handle* dev, uint8_t mask, uint8_t
 		fprintf(stderr, "No response\n");
 }
 
-void configure_pulse_sequencer(libusb_device_handle* dev, char seq_mask,
-		bool initial_state, int initial_count, int high_count, int low_count) {
-	int ret, transferred;
-	uint8_t buffer[1024];
-
-	// Set initial state
-	buffer[0] = 0x00;
-	buffer[1] = 0x00;
-	buffer[2] = 0x00;
-	buffer[3] = initial_state;
-	buffer[4] = 0x01;
+void pulseseq_set_initial_state(libusb_device_handle* dev, char seq_mask, bool initial_state) {
+	uint8_t buffer[5] = { 0x00, 0x00, 0x00, initial_state, 0x01 };
 	send_simple_command(dev, 0x4, buffer, 5);
+}
 
-	// Set initial count
-	buffer[0] = 0xff & (initial_count >> 24);
-	buffer[1] = 0xff & (initial_count >> 16);
-	buffer[2] = 0xff & (initial_count >> 8);
-	buffer[3] = 0xff & (initial_count >> 0);
-	buffer[4] = 0x02;
+void pulseseq_set_initial_count(libusb_device_handle* dev, char seq_mask, uint32_t initial_count) {
+	uint8_t buffer[5] = {
+		0xff & (initial_count >> 24),
+		0xff & (initial_count >> 16),
+		0xff & (initial_count >> 8),
+	       	0xff & (initial_count >> 0),
+		0x02 };
 	send_simple_command(dev, 0x4, buffer, 5);
+}
 
-	// Set high count
-	buffer[0] = 0xff & (high_count >> 24);
-	buffer[1] = 0xff & (high_count >> 16);
-	buffer[2] = 0xff & (high_count >> 8);
-	buffer[3] = 0xff & (high_count >> 0);
-	buffer[4] = 0x04;
+void pulseseq_set_high_count(libusb_device_handle* dev, char seq_mask, uint32_t high_count) {
+	uint8_t buffer[5] = {
+		0xff & (high_count >> 24),
+		0xff & (high_count >> 16),
+		0xff & (high_count >> 8),
+		0xff & (high_count >> 0),
+		0x04 };
 	send_simple_command(dev, 0x4, buffer, 5);
+}
 
-	// Set low count
-	buffer[0] = 0xff & (low_count >> 24);
-	buffer[1] = 0xff & (low_count >> 16);
-	buffer[2] = 0xff & (low_count >> 8);
-	buffer[3] = 0xff & (low_count >> 0);
-	buffer[4] = 0x04;
+void pulseseq_set_low_count(libusb_device_handle* dev, char seq_mask, uint32_t low_count) {
+	uint8_t buffer[5] = {
+		0xff & (low_count >> 24),
+		0xff & (low_count >> 16),
+		0xff & (low_count >> 8),
+		0xff & (low_count >> 0),
+		0x04 };
 	send_simple_command(dev, 0x4, buffer, 5);
-
-	if (ret = libusb_bulk_transfer(dev, REPLY_ENDP, buffer, 128, &transferred, TIMEOUT) )
-		fprintf(stderr, "Failed receiving reply: %d\n", ret);
-
-	if (transferred >= 2)
-		fprintf(stderr, "Length: %hu\n", ((uint16_t*) buffer)[0]);
 }
 
 void start_capture(libusb_device_handle* dev) {
@@ -142,7 +133,10 @@ int main(int argc, char** argv) {
 	get_status(dev);
 
 	start_capture(dev);
-	configure_pulse_sequencer(dev, 0x70, true, 10000, 20000, 30000);
+	pulseseq_set_initial_state(dev, 0x70, true);
+	pulseseq_set_initial_count(dev, 0x70, 10000);
+	pulseseq_set_low_count(dev, 0x70, 20000);
+        pulseseq_set_high_count(dev, 0x70, 30000);
 
 	read_loop(dev);
 
