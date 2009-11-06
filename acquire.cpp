@@ -101,8 +101,8 @@ void get_status(libusb_device_handle* dev) {
 		fprintf(stderr, "Failed sending request: %d\n", ret);
 	fprintf(stderr, "Transferred: %d:\n", transferred);
         for (int i=0; i<transferred; i++)
-		printf("%02x ", buffer[i]);
-	printf("\n");
+		fprintf(stderr, "%02x ", buffer[i]);
+	fprintf(stderr, "\n");
 }
 
 void read_loop(libusb_device_handle* dev) {
@@ -113,6 +113,10 @@ void read_loop(libusb_device_handle* dev) {
 	while (1) {
 		if (ret = libusb_bulk_transfer(dev, 0x86, &buffer[0], N*6, &transferred, DATA_TIMEOUT) )
 			fprintf(stderr, "Failed sending request: %d\n", ret);
+
+		if (transferred % 6 != 0)
+			fprintf(stderr, "Warning: Received partial record.");
+
 		fwrite(buffer, 1, transferred, stdout);
 	}
 }
@@ -133,6 +137,7 @@ int main(int argc, char** argv) {
 	get_status(dev);
 
 	start_capture(dev);
+
 	pulseseq_set_initial_state(dev, 0x70, true);
 	pulseseq_set_initial_count(dev, 0x70, 10000);
 	pulseseq_set_low_count(dev, 0x70, 20000);
