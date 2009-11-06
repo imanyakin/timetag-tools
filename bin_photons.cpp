@@ -30,6 +30,7 @@ struct channel {
 	record_t mask;
 	count_t bin_start;
 	int count;
+	bool lost;
 };
 
 int main(int argc, char** argv) {
@@ -65,10 +66,16 @@ int main(int argc, char** argv) {
 		time += time_offset;
 
 		for (int c=0; c < 4; c++) {
+			chans[c].lost |= photon & LOST_SAMPLE_MASK;
+
 			if (chans[c].mask & photon)
 				chans[c].count++;
 			if (time > (chans[c].bin_start + bin_length)) {
-				printf("%d\t%llu\t%d\n", c+1, chans[c].bin_start, chans[c].count);
+				printf("%d\t%llu\t%d\t%s\n",
+						c+1,
+						chans[c].bin_start,
+						chans[c].count,
+						chans[c].lost ? "LOST" : "");
 				chans[c].count = 0;
 				chans[c].bin_start = time;
 			}
