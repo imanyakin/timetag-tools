@@ -28,18 +28,20 @@ using namespace std;
 int main(int argc, char** argv) {
 	if (argc <= 1) return 1;
 
-	const int period = 1.0 / atoi(argv[1]) * 1e9; // in nanoseconds
+	const unsigned int period = 1.0 / atoi(argv[1]) * 1e9; // in nanoseconds
 	count_t counter = 0;
 
 	setvbuf(stdout, NULL, _IONBF, NULL);
 	while (true) {
 		record_t data;
+
 		// Generate channel mask
 		data = rand();
 		data = data << TIME_BITS;
 		data &= CHANNEL_MASK;
 
 		data |= counter & TIME_MASK;
+		data = htobe64(data) >> 16;
 		fwrite(&data, RECORD_LENGTH, 1, stdout);
 
 		int dt = period + drand48()*DEVIATION*period;
