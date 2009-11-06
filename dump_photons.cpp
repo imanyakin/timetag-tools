@@ -21,6 +21,7 @@
 
 int main(int argc, char** argv) {
 	unsigned int count = 0;
+	setvbuf(stdout, NULL, _IONBF, NULL);
 	while (true) {
 		record_t photon = 0;
 		count++;
