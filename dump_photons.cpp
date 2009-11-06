@@ -27,6 +27,7 @@ int main(int argc, char** argv) {
 
 		if (fread(&photon, RECORD_LENGTH, 1, stdin) != 1)
 			exit(!feof(stdin));
+
 		photon = be64toh(photon) >> 16;
 		count_t time = photon & TIME_MASK;
 
