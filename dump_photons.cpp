@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
 		photon = be64toh(photon) >> 16;
 		count_t time = photon & TIME_MASK;
 
-		printf("%u\t%llx\t%s %s %s %s\t%s %s %s %s\t%s\n",
+		printf("%u\t%9llx\t%s %s %s %s\t%s %s %s %s\t%s\n",
 				count, time,
 				photon & CHAN_1_MASK ? "1" : " ",
 				photon & CHAN_2_MASK ? "2" : " ",
