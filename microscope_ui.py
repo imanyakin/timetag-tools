@@ -1,95 +1,41 @@
 #!/usr/bin/python
 
-import subprocess
+import logging
 import time
-from collections import defaultdict
-import threading
 import gobject, gtk
 from matplotlib.figure import Figure
-from matplotlib.backends.backend_gtk import FigureCanvasGTK as FigureCanvas
+#from matplotlib.backends.backend_gtk import FigureCanvasGTK as FigureCanvas
+from matplotlib.backends.backend_gtkcairo import FigureCanvasGTKCairo as FigureCanvas
 import numpy
 
-class CapturePipeline(object):
-        def __init__(self, bin_length=10000000, output_file=None, points=1000):
-                self.data = defaultdict(lambda: (numpy.zeros(self.points, dtype='u8'),  # bin start time
-                                                 numpy.zeros(self.points, dtype='u4'))) # count
-                self.indicies = defaultdict(lambda: 0)
-                self.points = points
+from capture_pipeline import CapturePipeline, TestPipeline
 
-                self.bin_length = bin_length
-                self.output_file = output_file
-                self.update_cb = None
+logging.basicConfig(level=logging.DEBUG)
 
-        def start(self):
-                PIPE=subprocess.PIPE
-                self.source = subprocess.Popen(['./photon_generator', str(100)], stdout=PIPE)
-                src = self.source.stdout
-                
-                if self.output_file:
-                        self.tee = subprocess.Popen(['tee', self.output_file], stdin=src, stdout=PIPE)
-                        src = self.tee.stdout
-                else:
-                        self.tee = None
 
-                self.binner = subprocess.Popen(['./bin_photons', str(self.bin_length)], stdin=src, stdout=PIPE)
-                self.listener = threading.Thread(name='Data Listener', target=self.listen)
-                self.listener.daemon = True
-                self.listener.start()
-
-        def listen(self):
-                for l in self.binner.stdout:
-                        chan, start_time, count = map(int, l.split())
-                        times, counts = self.data[chan]
-                        times[self.indicies[chan]] = start_time / 150e6
-                        counts[self.indicies[chan]] = count
-                        if self.update_cb: self.update_cb()
-
-                        self.indicies[chan] += 1
-                        self.indicies[chan] %= self.points
-                        #print self.indicies[chan], self.data[chan]
-
-        def stop(self):
-                self.source.terminate()
-
-                
 class MainWindow(object):
-        def do_timeout2(self):
-                chan = 1
-                x = numpy.arange(0, 3, 0.01)
-                y = numpy.sin(x+self.dt)
-                if not self.lines.has_key(chan):
-                        self.lines[chan], = self.axes.plot(x, y) #, animated=True)
-                        #self.figure.canvas.draw()
-                else:
-                        self.lines[chan].set_ydata(y)
-                        #self.axes.draw_artist(self.lines[chan])
-
-                self.figure.canvas.draw()
-                self.dt += 0.1
-
         def update_plot(self):
                 if not self.pipeline:
+                        self.update_pending = False
                         return False
 
-                for chan in self.pipeline.data.keys():
-                        times, counts = self.pipeline.data[chan]
-                        if not self.lines.has_key(chan):
-                                self.lines[chan], = self.axes.plot(times, counts) #, animated=True)
-                                #self.axes.plot(times, counts)
-                                #self.figure.canvas.draw()
+                for n,times,counts in self.pipeline:
+                        if not self.lines.has_key(n):
+                                self.lines[n], = self.axes.plot(times, counts)
                         else:
-                                self.dt += 10
-                                print numpy.max(times), numpy.min(times)
-                                self.lines[chan].set_xdata(times+self.dt)
-                                self.lines[chan].set_ydata(counts)
-                                #self.axes.draw_artist(self.lines[chan])
+                                self.lines[n].set_data(times, counts)
 
-                self.axes.autoscale_view()
+                self.axes.relim()
+                self.axes.autoscale_view(tight=True)
                 self.figure.canvas.draw()
+                self.last_update = time.time()
+                self.update_pending = False
+                return False
 
         def __init__(self):
                 self.dt = 0
                 self.last_update = 0
+                self.update_pending = False
                 self.pipeline = None
                 self.binned_data = None
 
@@ -101,7 +47,6 @@ class MainWindow(object):
 
                 self.figure = Figure()
                 self.axes = self.figure.add_subplot(111)
-                #self.axes.xaxis.set_animated(True)
                 self.lines = {}
                 canvas = FigureCanvas(self.figure)
                 self.builder.get_object('plot_container').pack_start(canvas)
@@ -112,18 +57,18 @@ class MainWindow(object):
                 if self.pipeline:
                         raise "Tried to start a capture pipeline while one is already running"
 
-                bin_length = 4000
+                bin_length = 10e6
                 file = None
                 if self.builder.get_object('file_output_action').props.active:
                         file = self.builder.get_object('data_file').get_filename()
 
-                self.pipeline = CapturePipeline(bin_length, file)
                 def update_cb():
                         if time.time() - self.last_update > 1.0/30:
                                 gobject.idle_add(self.update_plot)
-                                print 'update'
-                                self.last_update = time.time()
+                                self.update_pending = True
 
+                self.pipeline = CapturePipeline(bin_length, file)
+                #self.pipeline = TestPipeline(100)
                 self.pipeline.update_cb = update_cb
                 self.pipeline.start()
 
@@ -149,6 +94,7 @@ class MainWindow(object):
                         self.stop_pipeline()
 
 if __name__ == '__main__':
-        gobject.threads_init()
+        gtk.gdk.threads_init()
         win = MainWindow()
         gtk.main()
+
