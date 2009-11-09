@@ -4,8 +4,8 @@ import logging
 import time
 import gobject, gtk
 from matplotlib.figure import Figure
-#from matplotlib.backends.backend_gtk import FigureCanvasGTK as FigureCanvas
-from matplotlib.backends.backend_gtkcairo import FigureCanvasGTKCairo as FigureCanvas
+from matplotlib.backends.backend_gtk import FigureCanvasGTK as FigureCanvas
+#from matplotlib.backends.backend_gtkagg import FigureCanvasGTKAgg as FigureCanvas
 import numpy
 
 from capture_pipeline import CapturePipeline, TestPipeline
@@ -21,7 +21,7 @@ class MainWindow(object):
 
                 for n,times,counts in self.pipeline:
                         if not self.lines.has_key(n):
-                                self.lines[n], = self.axes.plot(times, counts)
+                                self.lines[n], = self.axes.plot(times, counts)#, animated=True)
                         else:
                                 self.lines[n].set_data(times, counts)
 
