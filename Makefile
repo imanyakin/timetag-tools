@@ -1,9 +1,13 @@
+CXXFLAGS=-ggdb -I/usr/include/libusb-1.0
+LDFLAGS=-lusb-1.0
+CC=g++
+
 PROGS=acquire bin_photons photon_generator dump_photons
 
 all : ${PROGS}
 
-acquire : acquire.cpp
-	g++ -ggdb -lusb-1.0 -I /usr/include/libusb-1.0 -o$@ $+
+acquire : acquire.o timetagger.o
 
 clean :
-	rm -f ${PROGS}
+	rm -f ${PROGS} *.o
+
