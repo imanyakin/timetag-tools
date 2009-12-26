@@ -77,7 +77,7 @@ class CapturePipeline(object):
                 while True:
                         l = self.binner.stdout.readline()
                         if len(l) == 0: return
-                        chan, start_time, count, = map(int, l.split())
+                        chan, start_time, count, lost = map(int, l.split())
                         c = self.channels[chan]
                         c.times.append(1.0*start_time)# / CapturePipeline.CAPTURE_CLOCK)
                         c.counts.append(count)
