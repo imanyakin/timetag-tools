@@ -3,8 +3,8 @@
   <requires lib="gtk+" version="2.16"/>
   <!-- interface-naming-policy project-wide -->
   <object class="GtkWindow" id="main_window">
-    <property name="default_width">500</property>
-    <property name="default_height">400</property>
+    <property name="default_width">700</property>
+    <property name="default_height">500</property>
     <child>
       <object class="GtkVBox" id="vbox1">
         <property name="visible">True</property>
@@ -75,18 +75,6 @@
                 <property name="n_rows">3</property>
                 <property name="n_columns">2</property>
                 <child>
-                  <placeholder/>
-                </child>
-                <child>
-                  <placeholder/>
-                </child>
-                <child>
-                  <placeholder/>
-                </child>
-                <child>
-                  <placeholder/>
-                </child>
-                <child>
                   <object class="GtkSpinButton" id="spinbutton1">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
@@ -104,6 +92,18 @@
                     <property name="label" translatable="yes">Plot Time</property>
                   </object>
                 </child>
+                <child>
+                  <placeholder/>
+                </child>
+                <child>
+                  <placeholder/>
+                </child>
+                <child>
+                  <placeholder/>
+                </child>
+                <child>
+                  <placeholder/>
+                </child>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -120,7 +120,7 @@
           <object class="GtkHBox" id="hbox3">
             <property name="visible">True</property>
             <child>
-              <object class="GtkFrame" id="frame1">
+              <object class="GtkFrame" id="pulse_seq_frame">
                 <property name="visible">True</property>
                 <property name="label_xalign">0</property>
                 <property name="shadow_type">none</property>
@@ -131,7 +131,7 @@
                     <child>
                       <object class="GtkTable" id="table2">
                         <property name="visible">True</property>
-                        <property name="n_rows">3</property>
+                        <property name="n_rows">5</property>
                         <property name="n_columns">2</property>
                         <child>
                           <object class="GtkSpinButton" id="offset_time">
@@ -142,6 +142,8 @@
                           <packing>
                             <property name="left_attach">1</property>
                             <property name="right_attach">2</property>
+                            <property name="top_attach">2</property>
+                            <property name="bottom_attach">3</property>
                           </packing>
                         </child>
                         <child>
@@ -153,8 +155,8 @@
                           <packing>
                             <property name="left_attach">1</property>
                             <property name="right_attach">2</property>
-                            <property name="top_attach">1</property>
-                            <property name="bottom_attach">2</property>
+                            <property name="top_attach">3</property>
+                            <property name="bottom_attach">4</property>
                           </packing>
                         </child>
                         <child>
@@ -166,8 +168,8 @@
                           <packing>
                             <property name="left_attach">1</property>
                             <property name="right_attach">2</property>
-                            <property name="top_attach">2</property>
-                            <property name="bottom_attach">3</property>
+                            <property name="top_attach">4</property>
+                            <property name="bottom_attach">5</property>
                           </packing>
                         </child>
                         <child>
@@ -175,6 +177,10 @@
                             <property name="visible">True</property>
                             <property name="label" translatable="yes">Offset</property>
                           </object>
+                          <packing>
+                            <property name="top_attach">2</property>
+                            <property name="bottom_attach">3</property>
+                          </packing>
                         </child>
                         <child>
                           <object class="GtkLabel" id="label3">
@@ -182,8 +188,8 @@
                             <property name="label" translatable="yes">High Time</property>
                           </object>
                           <packing>
-                            <property name="top_attach">1</property>
-                            <property name="bottom_attach">2</property>
+                            <property name="top_attach">3</property>
+                            <property name="bottom_attach">4</property>
                           </packing>
                         </child>
                         <child>
@@ -192,8 +198,51 @@
                             <property name="label" translatable="yes">Low Time</property>
                           </object>
                           <packing>
-                            <property name="top_attach">2</property>
-                            <property name="bottom_attach">3</property>
+                            <property name="top_attach">4</property>
+                            <property name="bottom_attach">5</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkCheckButton" id="override_enabled">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">False</property>
+                            <property name="related_action">output_override_action</property>
+                            <property name="use_action_appearance">True</property>
+                            <property name="draw_indicator">True</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkToggleButton" id="override_state">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">True</property>
+                            <property name="related_action">output_state_action</property>
+                            <property name="use_action_appearance">True</property>
+                          </object>
+                          <packing>
+                            <property name="left_attach">1</property>
+                            <property name="right_attach">2</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkHSeparator" id="hseparator1">
+                            <property name="visible">True</property>
+                          </object>
+                          <packing>
+                            <property name="top_attach">1</property>
+                            <property name="bottom_attach">2</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkHSeparator" id="hseparator2">
+                            <property name="visible">True</property>
+                          </object>
+                          <packing>
+                            <property name="left_attach">1</property>
+                            <property name="right_attach">2</property>
+                            <property name="top_attach">1</property>
+                            <property name="bottom_attach">2</property>
                           </packing>
                         </child>
                       </object>
@@ -201,9 +250,9 @@
                   </object>
                 </child>
                 <child type="label">
-                  <object class="GtkComboBox" id="laser_channel">
+                  <object class="GtkComboBox" id="output_channel">
                     <property name="visible">True</property>
-                    <property name="model">channels_mode</property>
+                    <property name="model">channels_model</property>
                     <property name="active">0</property>
                   </object>
                 </child>
@@ -242,7 +291,7 @@
     <property name="page_increment">10</property>
     <property name="page_size">10</property>
   </object>
-  <object class="GtkListStore" id="channels_mode">
+  <object class="GtkListStore" id="channels_model">
     <columns>
       <!-- column-name name -->
       <column type="gchararray"/>
@@ -259,5 +308,11 @@
         <col id="1">0</col>
       </row>
     </data>
+  </object>
+  <object class="GtkToggleAction" id="output_override_action">
+    <property name="label">Override output</property>
+  </object>
+  <object class="GtkToggleAction" id="output_state_action">
+    <property name="label">Output State</property>
   </object>
 </interface>
