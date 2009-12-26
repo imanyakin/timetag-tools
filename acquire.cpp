@@ -1,3 +1,4 @@
+#include <iostream>
 #include <cstdlib>
 #include <cstdio>
 #include <unistd.h>
@@ -140,6 +141,42 @@ static void read_loop(libusb_device_handle* dev) {
 
 	// Command loop
 	while (1) {
+		std::string cmd;
+		std::cin >> cmd;
+
+		if (cmd == "start_cap") {
+			start_capture(dev);
+		}
+		if (cmd == "stop_cap") {
+			stop_capture(dev);
+		}
+		if (cmd == "reset") {
+			reset_counter(dev);
+		}
+		if (cmd == "initial_state") {
+			int mask, state;
+			std::cin >> mask;
+			std::cin >> state;
+			pulseseq_set_initial_state(dev, mask, state != 0);
+		}
+		if (cmd == "initial_count") {
+			int mask, count;
+			std::cin >> mask;
+			std::cin >> count;
+			pulseseq_set_initial_count(dev, mask, count);
+		}
+		if (cmd == "high_count") {
+			int mask, count;
+			std::cin >> mask;
+			std::cin >> count;
+			pulseseq_set_high_count(dev, mask, count);
+		}
+		if (cmd == "low_count") {
+			int mask, count;
+			std::cin >> mask;
+			std::cin >> count;
+			pulseseq_set_low_count(dev, mask, count);
+		}
 	}
 	
 	libusb_cancel_transfer(transfer);
