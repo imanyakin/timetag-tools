@@ -13,19 +13,11 @@
 #define DATA_ENDP	0x86
 #define REPLY_ENDP	0x88
 
-struct buffer {
-	struct libusb_transfer* transfer;
-	struct buffer* next;
-	int size;
-	uint8_t data[0];
-};
-
 #define TIMEOUT 100
 #define DATA_TIMEOUT 5000
 
 #define TRANSFER_LEN (85*RECORD_LENGTH)
 
-struct buffer* buffers;
 
 static void send_simple_command(libusb_device_handle* dev, uint8_t mask, uint8_t* data, int len) {
 	int ret, transferred;
