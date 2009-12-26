@@ -9,7 +9,7 @@
 using namespace std;
 
 #define CLOCKRATE (150e6)
-#define DEVIATION 0.4
+#define DEVIATION 0.7
 
 /*
  *
