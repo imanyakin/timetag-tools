@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <libusb.h>
 
+#include "photon_format.h"
+
 #define VENDOR_ID 0x04b4
 #define PRODUCT_ID 0x1004
 
@@ -20,6 +22,7 @@ struct buffer {
 #define TIMEOUT 100
 #define DATA_TIMEOUT 5000
 
+#define TRANSFER_LEN (85*RECORD_LENGTH)
 
 struct buffer* buffers;
 
@@ -105,20 +108,32 @@ void get_status(libusb_device_handle* dev) {
 	fprintf(stderr, "\n");
 }
 
-void read_loop(libusb_device_handle* dev) {
+
+static void transfer_done_cb(libusb_transfer* transfer) {
+	if (transfer->status != LIBUSB_TRANSFER_COMPLETED) 
+		fprintf(stderr, "Failed sending request: %d\n", transfer->status);
+
+	if (transfer->actual_length % RECORD_LENGTH != 0)
+		fprintf(stderr, "Warning: Received partial record.");
+
+	fwrite(transfer->buffer, 1, transfer->actual_length, stdout);
+	libusb_submit_transfer(transfer);
+}
+
+static void read_loop(libusb_device_handle* dev) {
 	int ret, transferred;
-	const int N = 85;
-	uint8_t buffer[N*6];
+	uint8_t *buffer = (uint8_t*) calloc(TRANSFER_LEN, 1);
 
+	libusb_transfer* transfer = libusb_alloc_transfer(0);
+	libusb_fill_bulk_transfer(transfer, dev, 0x86, buffer, TRANSFER_LEN, transfer_done_cb, NULL, 0);
+	libusb_submit_transfer(transfer);
+
+	// Command loop
 	while (1) {
-		if (ret = libusb_bulk_transfer(dev, 0x86, &buffer[0], N*6, &transferred, DATA_TIMEOUT) )
-			fprintf(stderr, "Failed sending request: %d\n", ret);
-
-		if (transferred % 6 != 0)
-			fprintf(stderr, "Warning: Received partial record.");
-
-		fwrite(buffer, 1, transferred, stdout);
 	}
+	
+	libusb_cancel_transfer(transfer);
+	libusb_free_transfer(transfer);
 }
 
 int main(int argc, char** argv) {

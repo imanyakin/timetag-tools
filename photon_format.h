@@ -21,6 +21,5 @@ typedef unsigned long long count_t; // Represents a time counter value
 #define OUTPUT_3_MASK (1ULL << 46)
 #define OUTPUT_4_MASK (1ULL << 47)
 
-
 #endif
 
