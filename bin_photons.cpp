@@ -35,7 +35,10 @@ struct channel {
 };
 
 int main(int argc, char** argv) {
-	if (argc <= 1) return 1;
+	if (argc <= 1) {
+		fprintf(stderr, "Usage: %s [bin_length]\n", argv[0]);
+		return 1;
+	}
 	count_t bin_length = atoi(argv[1]);
 
 #define N_CHAN 4
