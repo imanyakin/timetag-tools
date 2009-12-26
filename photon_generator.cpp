@@ -26,7 +26,10 @@ using namespace std;
  */
 
 int main(int argc, char** argv) {
-	if (argc <= 1) return 1;
+	if (argc <= 1) {
+		fprintf(stderr, "Usage: %s [hz]\n", argv[0]);
+		return 1;
+	}
 
 	const unsigned int period = 1.0 / atoi(argv[1]) * 1e9; // in nanoseconds
 	count_t counter = 0;
