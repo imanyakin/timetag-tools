@@ -198,12 +198,14 @@ int main(int argc, char** argv) {
 
 	get_status(dev);
 
-	start_capture(dev);
+	stop_capture(dev);
 
+#if 0
 	pulseseq_set_initial_state(dev, 0x04, true);
 	pulseseq_set_initial_count(dev, 0x04, 10000);
 	pulseseq_set_low_count(dev, 0x04, 20000);
         pulseseq_set_high_count(dev, 0x04, 30000);
+#endif
 
 	read_loop(dev);
 
