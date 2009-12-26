@@ -19,7 +19,8 @@
 #define TRANSFER_LEN (85*RECORD_LENGTH)
 
 
-static void send_simple_command(libusb_device_handle* dev, uint8_t mask, uint8_t* data, int len) {
+static void send_simple_command(libusb_device_handle* dev, uint8_t mask, uint8_t* data, int len)
+{
 	int ret, transferred;
 	uint8_t* buffer = (uint8_t*) calloc(sizeof(uint8_t), 1024);
 
@@ -39,12 +40,14 @@ static void send_simple_command(libusb_device_handle* dev, uint8_t mask, uint8_t
 		fprintf(stderr, "No response\n");
 }
 
-void pulseseq_set_initial_state(libusb_device_handle* dev, char seq_mask, bool initial_state) {
+void pulseseq_set_initial_state(libusb_device_handle* dev, char seq_mask, bool initial_state)
+{
 	uint8_t buffer[5] = { 0x00, 0x00, 0x00, initial_state, 0x01 };
 	send_simple_command(dev, seq_mask, buffer, 5);
 }
 
-void pulseseq_set_initial_count(libusb_device_handle* dev, char seq_mask, uint32_t initial_count) {
+void pulseseq_set_initial_count(libusb_device_handle* dev, char seq_mask, uint32_t initial_count)
+{
 	uint8_t buffer[5] = {
 		0xff & (initial_count >> 24),
 		0xff & (initial_count >> 16),
@@ -54,7 +57,8 @@ void pulseseq_set_initial_count(libusb_device_handle* dev, char seq_mask, uint32
 	send_simple_command(dev, seq_mask, buffer, 5);
 }
 
-void pulseseq_set_high_count(libusb_device_handle* dev, char seq_mask, uint32_t high_count) {
+void pulseseq_set_high_count(libusb_device_handle* dev, char seq_mask, uint32_t high_count)
+{
 	uint8_t buffer[5] = {
 		0xff & (high_count >> 24),
 		0xff & (high_count >> 16),
@@ -64,7 +68,8 @@ void pulseseq_set_high_count(libusb_device_handle* dev, char seq_mask, uint32_t 
 	send_simple_command(dev, seq_mask, buffer, 5);
 }
 
-void pulseseq_set_low_count(libusb_device_handle* dev, char seq_mask, uint32_t low_count) {
+void pulseseq_set_low_count(libusb_device_handle* dev, char seq_mask, uint32_t low_count)
+{
 	uint8_t buffer[5] = {
 		0xff & (low_count >> 24),
 		0xff & (low_count >> 16),
@@ -74,22 +79,26 @@ void pulseseq_set_low_count(libusb_device_handle* dev, char seq_mask, uint32_t l
 	send_simple_command(dev, seq_mask, buffer, 5);
 }
 
-void pulseseq_start(libusb_device_handle* dev) {
+void pulseseq_start(libusb_device_handle* dev)
+{
 	uint8_t buffer[1] = { 0x1 };
 	send_simple_command(dev, 0x02, buffer, 1);
 }
 
-void pulseseq_stop(libusb_device_handle* dev) {
+void pulseseq_stop(libusb_device_handle* dev)
+{
 	uint8_t buffer[1] = { 0x2 };
 	send_simple_command(dev, 0x02, buffer, 1);
 }
 
-void start_capture(libusb_device_handle* dev) {
+void start_capture(libusb_device_handle* dev)
+{
 	uint8_t buffer[1] = { 0x1 };
 	send_simple_command(dev, 0x01, buffer, 1);
 }
 
-void stop_capture(libusb_device_handle* dev) {
+void stop_capture(libusb_device_handle* dev)
+{
 	uint8_t buffer[1] = { 0x2 };
 	send_simple_command(dev, 0x01, buffer, 1);
 }
@@ -99,7 +108,8 @@ void reset_counter(libusb_device_handle* dev) {
 	send_simple_command(dev, 0x01, buffer, 1);
 }
 
-void get_status(libusb_device_handle* dev) {
+void get_status(libusb_device_handle* dev)
+{
 	int ret, transferred;
 	uint8_t buffer[1024];
 
@@ -112,7 +122,8 @@ void get_status(libusb_device_handle* dev) {
 }
 
 
-static void transfer_done_cb(libusb_transfer* transfer) {
+static void transfer_done_cb(libusb_transfer* transfer)
+{
 	if (transfer->status != LIBUSB_TRANSFER_COMPLETED) 
 		fprintf(stderr, "Failed sending request: %d\n", transfer->status);
 
@@ -123,7 +134,8 @@ static void transfer_done_cb(libusb_transfer* transfer) {
 	libusb_submit_transfer(transfer);
 }
 
-static void read_loop(libusb_device_handle* dev) {
+static void read_loop(libusb_device_handle* dev)
+{
 	int ret, transferred;
 	uint8_t *buffer = (uint8_t*) calloc(TRANSFER_LEN, 1);
 
@@ -175,7 +187,8 @@ static void read_loop(libusb_device_handle* dev) {
 	libusb_free_transfer(transfer);
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv)
+{
 	libusb_context* ctx;
 	libusb_device_handle* dev;
        
