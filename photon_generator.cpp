@@ -8,7 +8,7 @@
 
 using namespace std;
 
-#define CLOCKRATE (150e6)
+#define CLOCK_RATE (150e6)
 #define DEVIATION 0.7
 
 /*
@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
 		int dt = period + drand48()*DEVIATION*period;
 		timespec ts = { 0, dt };
 		nanosleep(&ts, NULL);
-		counter += 1e-9 * CLOCKRATE * dt;
+		counter += 1e-9 * CLOCK_RATE * dt;
 	}
 }
 
