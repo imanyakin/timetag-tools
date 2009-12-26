@@ -37,9 +37,7 @@ int main(int argc, char** argv) {
 
 		// Generate channel mask
 		data = rand();
-		data = data << TIME_BITS;
-		data &= CHANNEL_MASK;
-
+		data = (data << TIME_BITS) & CHANNEL_MASK;
 		data |= counter & TIME_MASK;
 		data = htobe64(data) >> 16;
 		fwrite(&data, RECORD_LENGTH, 1, stdout);
