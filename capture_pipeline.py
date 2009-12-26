@@ -53,7 +53,7 @@ class CapturePipeline(object):
         def start(self):
                 PIPE=subprocess.PIPE
                 cmd = ['./photon_generator', str(100)]
-                self.source = subprocess.Popen(cmd, stdout=PIPE)
+                self.source = subprocess.Popen(cmd, stdin=PIPE, stdout=PIPE)
                 logging.info("Started process %s" % cmd)
                 src = self.source.stdout
                 
@@ -82,6 +82,9 @@ class CapturePipeline(object):
                         if self.update_cb: self.update_cb()
 
                         #if chan==1 and c.idx % 20 == 0: print c.idx, c.times, c.counts
+
+        def send_cmd(self, cmd):
+                self.source.stdin.write(cmd)
 
         def stop(self):
                 self.source.terminate()
@@ -115,6 +118,9 @@ class TestPipeline(object):
                         
                         if self.update_cb: self.update_cb()
                         time.sleep(1.0/30)
+
+        def send_cmd(self, cmd):
+                logging.info("Test pipeline sent command: %s" % cmd)
 
         def stop(self):
                 self._running = False
