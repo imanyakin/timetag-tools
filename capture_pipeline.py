@@ -6,11 +6,11 @@ import threading
 from collections import defaultdict
 
 class RingBuffer:
-	def __init__(self,size_max):
+	def __init__(self, size_max):
 		self.max = size_max
 		self.data = []
 
-	def append(self,x):
+	def append(self, x):
 		"""append an element at the end of the buffer"""
 		self.data.append(x)
 		if len(self.data) == self.max:
