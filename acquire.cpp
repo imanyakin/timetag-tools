@@ -48,7 +48,7 @@ static void send_simple_command(libusb_device_handle* dev, uint8_t mask, uint8_t
 
 void pulseseq_set_initial_state(libusb_device_handle* dev, char seq_mask, bool initial_state) {
 	uint8_t buffer[5] = { 0x00, 0x00, 0x00, initial_state, 0x01 };
-	send_simple_command(dev, 0x4, buffer, 5);
+	send_simple_command(dev, seq_mask, buffer, 5);
 }
 
 void pulseseq_set_initial_count(libusb_device_handle* dev, char seq_mask, uint32_t initial_count) {
@@ -58,7 +58,7 @@ void pulseseq_set_initial_count(libusb_device_handle* dev, char seq_mask, uint32
 		0xff & (initial_count >> 8),
 	       	0xff & (initial_count >> 0),
 		0x02 };
-	send_simple_command(dev, 0x4, buffer, 5);
+	send_simple_command(dev, seq_mask, buffer, 5);
 }
 
 void pulseseq_set_high_count(libusb_device_handle* dev, char seq_mask, uint32_t high_count) {
@@ -68,7 +68,7 @@ void pulseseq_set_high_count(libusb_device_handle* dev, char seq_mask, uint32_t 
 		0xff & (high_count >> 8),
 		0xff & (high_count >> 0),
 		0x04 };
-	send_simple_command(dev, 0x4, buffer, 5);
+	send_simple_command(dev, seq_mask, buffer, 5);
 }
 
 void pulseseq_set_low_count(libusb_device_handle* dev, char seq_mask, uint32_t low_count) {
@@ -78,7 +78,7 @@ void pulseseq_set_low_count(libusb_device_handle* dev, char seq_mask, uint32_t l
 		0xff & (low_count >> 8),
 		0xff & (low_count >> 0),
 		0x04 };
-	send_simple_command(dev, 0x4, buffer, 5);
+	send_simple_command(dev, seq_mask, buffer, 5);
 }
 
 void start_capture(libusb_device_handle* dev) {
@@ -153,10 +153,10 @@ int main(int argc, char** argv) {
 
 	start_capture(dev);
 
-	pulseseq_set_initial_state(dev, 0x70, true);
-	pulseseq_set_initial_count(dev, 0x70, 10000);
-	pulseseq_set_low_count(dev, 0x70, 20000);
-        pulseseq_set_high_count(dev, 0x70, 30000);
+	pulseseq_set_initial_state(dev, 0x04, true);
+	pulseseq_set_initial_count(dev, 0x04, 10000);
+	pulseseq_set_low_count(dev, 0x04, 20000);
+        pulseseq_set_high_count(dev, 0x04, 30000);
 
 	read_loop(dev);
 
