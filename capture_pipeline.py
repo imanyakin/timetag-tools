@@ -52,7 +52,9 @@ class CapturePipeline(object):
 
         def start(self):
                 PIPE=subprocess.PIPE
-                cmd = ['./photon_generator', str(100)]
+
+                #cmd = ['./photon_generator', str(100)]
+                cmd = ['./acquire']
                 self.source = subprocess.Popen(cmd, stdin=PIPE, stdout=PIPE)
                 logging.info("Started process %s" % cmd)
                 src = self.source.stdout
