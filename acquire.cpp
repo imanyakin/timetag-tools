@@ -81,19 +81,29 @@ void pulseseq_set_low_count(libusb_device_handle* dev, char seq_mask, uint32_t l
 	send_simple_command(dev, seq_mask, buffer, 5);
 }
 
+void pulseseq_start(libusb_device_handle* dev) {
+	uint8_t buffer[1] = { 0x1 };
+	send_simple_command(dev, 0x02, buffer, 1);
+}
+
+void pulseseq_stop(libusb_device_handle* dev) {
+	uint8_t buffer[1] = { 0x2 };
+	send_simple_command(dev, 0x02, buffer, 1);
+}
+
 void start_capture(libusb_device_handle* dev) {
 	uint8_t buffer[1] = { 0x1 };
-	send_simple_command(dev, 0x1, buffer, 1);
+	send_simple_command(dev, 0x01, buffer, 1);
 }
 
 void stop_capture(libusb_device_handle* dev) {
 	uint8_t buffer[1] = { 0x2 };
-	send_simple_command(dev, 0x1, buffer, 1);
+	send_simple_command(dev, 0x01, buffer, 1);
 }
 
 void reset_counter(libusb_device_handle* dev) {
 	uint8_t buffer[1] = { 0x4 };
-	send_simple_command(dev, 0x1, buffer, 1);
+	send_simple_command(dev, 0x01, buffer, 1);
 }
 
 void get_status(libusb_device_handle* dev) {
