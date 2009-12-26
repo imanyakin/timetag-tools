@@ -1,3 +1,6 @@
+#ifndef _TIMETAGGER_H
+#define _TIMETAGGER_H
+
 #include <libusb.h>
 
 class timetagger {
@@ -45,4 +48,6 @@ public:
 	void pulseseq_set_initial_count(char seq_mask, uint32_t count);
 	void pulseseq_set_initial_state(char seq_mask, bool state);
 };
+
+#endif
 
