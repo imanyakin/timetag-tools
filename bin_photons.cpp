@@ -20,17 +20,18 @@
  *   [CHAN]	[BIN_START_TIME]	[BIN_PHOTON_COUNT]
  *
  * Notes:
- *   We handle wrap-around here by simply keeping all times as 64 bit and assume
- *   that we wrap-around at most once.
- *   With 1 nanosecond clock units, this gives us 500 years of acquisition time.
+ *   We handle wrap-around here by simply keeping all times as 64-bit and
+ *   assume that we wrap-around at most once.  With 1 nanosecond clock units,
+ *   this gives us 500 years of acquisition time.
+ *
  */
-
 
 struct channel {
 	record_t mask;
 	count_t bin_start;
 	int count;
-	bool lost;
+	int lost;	// IMPORTANT: This is not a count of lost photons, only
+			//            sprees of lost photons
 };
 
 int main(int argc, char** argv) {
@@ -66,16 +67,16 @@ int main(int argc, char** argv) {
 		time += time_offset;
 
 		for (int c=0; c < 4; c++) {
-			chans[c].lost |= photon & LOST_SAMPLE_MASK;
-
+			chans[c].lost += photon & LOST_SAMPLE_MASK;
 			if (chans[c].mask & photon)
 				chans[c].count++;
+
 			if (time > (chans[c].bin_start + bin_length)) {
-				printf("%d\t%llu\t%d\t%s\n",
+				printf("%d\t%llu\t%d\t%d\n",
 						c+1,
 						chans[c].bin_start,
 						chans[c].count,
-						chans[c].lost ? "LOST" : "");
+						chans[c].lost);
 				chans[c].count = 0;
 				chans[c].bin_start = time;
 			}
