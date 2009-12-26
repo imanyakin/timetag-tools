@@ -14,7 +14,7 @@
  *   A binary photon stream
  *
  * Output:
- *   COUNT_NUM	TIME		A B C D
+ *   REC_NUM	TIME	TYPE	A B C D		WRAP	LOST
  *
  * Where A, B, C, D are flag statuses
  */
@@ -32,16 +32,14 @@ int main(int argc, char** argv) {
 		photon = be64toh(photon) >> 16;
 		count_t time = photon & TIME_MASK;
 
-		printf("%u\t%9llx\t%s %s %s %s\t%s %s %s %s\t%s\n",
+		printf("%u\t%9llx\t%s\t%s %s %s %s\t%s\t%s\n",
 				count, time,
+				photon & REC_TYPE_MASK ? "STROBE" : "DELTA",
 				photon & CHAN_1_MASK ? "1" : " ",
 				photon & CHAN_2_MASK ? "2" : " ",
 				photon & CHAN_3_MASK ? "3" : " ",
 				photon & CHAN_4_MASK ? "4" : " ",
-				photon & OUTPUT_1_MASK ? "L1" : "  ",
-				photon & OUTPUT_2_MASK ? "L2" : "  ",
-				photon & OUTPUT_3_MASK ? "L3" : "  ",
-				photon & OUTPUT_4_MASK ? "L4" : "  ",
+				photon & TIMER_WRAP_MASK ? "WRAP" : "",
 				photon & LOST_SAMPLE_MASK ? "LOST" : ""
 		);
 	}
