@@ -142,7 +142,7 @@ static void read_loop(libusb_device_handle* dev) {
 	// Command loop
 	while (1) {
 		std::string cmd;
-		std::cin >> cmd;
+		std::getline(std::cin, cmd, ' ');
 
 		if (cmd == "start_cap") {
 			start_capture(dev);
