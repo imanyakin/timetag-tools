@@ -1,7 +1,6 @@
 #include <iostream>
 #include <cstdlib>
 #include <cstdio>
-#include <unistd.h>
 #include <libusb.h>
 
 #include "timetagger.h"
