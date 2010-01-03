@@ -67,8 +67,8 @@ class MainWindow(object):
                                 gobject.idle_add(self.update_plot)
                                 self.update_pending = True
 
-                self.pipeline = CapturePipeline(bin_length, file)
-                #self.pipeline = TestPipeline(100)
+                #self.pipeline = CapturePipeline(bin_length, file)
+                self.pipeline = TestPipeline(100)
                 self.pipeline.update_cb = update_cb
                 self.pipeline.start()
 
@@ -81,9 +81,9 @@ class MainWindow(object):
                 sensitive_objects = [
                         'file_output_action',
                         'data_file',
-                        'offset_time',
-                        'high_time',
-                        'low_time'
+                        'offset_time_spin',
+                        'high_time_spin',
+                        'low_time_spin'
                 ]
                 for o in sensitive_objects:
                         self.builder.get_object(o).props.sensitive = not state
@@ -92,6 +92,28 @@ class MainWindow(object):
                         self.start_pipeline()
                 else:
                         self.stop_pipeline()
+
+        def override_output(self, output, state=False):
+                mask = output
+                if state:
+                        self.program_pulse_seq(mask, state, 0, 100000, 0)
+                else:
+                        self.program_pulse_seq(mask, state, 0, 0, 100000)
+
+        def program_pulse_seq(self, mask, initial_state, initial_count, high_count, low_count):
+                self.pipeline.send_cmd('initial_state', mask, initial_state)
+                self.pipeline.send_cmd('initial_count', mask, initial_count)
+                self.pipeline.send_cmd('high_count', mask, high_count)
+                self.pipeline.send_cmd('low_count', mask, low_count)
+
+        def output_override_toggled_cb(self, action):
+                override_enabled = self.builder.get_object('output_override_action').props.active
+                if override_enabled:
+                        state = self.builder.get_object('output_state_action').props.active
+                        output = self.builder.get_object('output_select')
+                        self.override_output(output, state)
+                else:
+                        self.program_pulse_seq(mask, initial_state, high_count, low_count)
 
 if __name__ == '__main__':
         gtk.gdk.threads_init()
