@@ -25,6 +25,8 @@ void timetagger::send_simple_command(uint8_t mask, uint8_t* data, size_t length)
 
 	if (ret = libusb_bulk_transfer(dev, CMD_ENDP, buffer, 128, &transferred, TIMEOUT) )
 		fprintf(stderr, "Failed sending request: %d\n", ret);
+
+#if 0
 	if (ret = libusb_bulk_transfer(dev, REPLY_ENDP, buffer, 128, &transferred, TIMEOUT) )
 		fprintf(stderr, "failed receiving reply: %d\n", ret);
 
@@ -32,6 +34,7 @@ void timetagger::send_simple_command(uint8_t mask, uint8_t* data, size_t length)
 		fprintf(stderr, "Length: %d\n", ((int*) buffer)[0]);
 	else
 		fprintf(stderr, "No response\n");
+#endif
 
 	delete [] buffer;
 }
@@ -121,6 +124,7 @@ void timetagger::get_status()
 
 static void transfer_done_cb(libusb_transfer* transfer)
 {
+	fprintf(stderr, "hi1\n");
 	if (transfer->status != LIBUSB_TRANSFER_COMPLETED) 
 		fprintf(stderr, "Failed sending request: %d\n", transfer->status);
 
@@ -129,6 +133,7 @@ static void transfer_done_cb(libusb_transfer* transfer)
 
 	timetagger* me = (timetagger*) transfer->user_data;
 	me->data_cb(transfer->buffer, transfer->actual_length);
+	fprintf(stderr, "hi2\n");
 
 	libusb_submit_transfer(transfer);
 }

@@ -71,6 +71,7 @@ class MainWindow(object):
                 self.pipeline = TestPipeline(100)
                 self.pipeline.update_cb = update_cb
                 self.pipeline.start()
+                self.sync_pulse_seq()
 
         def stop_pipeline(self):
                 self.pipeline.stop()
@@ -101,10 +102,21 @@ class MainWindow(object):
                         self.program_pulse_seq(mask, state, 0, 0, 100000)
 
         def program_pulse_seq(self, mask, initial_state, initial_count, high_count, low_count):
-                self.pipeline.send_cmd('initial_state', mask, initial_state)
-                self.pipeline.send_cmd('initial_count', mask, initial_count)
-                self.pipeline.send_cmd('high_count', mask, high_count)
-                self.pipeline.send_cmd('low_count', mask, low_count)
+                if not self.pipeline: return
+                self.pipeline.tagger.set_initial_state(mask, initial_state)
+                self.pipeline.tagger.set_initial_count(mask, initial_count)
+                self.pipeline.tagger.set_high_count(mask, high_count)
+                self.pipeline.tagger.set_low_count(mask, low_count)
+
+        def sync_pulse_seq(self):
+                """ Program the pulse sequencer to reflect the settings in the UI """
+                output = self.builder.get_object("output_select").get_active()
+                mask = 1 << output
+                initial_state = self.builder.get_object("high_initial_state").get_current_value()
+                offset_time = self.builder.get_object("offset_time").get_value()
+                high_time = self.builder.get_object("high_time").get_value()
+                low_time = self.builder.get_object("low_time").get_value()
+                self.program_pulse_seq(mask, initial_state, high_count, low_count)
 
         def output_override_toggled_cb(self, action):
                 override_enabled = self.builder.get_object('output_override_action').props.active
@@ -113,7 +125,7 @@ class MainWindow(object):
                         output = self.builder.get_object('output_select')
                         self.override_output(output, state)
                 else:
-                        self.program_pulse_seq(mask, initial_state, high_count, low_count)
+                        self.sync_pulse_seq()
 
 if __name__ == '__main__':
         gtk.gdk.threads_init()

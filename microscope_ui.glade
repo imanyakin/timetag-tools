@@ -17,8 +17,8 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
-                <property name="use_action_appearance">True</property>
                 <property name="related_action">file_output_action</property>
+                <property name="use_action_appearance">True</property>
                 <property name="draw_indicator">True</property>
               </object>
               <packing>
@@ -40,8 +40,8 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">True</property>
                 <property name="related_action">running_action</property>
+                <property name="use_action_appearance">True</property>
               </object>
               <packing>
                 <property name="fill">False</property>
@@ -131,7 +131,7 @@
                     <child>
                       <object class="GtkTable" id="table2">
                         <property name="visible">True</property>
-                        <property name="n_rows">5</property>
+                        <property name="n_rows">6</property>
                         <property name="n_columns">2</property>
                         <child>
                           <object class="GtkSpinButton" id="offset_time_spin">
@@ -143,8 +143,8 @@
                           <packing>
                             <property name="left_attach">1</property>
                             <property name="right_attach">2</property>
-                            <property name="top_attach">2</property>
-                            <property name="bottom_attach">3</property>
+                            <property name="top_attach">3</property>
+                            <property name="bottom_attach">4</property>
                           </packing>
                         </child>
                         <child>
@@ -157,8 +157,8 @@
                           <packing>
                             <property name="left_attach">1</property>
                             <property name="right_attach">2</property>
-                            <property name="top_attach">3</property>
-                            <property name="bottom_attach">4</property>
+                            <property name="top_attach">4</property>
+                            <property name="bottom_attach">5</property>
                           </packing>
                         </child>
                         <child>
@@ -171,18 +171,18 @@
                           <packing>
                             <property name="left_attach">1</property>
                             <property name="right_attach">2</property>
-                            <property name="top_attach">4</property>
-                            <property name="bottom_attach">5</property>
+                            <property name="top_attach">5</property>
+                            <property name="bottom_attach">6</property>
                           </packing>
                         </child>
                         <child>
                           <object class="GtkLabel" id="label2">
                             <property name="visible">True</property>
-                            <property name="label" translatable="yes">Offset</property>
+                            <property name="label" translatable="yes">Offset Time</property>
                           </object>
                           <packing>
-                            <property name="top_attach">2</property>
-                            <property name="bottom_attach">3</property>
+                            <property name="top_attach">3</property>
+                            <property name="bottom_attach">4</property>
                           </packing>
                         </child>
                         <child>
@@ -191,8 +191,8 @@
                             <property name="label" translatable="yes">High Time</property>
                           </object>
                           <packing>
-                            <property name="top_attach">3</property>
-                            <property name="bottom_attach">4</property>
+                            <property name="top_attach">4</property>
+                            <property name="bottom_attach">5</property>
                           </packing>
                         </child>
                         <child>
@@ -201,8 +201,8 @@
                             <property name="label" translatable="yes">Low Time</property>
                           </object>
                           <packing>
-                            <property name="top_attach">4</property>
-                            <property name="bottom_attach">5</property>
+                            <property name="top_attach">5</property>
+                            <property name="bottom_attach">6</property>
                           </packing>
                         </child>
                         <child>
@@ -210,8 +210,8 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
-                            <property name="use_action_appearance">True</property>
                             <property name="related_action">output_override_action</property>
+                            <property name="use_action_appearance">True</property>
                             <property name="draw_indicator">True</property>
                           </object>
                         </child>
@@ -220,8 +220,8 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
-                            <property name="use_action_appearance">True</property>
                             <property name="related_action">output_state_action</property>
+                            <property name="use_action_appearance">True</property>
                           </object>
                           <packing>
                             <property name="left_attach">1</property>
@@ -246,6 +246,55 @@
                             <property name="right_attach">2</property>
                             <property name="top_attach">1</property>
                             <property name="bottom_attach">2</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkVBox" id="vbox2">
+                            <property name="visible">True</property>
+                            <property name="orientation">vertical</property>
+                            <child>
+                              <object class="GtkRadioButton" id="high_initial_state_radio">
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
+                                <property name="related_action">high_initial_state</property>
+                                <property name="use_action_appearance">True</property>
+                                <property name="draw_indicator">True</property>
+                              </object>
+                              <packing>
+                                <property name="position">0</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkRadioButton" id="low_initial_state_radio">
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
+                                <property name="related_action">low_initial_state</property>
+                                <property name="use_action_appearance">True</property>
+                                <property name="draw_indicator">True</property>
+                                <property name="group">high_initial_state_radio</property>
+                              </object>
+                              <packing>
+                                <property name="position">1</property>
+                              </packing>
+                            </child>
+                          </object>
+                          <packing>
+                            <property name="left_attach">1</property>
+                            <property name="right_attach">2</property>
+                            <property name="top_attach">2</property>
+                            <property name="bottom_attach">3</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="label5">
+                            <property name="visible">True</property>
+                            <property name="label" translatable="yes">Initial State</property>
+                          </object>
+                          <packing>
+                            <property name="top_attach">2</property>
+                            <property name="bottom_attach">3</property>
                           </packing>
                         </child>
                       </object>
@@ -354,5 +403,15 @@
     <property name="page_increment">10</property>
     <property name="page_size">10</property>
     <signal name="changed" handler="pulse_seq_changed_cb"/>
+  </object>
+  <object class="GtkRadioAction" id="high_initial_state">
+    <property name="label">High</property>
+    <property name="draw_as_radio">True</property>
+    <property name="value">1</property>
+  </object>
+  <object class="GtkRadioAction" id="low_initial_state">
+    <property name="label">Low</property>
+    <property name="draw_as_radio">True</property>
+    <property name="group">high_initial_state</property>
   </object>
 </interface>

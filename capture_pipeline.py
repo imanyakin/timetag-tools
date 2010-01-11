@@ -73,6 +73,9 @@ class CapturePipeline(object):
                 self.listener.daemon = True
                 self.listener.start()
 
+                self.tagger = timetag_interface.Timetag(self.source.stdin)
+                self.tagger.start_capture()
+
         def listen(self):
                 while True:
                         l = self.binner.stdout.readline()
@@ -85,14 +88,10 @@ class CapturePipeline(object):
 
                         #if chan==1 and c.idx % 20 == 0: print c.idx, c.times, c.counts
 
-        def send_cmd(self, cmd, mask, data=None):
-                if data:
-                        self.source.stdin.write('%s\n%d\n%s\n' % (cmd, mask, data))
-                else:
-                        self.source.stdin.write('%s\n%d\n' % (cmd, mask))
-
         def stop(self):
                 logging.info("Capture pipeline shutdown")
+                self.tagger.stop_capture()
+                self.tagger = None
                 self.source.terminate()
 
         def __del__(self):
@@ -105,6 +104,7 @@ class TestPipeline(object):
                 self.counts = RingBuffer(npts)
                 self.t = 0
                 self.update_cb = None
+                self.tagger = TimetagInterface(sys.stderr)
 
         def __iter__(self):
                 yield 0, self.times.get(), self.counts.get()
@@ -124,8 +124,6 @@ class TestPipeline(object):
                         if self.update_cb: self.update_cb()
                         time.sleep(1.0/40)
 
-        def send_cmd(self, cmd):
-                logging.info("Test pipeline sent command: %s" % cmd)
-
         def stop(self):
                 self._running = False
+
