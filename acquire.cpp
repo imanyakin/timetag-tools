@@ -65,6 +65,9 @@ int main(int argc, char** argv)
 {
 	libusb_context* ctx;
 	libusb_device_handle* dev;
+
+	// Disable output buffering
+	setvbuf(stdout, NULL, _IONBF, NULL);
        
 	libusb_init(&ctx);
 	dev = libusb_open_device_with_vid_pid(ctx, VENDOR_ID, PRODUCT_ID);
