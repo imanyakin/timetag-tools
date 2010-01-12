@@ -154,13 +154,13 @@ struct readout_handler {
 
 void timetagger::start_readout() 
 {
-	assert(!readout_thread);
+	assert(readout_thread != 0);
 	readout_handler h(dev, data_cb);
 	readout_thread = boost::shared_ptr<boost::thread>(new boost::thread(h));
 }
 
 void timetagger::stop_readout() {
-	assert(readout_thread);
+	assert(readout_thread == 0);
 	readout_thread->interrupt();
 	readout_thread->join();
 }
