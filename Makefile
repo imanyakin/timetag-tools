@@ -1,4 +1,4 @@
-CXXFLAGS=-ggdb -I/usr/include/libusb-1.0
+CXXFLAGS=-std=c++0x -ggdb -I/usr/include/libusb-1.0
 CC=g++
 
 PROGS=acquire bin_photons photon_generator dump_photons

@@ -3,6 +3,9 @@
 #include <cstdio>
 #include <libusb.h>
 
+#include <boost/tokenizer.hpp>
+#include <boost/lexical_cast.hpp>
+
 #include "timetagger.h"
 #include "photon_format.h"
 
@@ -18,13 +21,22 @@ struct data_cb : timetagger::data_cb_t {
 
 static void read_loop(timetagger& t)
 {
+	using boost::lexical_cast;
+
 	int ret, transferred;
 	t.start_readout();
 
 	// Command loop
 	while (!std::cin.eof()) {
-		std::string cmd, tmp;
-		std::getline(std::cin, cmd);
+		std::string line;
+		std::getline(std::cin, line);
+
+		typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
+		boost::char_separator<char> sep("\t ");
+		tokenizer tokens(line, sep);
+		auto tok = tokens.begin();
+		std::string cmd = *tok;
+		tok++;
 
 		if (cmd == "start_capture") {
 			t.start_capture();
@@ -33,24 +45,20 @@ static void read_loop(timetagger& t)
 		} else if (cmd == "reset") {
 			t.reset_counter();
 		} else if (cmd == "set_initial_state") {
-			int output, state;
-			std::cin >> output;
-			std::cin >> state;
+			int output = lexical_cast<int>(*tok); tok++;
+			int state = lexical_cast<int>(*tok);
 			t.pulseseq_set_initial_state(output, state != 0);
 		} else if (cmd == "set_initial_count") {
-			int output, count;
-			std::cin >> output;
-			std::cin >> count;
+			int output = lexical_cast<int>(*tok); tok++;
+			int count = lexical_cast<int>(*tok);
 			t.pulseseq_set_initial_count(output, count);
 		} else if (cmd == "set_high_count") {
-			int output, count;
-			std::cin >> output;
-			std::cin >> count;
+			int output = lexical_cast<int>(*tok); tok++;
+			int count = lexical_cast<int>(*tok);
 			t.pulseseq_set_high_count(output, count);
 		} else if (cmd == "set_low_count") {
-			int output, count;
-			std::cin >> output;
-			std::cin >> count;
+			int output = lexical_cast<int>(*tok); tok++;
+			int count = lexical_cast<int>(*tok);
 			t.pulseseq_set_low_count(output, count);
 		} else if (cmd == "start_outputs") {
 			t.pulseseq_start();
