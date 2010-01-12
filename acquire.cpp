@@ -52,6 +52,10 @@ static void read_loop(timetagger& t)
 			std::cin >> output;
 			std::cin >> count;
 			t.pulseseq_set_low_count(output, count);
+		} else if (cmd == "start_outputs") {
+			t.pulseseq_start();
+		} else if (cmd == "stop_outputs") {
+			t.pulseseq_stop();
 		} else if (cmd == "quit") {
 			break;
 		} else
