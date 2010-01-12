@@ -52,6 +52,8 @@ static void read_loop(timetagger& t)
 			std::cin >> output;
 			std::cin >> count;
 			t.pulseseq_set_low_count(output, count);
+		} else if (cmd == "quit") {
+			break;
 		} else
 			std::cerr << "Invalid command\n";
 	}
