@@ -12,15 +12,15 @@
 
 #define TRANSFER_LEN (85*RECORD_LENGTH)
 
-void timetagger::send_simple_command(uint8_t mask, uint8_t* data, size_t length)
+void timetagger::send_simple_command(uint8_t mask, cmd_data data)
 {
 	int ret, transferred;
 	uint8_t* buffer = new uint8_t[1024];
 	memset(buffer, 0, 1024);
 
-	buffer[0] = length;
+	buffer[0] = data.size();
 	buffer[1] = mask;
-	for (int i=0; i<length; i++)
+	for (int i=0; i<data.size(); i++)
 		buffer[i+2] = data[i];
 
 	if (ret = libusb_bulk_transfer(dev, CMD_ENDP, buffer, 128, &transferred, TIMEOUT) )
@@ -41,71 +41,71 @@ void timetagger::send_simple_command(uint8_t mask, uint8_t* data, size_t length)
 
 void timetagger::pulseseq_set_initial_state(char seq_mask, bool state)
 {
-	uint8_t buffer[5] = { 0x00, 0x00, 0x00, state, 0x01 };
-	send_simple_command(seq_mask, buffer, 5);
+	cmd_data data = { 0x00, 0x00, 0x00, state, 0x01 };
+	send_simple_command(seq_mask, data);
 }
 
 void timetagger::pulseseq_set_initial_count(char seq_mask, uint32_t count)
 {
-	uint8_t buffer[5] = {
+	cmd_data data = {
 	       	(uint8_t) (0xff & (count >> 0)),
 		(uint8_t) (0xff & (count >> 8)),
 		(uint8_t) (0xff & (count >> 16)),
 		(uint8_t) (0xff & (count >> 24)),
 		0x02 };
-	send_simple_command(seq_mask, buffer, 5);
+	send_simple_command(seq_mask, data);
 }
 
 void timetagger::pulseseq_set_high_count(char seq_mask, uint32_t count)
 {
-	uint8_t buffer[5] = {
+	cmd_data data = {
 		(uint8_t) (0xff & (count >> 0)),
 		(uint8_t) (0xff & (count >> 8)),
 		(uint8_t) (0xff & (count >> 16)),
 		(uint8_t) (0xff & (count >> 24)),
 		0x04 };
-	send_simple_command(seq_mask, buffer, 5);
+	send_simple_command(seq_mask, data);
 }
 
 void timetagger::pulseseq_set_low_count(char seq_mask, uint32_t count)
 {
-	uint8_t buffer[5] = {
+	cmd_data data = {
 		(uint8_t) (0xff & (count >> 0)),
 		(uint8_t) (0xff & (count >> 8)),
 		(uint8_t) (0xff & (count >> 16)),
 		(uint8_t) (0xff & (count >> 24)),
 		0x08 };
-	send_simple_command(seq_mask, buffer, 5);
+	send_simple_command(seq_mask, data);
 }
 
 void timetagger::pulseseq_start()
 {
-	uint8_t buffer[1] = { 0x1 };
-	send_simple_command(0x02, buffer, 1);
+	cmd_data data = { 0x1 };
+	send_simple_command(0x02, data);
 }
 
 void timetagger::pulseseq_stop()
 {
-	uint8_t buffer[1] = { 0x2 };
-	send_simple_command(0x02, buffer, 1);
+	cmd_data data = { 0x2 };
+	send_simple_command(0x02, data);
 }
 
 void timetagger::start_capture()
 {
-	uint8_t buffer[1] = { 0x1 };
-	send_simple_command(0x01, buffer, 1);
+	cmd_data data = { 0x1 };
+	send_simple_command(0x01, data);
 }
 
 void timetagger::stop_capture()
 {
-	uint8_t buffer[1] = { 0x2 };
-	send_simple_command(0x01, buffer, 1);
+	cmd_data data = { 0x2 };
+	send_simple_command(0x01, data);
 }
 
 void timetagger::reset_counter()
 {
-	uint8_t buffer[1] = { 0x4 };
-	send_simple_command(0x01, buffer, 1);
+	cmd_data data = { 0x4 };
+	send_simple_command(0x01, data);
 }
 
 void timetagger::get_status()

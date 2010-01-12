@@ -2,6 +2,7 @@
 #define _TIMETAGGER_H
 
 #include <libusb.h>
+#include <vector>
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
 
@@ -12,10 +13,11 @@ public:
 	};
 
 private:
+	typedef std::vector<uint8_t> cmd_data;
 	libusb_device_handle* dev;
 	boost::shared_ptr<boost::thread> readout_thread;
 	
-	void send_simple_command(uint8_t mask, uint8_t* data, size_t length);
+	void send_simple_command(uint8_t mask, cmd_data data);
 
 public:
 	data_cb_t& data_cb;
