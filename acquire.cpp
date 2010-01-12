@@ -12,7 +12,7 @@
 
 struct data_cb : timetagger::data_cb_t {
 	void operator()(const uint8_t* buffer, size_t length) {
-		std::cout.write((const char*) buffer, length);
+		fwrite((const char*) buffer, 1, length, stdout);
 	}
 };
 
