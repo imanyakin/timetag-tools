@@ -41,40 +41,40 @@ void timetagger::send_simple_command(uint8_t mask, uint8_t* data, size_t length)
 
 void timetagger::pulseseq_set_initial_state(char seq_mask, bool state)
 {
-	uint8_t buffer[5] = { 0x01, 0x00, 0x00, 0x00, state };
+	uint8_t buffer[5] = { 0x00, 0x00, 0x00, state, 0x01 };
 	send_simple_command(seq_mask, buffer, 5);
 }
 
 void timetagger::pulseseq_set_initial_count(char seq_mask, uint32_t count)
 {
 	uint8_t buffer[5] = {
-		0x02,
-	       	0xff & (count >> 0),
-		0xff & (count >> 8),
-		0xff & (count >> 16),
-		0xff & (count >> 24) };
+	       	(uint8_t) (0xff & (count >> 0)),
+		(uint8_t) (0xff & (count >> 8)),
+		(uint8_t) (0xff & (count >> 16)),
+		(uint8_t) (0xff & (count >> 24)),
+		0x02 };
 	send_simple_command(seq_mask, buffer, 5);
 }
 
 void timetagger::pulseseq_set_high_count(char seq_mask, uint32_t count)
 {
 	uint8_t buffer[5] = {
-		0x04,
-		0xff & (count >> 0),
-		0xff & (count >> 8),
-		0xff & (count >> 16),
-		0xff & (count >> 24) };
+		(uint8_t) (0xff & (count >> 0)),
+		(uint8_t) (0xff & (count >> 8)),
+		(uint8_t) (0xff & (count >> 16)),
+		(uint8_t) (0xff & (count >> 24)),
+		0x04 };
 	send_simple_command(seq_mask, buffer, 5);
 }
 
 void timetagger::pulseseq_set_low_count(char seq_mask, uint32_t count)
 {
 	uint8_t buffer[5] = {
-		0x08,
-		0xff & (count >> 0),
-		0xff & (count >> 8),
-		0xff & (count >> 16),
-		0xff & (count >> 24) };
+		(uint8_t) (0xff & (count >> 0)),
+		(uint8_t) (0xff & (count >> 8)),
+		(uint8_t) (0xff & (count >> 16)),
+		(uint8_t) (0xff & (count >> 24)),
+		0x08 };
 	send_simple_command(seq_mask, buffer, 5);
 }
 
