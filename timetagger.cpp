@@ -108,19 +108,6 @@ void timetagger::reset_counter()
 	send_simple_command(0x01, data);
 }
 
-void timetagger::get_status()
-{
-	int ret, transferred;
-	uint8_t buffer[1024];
-
-	if (ret = libusb_bulk_transfer(dev, 0x81, &buffer[0], 1024, &transferred, TIMEOUT) )
-		fprintf(stderr, "Failed sending request: %d\n", ret);
-	fprintf(stderr, "Transferred: %d:\n", transferred);
-        for (int i=0; i<transferred; i++)
-		fprintf(stderr, "%02x ", buffer[i]);
-	fprintf(stderr, "\n");
-}
-
 struct readout_handler {
 	libusb_device_handle* dev;
 	timetagger::data_cb_t& cb;

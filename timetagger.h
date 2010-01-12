@@ -38,8 +38,6 @@ public:
 	void start_readout();
 	void stop_readout();
 
-	void get_status();
-
 	void start_capture();
 	void stop_capture();
 	void reset_counter();

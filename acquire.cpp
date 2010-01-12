@@ -91,7 +91,6 @@ int main(int argc, char** argv)
 	data_cb cb;
 	timetagger t(dev, cb);
 
-	t.get_status();
 	t.stop_capture();
 	read_loop(t);
 
