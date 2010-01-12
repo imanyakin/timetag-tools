@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
 
 		printf("%u\t%9llx\t%s\t%s %s %s %s\t%s\t%s\n",
 				count, time,
-				photon & REC_TYPE_MASK ? "STROBE" : "DELTA",
+				photon & REC_TYPE_MASK ? "DELTA" : "STROBE",
 				photon & CHAN_1_MASK ? "1" : " ",
 				photon & CHAN_2_MASK ? "2" : " ",
 				photon & CHAN_3_MASK ? "3" : " ",
