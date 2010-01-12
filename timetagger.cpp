@@ -14,16 +14,16 @@
 
 void timetagger::send_simple_command(uint8_t mask, cmd_data data)
 {
-	int ret, transferred;
-	uint8_t* buffer = new uint8_t[1024];
-	memset(buffer, 0, 1024);
-
-	buffer[0] = data.size();
-	buffer[1] = mask;
+	std::vector<uint8_t> buffer = {
+		0xAA,			// Magic number
+		(uint8_t) data.size(),	// Command length
+		mask			// Command mask
+	};
 	for (int i=0; i<data.size(); i++)
-		buffer[i+2] = data[i];
+		buffer.push_back(data[i]);
 
-	if (ret = libusb_bulk_transfer(dev, CMD_ENDP, buffer, 128, &transferred, TIMEOUT) )
+	int ret, transferred;
+	if (ret = libusb_bulk_transfer(dev, CMD_ENDP, &buffer[0], buffer.size(), &transferred, TIMEOUT) )
 		fprintf(stderr, "Failed sending request: %d\n", ret);
 
 #if 0
@@ -35,8 +35,6 @@ void timetagger::send_simple_command(uint8_t mask, cmd_data data)
 	else
 		fprintf(stderr, "No response\n");
 #endif
-
-	delete [] buffer;
 }
 
 void timetagger::pulseseq_set_initial_state(char seq_mask, bool state)
