@@ -50,8 +50,9 @@ int main(int argc, char** argv) {
 	};
 
 	// For handling wraparound
-	count_t last_time = 0;
 	count_t time_offset = 0;
+
+	// Disable buffering
 	setvbuf(stdout, NULL, _IONBF, NULL);
 
 	while (true) {
@@ -63,15 +64,15 @@ int main(int argc, char** argv) {
 		count_t time = photon & TIME_MASK;
 
 		// Handle wrap-around
-		if (time < last_time)
-			time_offset += (1ULL<<TIME_BITS) - time;
+		if (photon & TIMER_WRAP_MASK)
+			time_offset += (1ULL<<TIME_BITS) - 1;
 
-		last_time = time;
 		time += time_offset;
 
 		for (int c=0; c < 4; c++) {
-			chans[c].lost += photon & LOST_SAMPLE_MASK;
-			if (chans[c].mask & photon)
+			if (photon & LOST_SAMPLE_MASK)
+				chans[c].lost++;
+			if (!(photon & REC_TYPE_MASK) && (photon & chans[c].mask))
 				chans[c].count++;
 
 			if (time > (chans[c].bin_start + bin_length)) {
@@ -80,8 +81,9 @@ int main(int argc, char** argv) {
 						chans[c].bin_start,
 						chans[c].count,
 						chans[c].lost);
+				chans[c].lost = 0;
 				chans[c].count = 0;
-				chans[c].bin_start = time;
+				chans[c].bin_start = (time / bin_length) * bin_length;
 			}
 		}
 	}
