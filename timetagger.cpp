@@ -121,34 +121,47 @@ void timetagger::get_status()
 	fprintf(stderr, "\n");
 }
 
+struct readout_handler {
+	libusb_device_handle* dev;
+	timetagger::data_cb_t& cb;
 
-static void transfer_done_cb(libusb_transfer* transfer)
-{
-	fprintf(stderr, "hi1\n");
-	if (transfer->status != LIBUSB_TRANSFER_COMPLETED) 
-		fprintf(stderr, "Failed sending request: %d\n", transfer->status);
+	readout_handler(libusb_device_handle* dev, timetagger::data_cb_t& cb) :
+		dev(dev), cb(cb) { }
 
-	if (transfer->actual_length % RECORD_LENGTH != 0)
-		fprintf(stderr, "Warning: Received partial record.");
+	void operator()()
+	{
+		uint8_t* buffer = new uint8_t[TRANSFER_LEN];
 
-	timetagger* me = (timetagger*) transfer->user_data;
-	me->data_cb(transfer->buffer, transfer->actual_length);
-	fprintf(stderr, "hi2\n");
+		do {
+			int transferred, res;
+			res = libusb_bulk_transfer(dev, DATA_ENDP, buffer, TRANSFER_LEN, &transferred, 0);
+			if (!res) {
+				if (transferred % RECORD_LENGTH != 0)
+					fprintf(stderr, "Warning: Received partial record.");
+				cb(buffer, transferred);
+			} else
+				fprintf(stderr, "Transfer failed: %d\n", res);
 
-	libusb_submit_transfer(transfer);
-}
+			try {
+				boost::this_thread::interruption_point();
+			} catch (...) {
+				break;
+			}
+		} while (true);
+		delete [] buffer;
+	}
+};
 
 void timetagger::start_readout() 
 {
-	data_buffer = new uint8_t[TRANSFER_LEN];
-	transfer = libusb_alloc_transfer(0);
-	libusb_fill_bulk_transfer(transfer, dev, DATA_ENDP, data_buffer, TRANSFER_LEN, transfer_done_cb, this, 0);
-	libusb_submit_transfer(transfer);
+	assert(!readout_thread);
+	readout_handler h(dev, data_cb);
+	readout_thread = boost::shared_ptr<boost::thread>(new boost::thread(h));
 }
 
 void timetagger::stop_readout() {
-	libusb_cancel_transfer(transfer);
-	libusb_free_transfer(transfer);
-	delete [] data_buffer;
+	assert(readout_thread);
+	readout_thread->interrupt();
+	readout_thread->join();
 }
 

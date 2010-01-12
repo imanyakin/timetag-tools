@@ -2,6 +2,8 @@
 #define _TIMETAGGER_H
 
 #include <libusb.h>
+#include <boost/shared_ptr.hpp>
+#include <boost/thread.hpp>
 
 class timetagger {
 public:
@@ -11,8 +13,7 @@ public:
 
 private:
 	libusb_device_handle* dev;
-	libusb_transfer* transfer;
-	uint8_t* data_buffer;
+	boost::shared_ptr<boost::thread> readout_thread;
 	
 	void send_simple_command(uint8_t mask, uint8_t* data, size_t length);
 
