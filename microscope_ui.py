@@ -67,10 +67,11 @@ class MainWindow(object):
                                 gobject.idle_add(self.update_plot)
                                 self.update_pending = True
 
-                #self.pipeline = CapturePipeline(bin_length, file)
-                self.pipeline = TestPipeline(100)
+                self.pipeline = CapturePipeline(bin_length, file)
+                #self.pipeline = TestPipeline(100)
                 self.pipeline.update_cb = update_cb
                 self.pipeline.start()
+                self.pipeline.tagger.start_capture()
                 self.sync_pulse_seq()
 
         def stop_pipeline(self):
@@ -113,10 +114,10 @@ class MainWindow(object):
                 output = self.builder.get_object("output_select").get_active()
                 mask = 1 << output
                 initial_state = self.builder.get_object("high_initial_state").get_current_value()
-                offset_time = self.builder.get_object("offset_time").get_value()
-                high_time = self.builder.get_object("high_time").get_value()
-                low_time = self.builder.get_object("low_time").get_value()
-                self.program_pulse_seq(mask, initial_state, high_count, low_count)
+                initial_count = self.builder.get_object("offset_time").get_value()
+                high_count = self.builder.get_object("high_time").get_value()
+                low_count = self.builder.get_object("low_time").get_value()
+                self.program_pulse_seq(mask, initial_state, initial_count, high_count, low_count)
 
         def output_override_toggled_cb(self, action):
                 override_enabled = self.builder.get_object('output_override_action').props.active
