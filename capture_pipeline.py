@@ -5,6 +5,8 @@ import time
 import threading
 from collections import defaultdict
 
+import timetag_interface
+
 class RingBuffer:
 	def __init__(self, size_max):
 		self.max = size_max
