@@ -12,6 +12,7 @@ from capture_pipeline import CapturePipeline, TestPipeline
 
 logging.basicConfig(level=logging.DEBUG)
 
+PULSESEQ_FREQ = 30e6
 
 class MainWindow(object):
         def update_plot(self):
@@ -100,9 +101,9 @@ class MainWindow(object):
         def program_pulse_seq(self, output, initial_state, initial_count, high_count, low_count):
                 if not self.pipeline: return
                 self.pipeline.tagger.set_initial_state(output, initial_state)
-                self.pipeline.tagger.set_initial_count(output, initial_count)
-                self.pipeline.tagger.set_high_count(output, high_count)
-                self.pipeline.tagger.set_low_count(output, low_count)
+                self.pipeline.tagger.set_initial_count(output, initial_count*PULSESEQ_FREQ)
+                self.pipeline.tagger.set_high_count(output, high_count*PULSESEQ_FREQ)
+                self.pipeline.tagger.set_low_count(output, low_count*PULSESEQ_FREQ)
                 self.pipeline.tagger.start_outputs([output])
 
         def sync_pulse_seq(self):
@@ -123,6 +124,11 @@ class MainWindow(object):
                         self.override_output(output, state)
                 else:
                         self.sync_pulse_seq()
+
+        def pulse_seq_changed_cb(self, *action):
+                output = self.builder.get_object("output_select").get_active()
+                print output
+                self.sync_pulse_seq()
 
 if __name__ == '__main__':
         gtk.gdk.threads_init()
