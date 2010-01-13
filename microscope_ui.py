@@ -58,7 +58,6 @@ class MainWindow(object):
                 if self.pipeline:
                         raise "Tried to start a capture pipeline while one is already running"
 
-                bin_length = 10e6
                 file = None
                 if self.builder.get_object('file_output_action').props.active:
                         file = self.builder.get_object('data_file').get_filename()
@@ -68,7 +67,7 @@ class MainWindow(object):
                                 gobject.idle_add(self.update_plot)
                                 self.update_pending = True
 
-                self.pipeline = CapturePipeline(bin_length, file)
+                self.pipeline = CapturePipeline(output_file=file)
                 #self.pipeline = TestPipeline(100)
                 self.pipeline.update_cb = update_cb
                 self.pipeline.start()
