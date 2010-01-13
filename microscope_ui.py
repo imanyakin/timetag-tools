@@ -83,9 +83,6 @@ class MainWindow(object):
                 sensitive_objects = [
                         'file_output_action',
                         'data_file',
-                        'offset_time_spin',
-                        'high_time_spin',
-                        'low_time_spin'
                 ]
                 for o in sensitive_objects:
                         self.builder.get_object(o).props.sensitive = not state
@@ -96,34 +93,33 @@ class MainWindow(object):
                         self.stop_pipeline()
 
         def override_output(self, output, state=False):
-                mask = output
-                if state:
-                        self.program_pulse_seq(mask, state, 0, 100000, 0)
-                else:
-                        self.program_pulse_seq(mask, state, 0, 0, 100000)
-
-        def program_pulse_seq(self, mask, initial_state, initial_count, high_count, low_count):
                 if not self.pipeline: return
-                self.pipeline.tagger.set_initial_state(mask, initial_state)
-                self.pipeline.tagger.set_initial_count(mask, initial_count)
-                self.pipeline.tagger.set_high_count(mask, high_count)
-                self.pipeline.tagger.set_low_count(mask, low_count)
+                self.pipeline.tagger.stop_outputs([output])
+                self.pipeline.tagger.set_initial_state(output, state)
+
+        def program_pulse_seq(self, output, initial_state, initial_count, high_count, low_count):
+                if not self.pipeline: return
+                self.pipeline.tagger.set_initial_state(output, initial_state)
+                self.pipeline.tagger.set_initial_count(output, initial_count)
+                self.pipeline.tagger.set_high_count(output, high_count)
+                self.pipeline.tagger.set_low_count(output, low_count)
+                self.pipeline.tagger.start_outputs([output])
 
         def sync_pulse_seq(self):
                 """ Program the pulse sequencer to reflect the settings in the UI """
                 output = self.builder.get_object("output_select").get_active()
-                mask = 1 << output
+                print output
                 initial_state = self.builder.get_object("high_initial_state").get_current_value()
                 initial_count = self.builder.get_object("offset_time").get_value()
                 high_count = self.builder.get_object("high_time").get_value()
                 low_count = self.builder.get_object("low_time").get_value()
-                self.program_pulse_seq(mask, initial_state, initial_count, high_count, low_count)
+                self.program_pulse_seq(output, initial_state, initial_count, high_count, low_count)
 
         def output_override_toggled_cb(self, action):
                 override_enabled = self.builder.get_object('output_override_action').props.active
                 if override_enabled:
                         state = self.builder.get_object('output_state_action').props.active
-                        output = self.builder.get_object('output_select')
+                        output = self.builder.get_object('output_select').get_active()
                         self.override_output(output, state)
                 else:
                         self.sync_pulse_seq()
