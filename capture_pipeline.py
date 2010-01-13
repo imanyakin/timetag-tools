@@ -7,6 +7,8 @@ from collections import defaultdict
 
 import timetag_interface
 
+CAPTURE_CLOCK=30e6 # Hz
+
 class RingBuffer:
 	def __init__(self, size_max):
 		self.max = size_max
@@ -33,7 +35,6 @@ class RingBuffer:
 		
 
 class CapturePipeline(object):
-        CAPTURE_CLOCK=150e6 # Hz
         class Channel(object):
                 def __init__(self, npts):
                         self.times = RingBuffer(npts)
@@ -44,11 +45,11 @@ class CapturePipeline(object):
                         yield n, chan.times.get(), chan.counts.get()
                         return 
 
-        def __init__(self, bin_length=100e6, output_file=None, points=100):
+        def __init__(self, bin_time=1e-3, output_file=None, points=100):
                 """ Create a capture pipeline. The bin length is given in timer units. """
                 self.channels = defaultdict(lambda: CapturePipeline.Channel(points))
 
-                self.bin_length = int(bin_length)
+                self.bin_length = int(bin_time * CAPTURE_CLOCK)
                 self.output_file = output_file
                 self.update_cb = None
 
@@ -83,6 +84,7 @@ class CapturePipeline(object):
                         l = self.binner.stdout.readline()
                         if len(l) == 0: return
                         chan, start_time, count, lost = map(int, l.split())
+                        #start_time /= CAPTURE_CLOCK
                         c = self.channels[chan]
                         c.times.append(1.0*start_time)# / CapturePipeline.CAPTURE_CLOCK)
                         c.counts.append(count)
