@@ -17,8 +17,8 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
-                <property name="related_action">file_output_action</property>
                 <property name="use_action_appearance">True</property>
+                <property name="related_action">file_output_action</property>
                 <property name="draw_indicator">True</property>
               </object>
               <packing>
@@ -40,8 +40,8 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="related_action">running_action</property>
                 <property name="use_action_appearance">True</property>
+                <property name="related_action">running_action</property>
               </object>
               <packing>
                 <property name="fill">False</property>
@@ -210,8 +210,9 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
-                            <property name="related_action">output_override_action</property>
                             <property name="use_action_appearance">True</property>
+                            <property name="related_action">output_override_action</property>
+                            <property name="active">True</property>
                             <property name="draw_indicator">True</property>
                           </object>
                         </child>
@@ -220,8 +221,8 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
-                            <property name="related_action">output_state_action</property>
                             <property name="use_action_appearance">True</property>
+                            <property name="related_action">output_state_action</property>
                           </object>
                           <packing>
                             <property name="left_attach">1</property>
@@ -257,8 +258,8 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
-                                <property name="related_action">high_initial_state</property>
                                 <property name="use_action_appearance">True</property>
+                                <property name="related_action">high_initial_state</property>
                                 <property name="draw_indicator">True</property>
                               </object>
                               <packing>
@@ -270,8 +271,8 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
-                                <property name="related_action">low_initial_state</property>
                                 <property name="use_action_appearance">True</property>
+                                <property name="related_action">low_initial_state</property>
                                 <property name="draw_indicator">True</property>
                                 <property name="group">high_initial_state_radio</property>
                               </object>
@@ -388,30 +389,32 @@
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
     <property name="page_size">10</property>
-    <signal name="changed" handler="pulse_seq_changed_cb"/>
+    <signal name="value_changed" handler="pulse_seq_changed_cb"/>
   </object>
   <object class="GtkAdjustment" id="high_time">
     <property name="upper">100</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
     <property name="page_size">10</property>
-    <signal name="changed" handler="pulse_seq_changed_cb"/>
+    <signal name="value_changed" handler="pulse_seq_changed_cb"/>
   </object>
   <object class="GtkAdjustment" id="low_time">
     <property name="upper">100</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
     <property name="page_size">10</property>
-    <signal name="changed" handler="pulse_seq_changed_cb"/>
+    <signal name="value_changed" handler="pulse_seq_changed_cb"/>
   </object>
   <object class="GtkRadioAction" id="high_initial_state">
     <property name="label">High</property>
     <property name="draw_as_radio">True</property>
     <property name="value">1</property>
+    <signal name="changed" handler="pulse_seq_changed_cb"/>
   </object>
   <object class="GtkRadioAction" id="low_initial_state">
     <property name="label">Low</property>
     <property name="draw_as_radio">True</property>
     <property name="group">high_initial_state</property>
+    <signal name="changed" handler="pulse_seq_changed_cb"/>
   </object>
 </interface>
