@@ -1,4 +1,4 @@
-class TimetagInterface(object):
+class Timetag(object):
         def __init__(self, file):
                 self.fd = file
                 
