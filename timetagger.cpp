@@ -76,15 +76,25 @@ void timetagger::pulseseq_set_low_count(char seq_mask, uint32_t count)
 	send_simple_command(seq_mask, data);
 }
 
-void timetagger::pulseseq_start()
+void timetagger::pulseseq_start(std::tr1::array<bool, 4> units)
 {
-	cmd_data data = { 0x1 };
+	uint8_t d = 
+		(units[0] ? 0x01 : 0x00) |
+		(units[1] ? 0x04 : 0x00) |
+		(units[2] ? 0x10 : 0x00) |
+		(units[3] ? 0x40 : 0x00);
+	cmd_data data = { d };
 	send_simple_command(0x02, data);
 }
 
-void timetagger::pulseseq_stop()
+void timetagger::pulseseq_stop(std::tr1::array<bool, 4> units)
 {
-	cmd_data data = { 0x2 };
+	uint8_t d = 
+		(units[0] ? 0x02 : 0x00) |
+		(units[1] ? 0x08 : 0x00) |
+		(units[2] ? 0x20 : 0x00) |
+		(units[3] ? 0x80 : 0x00);
+	cmd_data data = { d };
 	send_simple_command(0x02, data);
 }
 

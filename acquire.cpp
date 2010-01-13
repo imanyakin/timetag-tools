@@ -61,9 +61,17 @@ static void read_loop(timetagger& t)
 			int count = lexical_cast<int>(*tok);
 			t.pulseseq_set_low_count(output, count);
 		} else if (cmd == "start_outputs") {
-			t.pulseseq_start();
+			std::tr1::array<bool,4> outputs;
+		        for (int i=0; i<4; i++) {
+				outputs[i] = lexical_cast<int>(*tok); tok++;
+			}
+			t.pulseseq_start(outputs);
 		} else if (cmd == "stop_outputs") {
-			t.pulseseq_stop();
+			std::tr1::array<bool,4> outputs;
+		        for (int i=0; i<4; i++) {
+				outputs[i] = lexical_cast<int>(*tok); tok++;
+			}
+			t.pulseseq_stop(outputs);
 		} else if (cmd == "quit") {
 			break;
 		} else

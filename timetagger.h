@@ -3,6 +3,7 @@
 
 #include <libusb.h>
 #include <vector>
+#include <tr1/array>
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
 
@@ -42,8 +43,8 @@ public:
 	void stop_capture();
 	void reset_counter();
 
-	void pulseseq_start();
-	void pulseseq_stop();
+	void pulseseq_start(std::tr1::array<bool, 4> units);
+	void pulseseq_stop(std::tr1::array<bool, 4> units);
 	void pulseseq_set_low_count(char seq_mask, uint32_t count);
 	void pulseseq_set_high_count(char seq_mask, uint32_t count);
 	void pulseseq_set_initial_count(char seq_mask, uint32_t count);
