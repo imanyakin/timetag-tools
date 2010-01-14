@@ -3,6 +3,9 @@
 #include <cstdio>
 #include <libusb.h>
 
+#include <sys/time.h>
+#include <sys/resource.h>
+
 #include <boost/tokenizer.hpp>
 #include <boost/lexical_cast.hpp>
 
@@ -89,6 +92,10 @@ int main(int argc, char** argv)
 	// Disable output buffering
 	setvbuf(stdout, NULL, _IONBF, NULL);
        
+	// Try bumping up our priority
+	if (setpriority(PRIO_PROCESS, 0, -10))
+		fprintf(stderr, "Warning: Priority elevation failed.\n");
+
 	libusb_init(&ctx);
 	dev = libusb_open_device_with_vid_pid(ctx, VENDOR_ID, PRODUCT_ID);
 	if (!dev) {
