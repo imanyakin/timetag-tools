@@ -43,10 +43,9 @@ class CapturePipeline(object):
         def __iter__(self):
                 for n, chan in self.channels.items():
                         yield n, chan.times.get(), chan.counts.get()
-                        return 
 
         def __init__(self, bin_time=40e-3, output_file=None, points=100):
-                """ Create a capture pipeline. The bin length is given in timer units. """
+                """ Create a capture pipeline. The bin_time is given in milliseconds """
                 self.channels = defaultdict(lambda: CapturePipeline.Channel(points))
 
                 self.bin_length = int(bin_time * CAPTURE_CLOCK)
