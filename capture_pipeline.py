@@ -39,10 +39,11 @@ class CapturePipeline(object):
                 def __init__(self, npts):
                         self.times = RingBuffer(npts)
                         self.counts = RingBuffer(npts)
+                        self.loss_count = 0
 
         def __iter__(self):
                 for n, chan in self.channels.items():
-                        yield n, chan.times.get(), chan.counts.get()
+                        yield n, chan.times.get(), chan.counts.get(), chan.loss_count
 
         def __init__(self, bin_time=40e-3, output_file=None, points=100):
                 """ Create a capture pipeline. The bin_time is given in milliseconds """
@@ -85,6 +86,7 @@ class CapturePipeline(object):
                         c = self.channels[chan]
                         c.times.append(1.0*start_time / CAPTURE_CLOCK)
                         c.counts.append(count)
+                        c.loss_count += lost
 
 
         def stop(self):
@@ -105,7 +107,7 @@ class TestPipeline(object):
                 self.tagger = TimetagInterface(sys.stderr)
 
         def __iter__(self):
-                yield 0, self.times.get(), self.counts.get()
+                yield 0, self.times.get(), self.counts.get(), 0
 
         def start(self):
                 self._running = True

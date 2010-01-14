@@ -125,7 +125,7 @@ class MainWindow(object):
                         self.update_pending = False
                         return False
 
-                for n,times,counts in self.pipeline:
+                for n,times,counts,_ in self.pipeline:
                         if not self.lines.has_key(n):
                                 self.lines[n], = self.axes.plot(times, counts)#, animated=True)
                         else:
