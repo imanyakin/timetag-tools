@@ -151,7 +151,7 @@ class MainWindow(object):
                 self.binned_data = None
 
                 self.builder = gtk.Builder()
-                self.builder.add_from_file('microscope_ui.glade')
+                self.builder.add_from_file('timetag_ui.glade')
                 self.builder.connect_signals(self)
 
                 def quit(unused):
