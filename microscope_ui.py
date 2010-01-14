@@ -132,8 +132,13 @@ class MainWindow(object):
                         else:
                                 self.lines[n].set_data(times, counts)
 
+                # There must be a better way to do this
                 self.axes.relim()
-                self.axes.autoscale_view(tight=True)
+                self.axes.autoscale_view(scalex=True, scaley=False, tight=True)
+                self.axes.autoscale_view(scalex=False, scaley=True, tight=False)
+                _,ymax = self.axes.get_ylim()
+                self.axes.set_ylim(ymin=0, ymax=1.1*ymax)
+
                 self.figure.canvas.draw()
                 self.last_update = time.time()
                 self.update_pending = False
