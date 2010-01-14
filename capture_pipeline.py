@@ -40,10 +40,15 @@ class CapturePipeline(object):
                         self.times = RingBuffer(npts)
                         self.counts = RingBuffer(npts)
                         self.loss_count = 0
+                        self.photon_count = 0
 
-        def __iter__(self):
+        def bins(self):
                 for n, chan in self.channels.items():
-                        yield n, chan.times.get(), chan.counts.get(), chan.loss_count
+                        yield n, chan.times.get(), chan.counts.get()
+
+        def stats(self):
+                for n, chan in self.channels.items():
+                        yield n, chan.photon_count, chan.loss_count
 
         def __init__(self, bin_time=40e-3, output_file=None, points=100):
                 """ Create a capture pipeline. The bin_time is given in milliseconds """
@@ -54,10 +59,10 @@ class CapturePipeline(object):
                 self.update_cb = None
 
         def start(self):
-                PIPE=subprocess.PIPE
-
                 #cmd = ['./photon_generator', str(1000)]
                 cmd = ['./timetag_acquire']
+
+                PIPE=subprocess.PIPE
                 self.source = subprocess.Popen(cmd, stdin=PIPE, stdout=PIPE)
                 logging.info("Started process %s" % cmd)
                 src = self.source.stdout
@@ -86,8 +91,8 @@ class CapturePipeline(object):
                         c = self.channels[chan]
                         c.times.append(1.0*start_time / CAPTURE_CLOCK)
                         c.counts.append(count)
+                        c.photon_count += count
                         c.loss_count += lost
-
 
         def stop(self):
                 logging.info("Capture pipeline shutdown")
@@ -102,12 +107,16 @@ class TestPipeline(object):
         def __init__(self, npts=10):
                 self.times = RingBuffer(npts)
                 self.counts = RingBuffer(npts)
+                self.count_total = 0
                 self.t = 0
                 self.update_cb = None
                 self.tagger = TimetagInterface(sys.stderr)
 
-        def __iter__(self):
-                yield 0, self.times.get(), self.counts.get(), 0
+        def bins(self):
+                yield 0, self.times.get(), self.counts.get()
+
+        def stats(self):
+                yield 0, self.count_total, 0
 
         def start(self):
                 self._running = True
@@ -118,7 +127,9 @@ class TestPipeline(object):
         def worker(self):
                 while self._running:
                         self.times.append(self.t)
-                        self.counts.append(random.randint(0, 200))
+                        count = random.randint(0, 200)
+                        self.counts.append(count)
+                        self.count_total += count
                         self.t += 10
                         
                         if self.update_cb: self.update_cb()

@@ -121,11 +121,8 @@ class OutputChannel(object):
 
 class MainWindow(object):
         def __init__(self):
-                self.dt = 0
-                self.last_update = 0
-                self.update_pending = False
+                self.update_rate = 10 # in Hertz
                 self.pipeline = None
-                self.binned_data = None
 
                 self.builder = gtk.Builder()
                 self.builder.add_from_file('timetag_ui.glade')
@@ -158,7 +155,7 @@ class MainWindow(object):
                         self.update_pending = False
                         return False
 
-                for n,times,counts,_ in self.pipeline:
+                for n,times,counts in self.pipeline.bins():
                         if not self.lines.has_key(n):
                                 self.lines[n], = self.axes.plot(times, counts)#, animated=True)
                         else:
@@ -172,9 +169,24 @@ class MainWindow(object):
                 self.axes.set_ylim(ymin=0, ymax=1.1*ymax)
 
                 self.figure.canvas.draw()
-                self.last_update = time.time()
-                self.update_pending = False
-                return False
+
+        def update_indicators(self):
+                t = time.time()
+                photon_count = 0
+                loss_count = 0
+                for n, count, lost in self.pipeline.stats():
+                        photon_count += count
+                        loss_count += lost
+
+                l = self.builder.get_object('photon_rate')
+                rate = (photon_count - self.last_photon_count) / (t - self.last_update)
+                l.props.label = "<span color='darkgreen'size='xx-large'>%d</span> <span size='large'>photons/second</span>" % rate
+
+                l = self.builder.get_object('loss_rate')
+                rate = (loss_count - self.last_loss_count) / (t - self.last_update)
+
+                self.last_photon_count = photon_count
+                self.last_loss_count = loss_count
 
         def start_pipeline(self):
                 if self.pipeline:
@@ -189,10 +201,15 @@ class MainWindow(object):
                 self.pipeline.start()
 
                 # Start update loop for plot
+                self.last_loss_count = 0
+                self.last_photon_count = 0
+                self.last_update = time.time()
                 def update_cb():
                         self.update_plot()
+                        self.update_indicators()
+                        self.last_update = time.time()
                         return True
-                gobject.timeout_add(int(1000.0/10), update_cb)
+                gobject.timeout_add(int(1000.0/self.update_rate), update_cb)
 
                 # Sensitize outputs
                 for c in self.outputs:
