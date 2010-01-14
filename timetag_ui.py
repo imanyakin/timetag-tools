@@ -63,6 +63,8 @@ class OutputChannel(object):
                 else:
                         action.props.label = 'Stopped'
                         self.icon.set_from_stock('Stop', gtk.ICON_SIZE_MENU)
+                        initial_state = self.builder.get_object('initial_state').props.active
+                        self.tagger.set_initial_state(self.output_n, initial_state)
 
                 if not self.tagger: return
                 if active:
