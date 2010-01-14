@@ -14,6 +14,8 @@ install :
 	chmod ug+s ${PREFIX}/bin/timetag_acquire
 	cp bin_photons dump_photons photon_generator timetag_acquire timetag_ui.py ${PREFIX}/bin
 	cp capture_pipeline.py timetag_interface.py ${PREFIX}/lib/pymodules/python2.6
+	mkdir -p ${PREFIX}/share/timetag
+	cp timetag_ui.glade output_channel.glade ${PREFIX}/share/timetag
 
 clean :
 	rm -f ${PROGS} *.o
