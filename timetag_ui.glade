@@ -5,7 +5,7 @@
   <object class="GtkWindow" id="main_window">
     <property name="title" translatable="yes">FPGA Time-Tagger</property>
     <property name="default_width">700</property>
-    <property name="default_height">500</property>
+    <property name="default_height">700</property>
     <property name="icon_name">applications-system</property>
     <child>
       <object class="GtkVBox" id="vbox1">
@@ -29,8 +29,8 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
-                        <property name="related_action">file_output_enabled</property>
                         <property name="use_action_appearance">True</property>
+                        <property name="related_action">file_output_enabled</property>
                         <property name="use_underline">True</property>
                         <property name="draw_indicator">True</property>
                       </object>
@@ -42,9 +42,9 @@
                     <child>
                       <object class="GtkFileChooserButton" id="output_file">
                         <property name="visible">True</property>
-                        <property name="do_overwrite_confirmation">True</property>
                         <property name="create_folders">False</property>
                         <property name="use_preview_label">False</property>
+                        <property name="do_overwrite_confirmation">True</property>
                         <property name="title" translatable="yes">Select Output File</property>
                       </object>
                       <packing>
@@ -60,8 +60,8 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <property name="related_action">pipeline_running</property>
                         <property name="use_action_appearance">True</property>
+                        <property name="related_action">pipeline_running</property>
                         <property name="use_underline">True</property>
                       </object>
                       <packing>
@@ -103,8 +103,8 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <property name="related_action">readout_running</property>
                         <property name="use_action_appearance">True</property>
+                        <property name="related_action">readout_running</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -200,8 +200,8 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="related_action">stop_outputs</property>
                                 <property name="use_action_appearance">True</property>
+                                <property name="related_action">stop_outputs</property>
                                 <property name="use_underline">True</property>
                               </object>
                               <packing>
@@ -217,8 +217,8 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="related_action">start_outputs</property>
                                 <property name="use_action_appearance">True</property>
+                                <property name="related_action">start_outputs</property>
                                 <property name="use_underline">True</property>
                               </object>
                               <packing>
