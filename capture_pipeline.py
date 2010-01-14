@@ -56,7 +56,7 @@ class CapturePipeline(object):
                         yield n, chan.photon_count, chan.loss_count, chan.latest_timestamp
 
         def __init__(self, bin_time=40e-3, output_file=None, points=100):
-                """ Create a capture pipeline. The bin_time is given in milliseconds """
+                """ Create a capture pipeline. The bin_time is given in seconds """
                 self.channels = defaultdict(lambda: CapturePipeline.Channel(points))
 
                 self.bin_length = int(bin_time * CAPTURE_CLOCK)
@@ -79,7 +79,7 @@ class CapturePipeline(object):
                 else:
                         self.tee = None
 
-                cmd = [os.path.join(bin_root, './bin_photons'), str(self.bin_length)]
+                cmd = [os.path.join(bin_root, 'bin_photons'), str(self.bin_length)]
                 self.binner = subprocess.Popen(cmd, stdin=src, stdout=PIPE)
                 logging.info("Started process %s" % cmd)
 
