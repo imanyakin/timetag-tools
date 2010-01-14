@@ -2,13 +2,16 @@ import subprocess
 import logging
 import sys
 import random
-import time
+from time import sleep
+import os
 import threading
 from collections import defaultdict
 
 import timetag_interface
 
 CAPTURE_CLOCK=30e6 # Hz
+
+bin_root = "/usr/bin"
 
 class RingBuffer:
 	def __init__(self, size_max):
@@ -61,8 +64,8 @@ class CapturePipeline(object):
                 self.update_cb = None
 
         def start(self):
-                #cmd = ['./photon_generator', str(1000)]
-                cmd = ['./timetag_acquire']
+                #cmd = [os.path.join(bin_root, 'photon_generator'), str(1000)]
+                cmd = [os.path.join(bin_root, 'timetag_acquire')]
 
                 PIPE=subprocess.PIPE
                 self.source = subprocess.Popen(cmd, stdin=PIPE, stdout=PIPE)
@@ -75,7 +78,7 @@ class CapturePipeline(object):
                 else:
                         self.tee = None
 
-                cmd = ['./bin_photons', str(self.bin_length)]
+                cmd = [os.path.join(bin_root, './bin_photons'), str(self.bin_length)]
                 self.binner = subprocess.Popen(cmd, stdin=src, stdout=PIPE)
                 logging.info("Started process %s" % cmd)
 
@@ -141,7 +144,7 @@ class TestPipeline(object):
                                 self.count_totals[i] += count
 
                         self.t += 1.0/40
-                        time.sleep(1.0/40)
+                        sleep(1.0/40)
 
         def stop(self):
                 self._running = False

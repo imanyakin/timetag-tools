@@ -3,17 +3,20 @@
 import logging
 from collections import defaultdict
 import time
+import os
+
 import gobject, gtk
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_gtk import FigureCanvasGTK as FigureCanvas
 #from matplotlib.backends.backend_gtkagg import FigureCanvasGTKAgg as FigureCanvas
-import numpy
 
 from capture_pipeline import CapturePipeline, TestPipeline
 
 logging.basicConfig(level=logging.DEBUG)
 
 PULSESEQ_FREQ = 30e6
+
+glade_prefix='/usr/share/timetag'
 
 class OutputChannel(object):
         sensitive_widgets = [
@@ -26,7 +29,7 @@ class OutputChannel(object):
                 self.main_window = main_window
 
                 self.builder = gtk.Builder()
-                self.builder.add_from_file('output_channel.glade')
+                self.builder.add_from_file(os.path.join(glade_prefix, 'output_channel.glade'))
                 self.builder.connect_signals(self)
 
                 self.icon = gtk.image_new_from_stock('Stop', gtk.ICON_SIZE_BUTTON)
@@ -63,6 +66,8 @@ class OutputChannel(object):
                 else:
                         action.props.label = 'Stopped'
                         self.icon.set_from_stock('Stop', gtk.ICON_SIZE_MENU)
+                        initial_state = self.builder.get_object('initial_state').props.active
+                        self.tagger.set_initial_state(self.output_n, initial_state)
 
                 if not self.tagger: return
                 if active:
@@ -126,7 +131,7 @@ class MainWindow(object):
                 self.pipeline = None
 
                 self.builder = gtk.Builder()
-                self.builder.add_from_file('timetag_ui.glade')
+                self.builder.add_from_file(os.path.join(glade_prefix, 'timetag_ui.glade'))
                 self.builder.connect_signals(self)
 
                 def quit(unused):
