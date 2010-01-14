@@ -97,7 +97,6 @@ class OutputChannel(object):
         def override_enabled_changed_cb(self, action, current):
                 override_enabled = bool(current)
                 if override_enabled:
-                        state = self.builder.get_object('output_state').props.active
                         self._do_override()
                 else:
                         self.sync_pulse_seq()
