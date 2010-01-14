@@ -1,4 +1,4 @@
-PREFIX=/usr/local
+PREFIX=/usr
 CXXFLAGS=-std=c++0x -ggdb -I/usr/include/libusb-1.0
 CC=g++
 
@@ -12,6 +12,8 @@ timetag_acquire : timetag_acquire.o timetagger.o
 install :
 	cp timetag_acquire ${PREFIX}/bin/timetag_acquire
 	chmod ug+s ${PREFIX}/bin/timetag_acquire
+	cp bin_photons dump_photons photon_generator timetag_acquire timetag_ui.py ${PREFIX}/bin
+	cp capture_pipeline.py timetag_interface.py ${PREFIX}/lib/pymodules/python2.6
 
 clean :
 	rm -f ${PROGS} *.o
