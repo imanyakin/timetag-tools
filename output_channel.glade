@@ -23,7 +23,7 @@
   <object class="GtkAdjustment" id="low_time">
     <property name="value">1</property>
     <property name="lower">0.01</property>
-    <property name="upper">100</property>
+    <property name="upper">100000</property>
     <property name="step_increment">1</property>
     <signal name="value_changed" handler="low_time_value_changed_cb"/>
   </object>
@@ -109,8 +109,8 @@
         <property name="visible">True</property>
         <property name="can_focus">True</property>
         <property name="receives_default">True</property>
-        <property name="use_action_appearance">True</property>
         <property name="related_action">override_state</property>
+        <property name="use_action_appearance">True</property>
         <property name="use_underline">True</property>
       </object>
       <packing>
@@ -179,8 +179,8 @@
         <property name="visible">True</property>
         <property name="can_focus">True</property>
         <property name="receives_default">True</property>
-        <property name="use_action_appearance">True</property>
         <property name="related_action">initial_state</property>
+        <property name="use_action_appearance">True</property>
       </object>
       <packing>
         <property name="left_attach">1</property>
@@ -194,8 +194,8 @@
         <property name="visible">True</property>
         <property name="can_focus">True</property>
         <property name="receives_default">False</property>
-        <property name="use_action_appearance">True</property>
         <property name="related_action">override_enabled</property>
+        <property name="use_action_appearance">True</property>
         <property name="draw_indicator">True</property>
       </object>
     </child>
@@ -204,8 +204,8 @@
         <property name="visible">True</property>
         <property name="can_focus">True</property>
         <property name="receives_default">False</property>
-        <property name="use_action_appearance">True</property>
         <property name="related_action">sequencer_enabled</property>
+        <property name="use_action_appearance">True</property>
         <property name="draw_indicator">True</property>
         <property name="group">radiobutton1</property>
       </object>
@@ -219,8 +219,8 @@
         <property name="visible">True</property>
         <property name="can_focus">True</property>
         <property name="receives_default">True</property>
-        <property name="use_action_appearance">True</property>
         <property name="related_action">running</property>
+        <property name="use_action_appearance">True</property>
       </object>
       <packing>
         <property name="left_attach">1</property>

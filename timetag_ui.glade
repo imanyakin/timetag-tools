@@ -421,7 +421,6 @@
     <property name="label">Totals</property>
     <property name="draw_as_radio">True</property>
     <property name="group">show_rates</property>
-    <property name="current_value">1</property>
   </object>
   <object class="GtkRadioAction" id="show_rates">
     <property name="label">Rates</property>
