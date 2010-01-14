@@ -225,9 +225,12 @@ class MainWindow(object):
                 # Start update loop for plot
                 self.last_stats = defaultdict(lambda: (0, 0, 0))
                 def update_cb():
-                        self.update_plot()
-                        self.update_indicators()
-                        return True
+                        try:
+                                self.update_plot()
+                                self.update_indicators()
+                        except:
+                                pass
+                        return self.pipeline != None
                 gobject.timeout_add(int(1000.0/self.update_rate), update_cb)
 
                 # Sensitize outputs
