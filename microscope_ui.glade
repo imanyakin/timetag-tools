@@ -29,8 +29,8 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
-                        <property name="related_action">file_output_enabled</property>
                         <property name="use_action_appearance">True</property>
+                        <property name="related_action">file_output_enabled</property>
                         <property name="use_underline">True</property>
                         <property name="draw_indicator">True</property>
                       </object>
@@ -42,8 +42,8 @@
                     <child>
                       <object class="GtkFileChooserButton" id="output_file">
                         <property name="visible">True</property>
-                        <property name="create_folders">False</property>
                         <property name="do_overwrite_confirmation">True</property>
+                        <property name="create_folders">False</property>
                         <property name="use_preview_label">False</property>
                         <property name="title" translatable="yes">Select Output File</property>
                       </object>
@@ -60,8 +60,8 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <property name="related_action">pipeline_running</property>
                         <property name="use_action_appearance">True</property>
+                        <property name="related_action">pipeline_running</property>
                         <property name="use_underline">True</property>
                       </object>
                       <packing>
@@ -103,8 +103,8 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <property name="related_action">readout_running</property>
                         <property name="use_action_appearance">True</property>
+                        <property name="related_action">readout_running</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -168,18 +168,6 @@
                   </packing>
                 </child>
                 <child>
-                  <placeholder/>
-                </child>
-                <child>
-                  <placeholder/>
-                </child>
-                <child>
-                  <placeholder/>
-                </child>
-                <child>
-                  <placeholder/>
-                </child>
-                <child>
                   <object class="GtkLabel" id="label1">
                     <property name="visible">True</property>
                     <property name="label" translatable="yes">Plot Time</property>
@@ -188,6 +176,18 @@
                     <property name="top_attach">2</property>
                     <property name="bottom_attach">3</property>
                   </packing>
+                </child>
+                <child>
+                  <placeholder/>
+                </child>
+                <child>
+                  <placeholder/>
+                </child>
+                <child>
+                  <placeholder/>
+                </child>
+                <child>
+                  <placeholder/>
                 </child>
               </object>
               <packing>
@@ -226,8 +226,8 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="related_action">stop_outputs</property>
                                 <property name="use_action_appearance">True</property>
+                                <property name="related_action">stop_outputs</property>
                                 <property name="use_underline">True</property>
                               </object>
                               <packing>
@@ -243,8 +243,8 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="related_action">start_outputs</property>
                                 <property name="use_action_appearance">True</property>
+                                <property name="related_action">start_outputs</property>
                                 <property name="use_underline">True</property>
                               </object>
                               <packing>
@@ -310,15 +310,18 @@
   <object class="GtkAction" id="stop_outputs">
     <property name="label">Stop All</property>
     <property name="stock_id">gtk-stop</property>
+    <property name="sensitive">False</property>
     <signal name="activate" handler="stop_outputs_activate_cb"/>
   </object>
   <object class="GtkAction" id="start_outputs">
     <property name="label">Start All</property>
     <property name="stock_id">gtk-media-play</property>
+    <property name="sensitive">False</property>
     <signal name="activate" handler="start_outputs_activate_cb"/>
   </object>
   <object class="GtkToggleAction" id="readout_running">
     <property name="label">Stopped</property>
+    <property name="sensitive">False</property>
     <signal name="toggled" handler="readout_running_toggled_cb"/>
   </object>
 </interface>

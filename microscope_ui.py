@@ -15,6 +15,12 @@ logging.basicConfig(level=logging.DEBUG)
 PULSESEQ_FREQ = 30e6
 
 class OutputChannel(object):
+        sensitive_widgets = [
+                'override_state', 'initial_state', 'running',
+                'override_enabled', 'sequencer_enabled',
+                'offset_time_spin', 'high_time_spin', 'low_time_spin',
+        ]
+
         def __init__(self, main_window, output_n):
                 self.main_window = main_window
 
@@ -29,8 +35,19 @@ class OutputChannel(object):
                 header.show_all()
                 self.notebook_label = header
 
+                self._set_sensitivity(False)
                 self.widget = self.builder.get_object('output_channel')
                 self.output_n = output_n
+
+        def pipeline_started(self):
+                self._set_sensitivity(True)
+
+        def pipeline_stopped(self):
+                self._set_sensitivity(False)
+
+        def _set_sensitivity(self, state):
+                for w in self.__class__.sensitive_widgets:
+                        self.builder.get_object(w).props.sensitive = state
 
         @property
         def tagger(self):
@@ -132,8 +149,13 @@ class MainWindow(object):
                 self.builder = gtk.Builder()
                 self.builder.add_from_file('microscope_ui.glade')
                 self.builder.connect_signals(self)
+
+                def quit(unused):
+                        if self.pipeline:
+                                self.pipeline.stop()
+                        gtk.main_quit()
                 self.win = self.builder.get_object('main_window')
-                self.win.connect('destroy', gtk.main_quit)
+                self.win.connect('destroy', quit)
 
                 self.outputs = []
                 notebook = self.builder.get_object('output_channels')
@@ -158,26 +180,33 @@ class MainWindow(object):
                 if self.builder.get_object('file_output_enabled').props.active:
                         file = self.builder.get_object('output_file').get_filename()
 
+                self.pipeline = CapturePipeline(output_file=file)
+                #self.pipeline = TestPipeline(100)
+                self.pipeline.start()
+
+                # Start update loop for plot
                 def update_cb():
                         self.update_plot()
                         return True
                 gobject.timeout_add(int(1000.0/10), update_cb)
 
-                self.pipeline = CapturePipeline(output_file=file)
-                #self.pipeline = TestPipeline(100)
-                self.pipeline.start()
+                # Sensitize outputs
+                for c in self.outputs:
+                        c.pipeline_started()
 
         def stop_pipeline(self):
+                for c in self.outputs:
+                        c.pipeline_stopped()
                 self.stop_readout()
                 self.pipeline.stop()
                 self.pipeline = None
 
         def pipeline_running_toggled_cb(self, action):
                 state = action.props.active
-
-                sensitive_objects = [ 'file_output_enabled', 'output_file', ]
-                for o in sensitive_objects:
+                for o in [ 'file_output_enabled', 'output_file' ]:
                         self.builder.get_object(o).props.sensitive = not state
+                for o in [ 'readout_running', 'stop_outputs', 'start_outputs' ]:
+                        self.builder.get_object(o).props.sensitive = state
 
                 if state:
                         self.start_pipeline()
