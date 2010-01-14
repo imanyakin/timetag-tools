@@ -1,5 +1,6 @@
 import subprocess
 import logging
+import sys
 import random
 import time
 import threading
@@ -113,7 +114,7 @@ class TestPipeline(object):
                 self.count_total = 0
                 self.t = 0
                 self.update_cb = None
-                self.tagger = TimetagInterface(sys.stderr)
+                self.tagger = timetag_interface.Timetag(sys.stderr)
 
         def bins(self):
                 yield 0, self.times.get(), self.counts.get()
@@ -133,7 +134,7 @@ class TestPipeline(object):
                         count = random.randint(0, 200)
                         self.counts.append(count)
                         self.count_total += count
-                        self.t += 10
+                        self.t += 1.0/40
                         
                         if self.update_cb: self.update_cb()
                         time.sleep(1.0/40)
