@@ -94,7 +94,11 @@ void timetagger::pulseseq_stop(std::tr1::array<bool, 4> units)
 		(units[1] ? 0x08 : 0x00) |
 		(units[2] ? 0x20 : 0x00) |
 		(units[3] ? 0x80 : 0x00);
-	cmd_data data = { d };
+	/*
+	 * We include an extra byte as an _evil_ hack to work around
+	 * unidentified bug in command parser
+	 */
+	cmd_data data = { d, 0x00 };
 	send_simple_command(0x02, data);
 }
 
