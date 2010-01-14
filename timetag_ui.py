@@ -173,6 +173,9 @@ class MainWindow(object):
                 self.axes.autoscale_view(scalex=False, scaley=True, tight=False)
                 _,ymax = self.axes.get_ylim()
                 self.axes.set_ylim(ymin=0, ymax=1.1*ymax)
+                xmin,xmax = self.axes.get_xlim()
+                offset = time.time() - self.pipeline.last_bin_walltime
+                self.axes.set_xlim(xmin=xmin+offset, xmax=xmax+offset)
 
                 self.figure.canvas.draw()
 

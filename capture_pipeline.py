@@ -2,7 +2,7 @@ import subprocess
 import logging
 import sys
 import random
-from time import sleep
+from time import sleep, time
 import os
 import threading
 from collections import defaultdict
@@ -62,6 +62,7 @@ class CapturePipeline(object):
                 self.bin_length = int(bin_time * CAPTURE_CLOCK)
                 self.output_file = output_file
                 self.update_cb = None
+                self.last_bin_walltime = time()
 
         def start(self):
                 #cmd = [os.path.join(bin_root, 'photon_generator'), str(1000)]
@@ -91,6 +92,7 @@ class CapturePipeline(object):
         def _listen(self):
                 while True:
                         l = self.binner.stdout.readline()
+                        self.last_bin_walltime = time()
                         if len(l) == 0: return
                         chan, start_time, count, lost = map(int, l.split())
                         c = self.channels[chan]
