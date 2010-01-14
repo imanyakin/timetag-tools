@@ -91,7 +91,6 @@ int main(int argc, char** argv)
 
 	// Disable output buffering
 	setvbuf(stdout, NULL, _IONBF, NULL);
-        fprintf(stderr, "%d %d\n", geteuid(), getegid());
        
 	// Try bumping up our priority
 	if (setpriority(PRIO_PROCESS, 0, -10))
