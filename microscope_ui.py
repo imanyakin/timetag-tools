@@ -14,6 +14,95 @@ logging.basicConfig(level=logging.DEBUG)
 
 PULSESEQ_FREQ = 30e6
 
+class OutputChannel(object):
+        def __init__(self, main_window, output_n):
+                self.main_window = main_window
+
+                self.builder = gtk.Builder()
+                self.builder.add_from_file('output_channel.glade')
+                self.builder.connect_signals(self)
+
+                self.icon = gtk.image_new_from_stock('Stop', gtk.ICON_SIZE_BUTTON)
+                header = gtk.HBox()
+                header.pack_start(self.icon)
+                header.pack_start(gtk.Label('Channel %d' % output_n))
+                header.show_all()
+                self.notebook_label = header
+
+                self.widget = self.builder.get_object('output_channel')
+                self.output_n = output_n
+
+        @property
+        def tagger(self):
+                if not self.main_window.pipeline: return None
+                return self.main_window.pipeline.tagger
+
+        def running_toggled_cb(self, action):
+                active = action.props.active
+                if active:
+                        action.props.label = 'Running'
+                        self.icon.set_from_stock('Play', gtk.ICON_SIZE_MENU)
+                else:
+                        action.props.label = 'Stopped'
+                        self.icon.set_from_stock('Stop', gtk.ICON_SIZE_MENU)
+
+                if not self.tagger: return
+                if active:
+                        self.tagger.start_outputs([self.output_n])
+                else:
+                        self.tagger.stop_outputs([self.output_n])
+
+        def offset_time_value_changed_cb(self, adj):
+                if not self.tagger: return
+                count = adj.props.value * PULSESEQ_FREQ / 1e3
+                self.tagger.set_initial_count(self.output_n, count)
+
+        def high_time_value_changed_cb(self, adj):
+                if not self.tagger: return
+                count = adj.props.value * PULSESEQ_FREQ / 1e3
+                self.tagger.set_high_count(self.output_n, count)
+
+        def low_time_value_changed_cb(self, adj):
+                if not self.tagger: return
+                count = adj.props.value * PULSESEQ_FREQ / 1e3
+                self.tagger.set_low_count(self.output_n, count)
+
+        def initial_state_toggled_cb(self, action):
+                state = action.props.active
+                if state:
+                        action.props.label = "High"
+                else:
+                        action.props.label = "Low"
+
+                if not self.tagger: return
+                self.tagger.set_initial_state(self.output_n, action.props.active)
+
+        def override_enabled_changed_cb(self, action, current):
+                override_enabled = bool(current)
+                if override_enabled:
+                        state = self.builder.get_object('output_state').props.active
+                        self._do_override()
+                else:
+                        self.sync_pulse_seq()
+
+        def override_state_toggled_cb(self, action):
+                self._do_override()
+
+        def _do_override(self):
+                self.builder.get_object('running').props.active = False
+                action = self.builder.get_object('override_state')
+                state = action.props.active
+                if state:
+                        action.props.label = "High"
+                        self.icon.set_from_stock('Up', gtk.ICON_SIZE_MENU)
+                else:
+                        action.props.label = "Low"
+                        self.icon.set_from_stock('Down', gtk.ICON_SIZE_MENU)
+
+                if not self.tagger: return
+                self.tagger.set_initial_state(self.output_n, state)
+
+
 class MainWindow(object):
         def update_plot(self):
                 if not self.pipeline:
@@ -46,6 +135,13 @@ class MainWindow(object):
                 self.win = self.builder.get_object('main_window')
                 self.win.connect('destroy', gtk.main_quit)
 
+                self.outputs = []
+                notebook = self.builder.get_object('output_channels')
+                for c in range(4):
+                        chan = OutputChannel(self, c)
+                        notebook.append_page(chan.widget, chan.notebook_label)
+                        self.outputs.append(chan)
+
                 self.figure = Figure()
                 self.axes = self.figure.add_subplot(111)
                 self.lines = {}
@@ -59,30 +155,27 @@ class MainWindow(object):
                         raise "Tried to start a capture pipeline while one is already running"
 
                 file = None
-                if self.builder.get_object('file_output_action').props.active:
-                        file = self.builder.get_object('data_file').get_filename()
+                if self.builder.get_object('file_output_enabled').props.active:
+                        file = self.builder.get_object('output_file').get_filename()
 
                 def update_cb():
                         self.update_plot()
                         return True
-                gobject.timeout_add(1000.0/10, update_cb)
+                gobject.timeout_add(int(1000.0/10), update_cb)
 
                 self.pipeline = CapturePipeline(output_file=file)
                 #self.pipeline = TestPipeline(100)
                 self.pipeline.start()
-                self.pipeline.tagger.start_capture()
-                self.sync_pulse_seq()
 
         def stop_pipeline(self):
+                self.stop_readout()
                 self.pipeline.stop()
                 self.pipeline = None
 
-        def running_toggled_cb(self, action):
+        def pipeline_running_toggled_cb(self, action):
                 state = action.props.active
-                sensitive_objects = [
-                        'file_output_action',
-                        'data_file',
-                ]
+
+                sensitive_objects = [ 'file_output_enabled', 'output_file', ]
                 for o in sensitive_objects:
                         self.builder.get_object(o).props.sensitive = not state
 
@@ -91,42 +184,26 @@ class MainWindow(object):
                 else:
                         self.stop_pipeline()
 
-        def override_output(self, output, state=False):
-                if not self.pipeline: return
-                self.pipeline.tagger.stop_outputs([output])
-                self.pipeline.tagger.set_initial_state(output, state)
+        def start_readout(self):
+                self.pipeline.tagger.start_capture()
 
-        def program_pulse_seq(self, output, initial_state, initial_count, high_count, low_count):
-                if not self.pipeline: return
-                self.pipeline.tagger.set_initial_state(output, initial_state)
-                self.pipeline.tagger.set_initial_count(output, initial_count*PULSESEQ_FREQ)
-                self.pipeline.tagger.set_high_count(output, high_count*PULSESEQ_FREQ)
-                self.pipeline.tagger.set_low_count(output, low_count*PULSESEQ_FREQ)
-                self.pipeline.tagger.start_outputs([output])
+        def stop_readout(self):
+                self.pipeline.tagger.stop_capture()
 
-        def sync_pulse_seq(self):
-                """ Program the pulse sequencer to reflect the settings in the UI """
-                output = self.builder.get_object("output_select").get_active()
-                print output
-                initial_state = self.builder.get_object("high_initial_state").get_current_value()
-                initial_count = self.builder.get_object("offset_time").get_value()
-                high_count = self.builder.get_object("high_time").get_value()
-                low_count = self.builder.get_object("low_time").get_value()
-                self.program_pulse_seq(output, initial_state, initial_count, high_count, low_count)
-
-        def output_override_toggled_cb(self, action):
-                override_enabled = self.builder.get_object('output_override_action').props.active
-                if override_enabled:
-                        state = self.builder.get_object('output_state_action').props.active
-                        output = self.builder.get_object('output_select').get_active()
-                        self.override_output(output, state)
+        def readout_running_toggled_cb(self, action):
+                if action.props.active:
+                        self.start_readout()
+                        action.props.label = "Running"       
                 else:
-                        self.sync_pulse_seq()
+                        self.stop_readout()
+                        action.props.label = "Stopped"
 
-        def pulse_seq_changed_cb(self, *action):
-                output = self.builder.get_object("output_select").get_active()
-                print output
-                self.sync_pulse_seq()
+        def start_outputs_activate_cb(self, action):
+                self.pipeline.tagger.start_outputs([0,1,2,3])
+
+        def stop_outputs_activate_cb(self, action):
+                self.pipeline.tagger.stop_outputs([0,1,2,3])
+
 
 if __name__ == '__main__':
         gtk.gdk.threads_init()

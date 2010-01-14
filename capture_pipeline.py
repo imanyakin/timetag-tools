@@ -77,7 +77,6 @@ class CapturePipeline(object):
                 self.listener.start()
 
                 self.tagger = timetag_interface.Timetag(self.source.stdin)
-                self.tagger.start_capture()
 
         def _listen(self):
                 while True:
@@ -91,7 +90,6 @@ class CapturePipeline(object):
 
         def stop(self):
                 logging.info("Capture pipeline shutdown")
-                self.tagger.stop_capture()
                 self.tagger = None
                 self.source.terminate()
 

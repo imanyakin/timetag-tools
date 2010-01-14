@@ -1,0 +1,264 @@
+<?xml version="1.0"?>
+<interface>
+  <requires lib="gtk+" version="2.16"/>
+  <!-- interface-naming-policy project-wide -->
+  <object class="GtkToggleAction" id="override_state">
+    <property name="label">Low</property>
+    <signal name="toggled" handler="override_state_toggled_cb"/>
+  </object>
+  <object class="GtkAdjustment" id="offset_time">
+    <property name="value">1</property>
+    <property name="lower">0.01</property>
+    <property name="upper">100000</property>
+    <property name="step_increment">1</property>
+    <signal name="value_changed" handler="offset_time_value_changed_cb"/>
+  </object>
+  <object class="GtkAdjustment" id="high_time">
+    <property name="value">1</property>
+    <property name="lower">0.01</property>
+    <property name="upper">100000</property>
+    <property name="step_increment">1</property>
+    <signal name="value_changed" handler="high_time_value_changed_cb"/>
+  </object>
+  <object class="GtkAdjustment" id="low_time">
+    <property name="value">1</property>
+    <property name="lower">0.01</property>
+    <property name="upper">100</property>
+    <property name="step_increment">1</property>
+    <signal name="value_changed" handler="low_time_value_changed_cb"/>
+  </object>
+  <object class="GtkTable" id="output_channel">
+    <property name="visible">True</property>
+    <property name="n_rows">7</property>
+    <property name="n_columns">3</property>
+    <child>
+      <object class="GtkSpinButton" id="offset_time_spin">
+        <property name="visible">True</property>
+        <property name="can_focus">True</property>
+        <property name="invisible_char">&#x25CF;</property>
+        <property name="adjustment">offset_time</property>
+      </object>
+      <packing>
+        <property name="left_attach">1</property>
+        <property name="right_attach">2</property>
+        <property name="top_attach">4</property>
+        <property name="bottom_attach">5</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkSpinButton" id="high_time_spin">
+        <property name="visible">True</property>
+        <property name="can_focus">True</property>
+        <property name="invisible_char">&#x25CF;</property>
+        <property name="adjustment">high_time</property>
+      </object>
+      <packing>
+        <property name="left_attach">1</property>
+        <property name="right_attach">2</property>
+        <property name="top_attach">5</property>
+        <property name="bottom_attach">6</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkSpinButton" id="low_time_spin">
+        <property name="visible">True</property>
+        <property name="can_focus">True</property>
+        <property name="invisible_char">&#x25CF;</property>
+        <property name="adjustment">low_time</property>
+      </object>
+      <packing>
+        <property name="left_attach">1</property>
+        <property name="right_attach">2</property>
+        <property name="top_attach">6</property>
+        <property name="bottom_attach">7</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkLabel" id="label2">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">Offset Time</property>
+      </object>
+      <packing>
+        <property name="top_attach">4</property>
+        <property name="bottom_attach">5</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkLabel" id="label3">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">High Time</property>
+      </object>
+      <packing>
+        <property name="top_attach">5</property>
+        <property name="bottom_attach">6</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkLabel" id="label4">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">Low Time</property>
+      </object>
+      <packing>
+        <property name="top_attach">6</property>
+        <property name="bottom_attach">7</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkToggleButton" id="override_state_btn">
+        <property name="label" translatable="yes">Low</property>
+        <property name="visible">True</property>
+        <property name="can_focus">True</property>
+        <property name="receives_default">True</property>
+        <property name="use_action_appearance">True</property>
+        <property name="related_action">override_state</property>
+        <property name="use_underline">True</property>
+      </object>
+      <packing>
+        <property name="left_attach">1</property>
+        <property name="right_attach">2</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkHSeparator" id="hseparator1">
+        <property name="visible">True</property>
+      </object>
+      <packing>
+        <property name="right_attach">3</property>
+        <property name="top_attach">1</property>
+        <property name="bottom_attach">2</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkLabel" id="label5">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">Initial State</property>
+      </object>
+      <packing>
+        <property name="top_attach">3</property>
+        <property name="bottom_attach">4</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkLabel" id="label6">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">ms</property>
+      </object>
+      <packing>
+        <property name="left_attach">2</property>
+        <property name="right_attach">3</property>
+        <property name="top_attach">4</property>
+        <property name="bottom_attach">5</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkLabel" id="label7">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">ms</property>
+      </object>
+      <packing>
+        <property name="left_attach">2</property>
+        <property name="right_attach">3</property>
+        <property name="top_attach">5</property>
+        <property name="bottom_attach">6</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkLabel" id="label8">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">ms</property>
+      </object>
+      <packing>
+        <property name="left_attach">2</property>
+        <property name="right_attach">3</property>
+        <property name="top_attach">6</property>
+        <property name="bottom_attach">7</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkToggleButton" id="initial_state_btn">
+        <property name="visible">True</property>
+        <property name="can_focus">True</property>
+        <property name="receives_default">True</property>
+        <property name="use_action_appearance">True</property>
+        <property name="related_action">initial_state</property>
+      </object>
+      <packing>
+        <property name="left_attach">1</property>
+        <property name="right_attach">2</property>
+        <property name="top_attach">3</property>
+        <property name="bottom_attach">4</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkRadioButton" id="radiobutton1">
+        <property name="visible">True</property>
+        <property name="can_focus">True</property>
+        <property name="receives_default">False</property>
+        <property name="use_action_appearance">True</property>
+        <property name="related_action">override_enabled</property>
+        <property name="draw_indicator">True</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkRadioButton" id="radiobutton2">
+        <property name="visible">True</property>
+        <property name="can_focus">True</property>
+        <property name="receives_default">False</property>
+        <property name="use_action_appearance">True</property>
+        <property name="related_action">sequencer_enabled</property>
+        <property name="draw_indicator">True</property>
+        <property name="group">radiobutton1</property>
+      </object>
+      <packing>
+        <property name="top_attach">2</property>
+        <property name="bottom_attach">3</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkToggleButton" id="togglebutton1">
+        <property name="visible">True</property>
+        <property name="can_focus">True</property>
+        <property name="receives_default">True</property>
+        <property name="use_action_appearance">True</property>
+        <property name="related_action">running</property>
+      </object>
+      <packing>
+        <property name="left_attach">1</property>
+        <property name="right_attach">2</property>
+        <property name="top_attach">2</property>
+        <property name="bottom_attach">3</property>
+      </packing>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
+  </object>
+  <object class="GtkToggleAction" id="initial_state">
+    <property name="label">Low</property>
+    <property name="stock_id">gtk-go-down</property>
+    <signal name="toggled" handler="initial_state_toggled_cb"/>
+  </object>
+  <object class="GtkToggleAction" id="running">
+    <property name="label">Stopped</property>
+    <signal name="toggled" handler="running_toggled_cb"/>
+  </object>
+  <object class="GtkRadioAction" id="override_enabled">
+    <property name="label">Override</property>
+    <property name="draw_as_radio">True</property>
+    <property name="active">True</property>
+    <property name="value">1</property>
+    <property name="current_value">1</property>
+    <signal name="changed" handler="override_enabled_changed_cb"/>
+  </object>
+  <object class="GtkRadioAction" id="sequencer_enabled">
+    <property name="label">Sequencer</property>
+    <property name="draw_as_radio">True</property>
+    <property name="group">override_enabled</property>
+  </object>
+</interface>
