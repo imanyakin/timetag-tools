@@ -45,7 +45,7 @@ class CapturePipeline(object):
                         yield n, chan.times.get(), chan.counts.get()
                         return 
 
-        def __init__(self, bin_time=1e-3, output_file=None, points=100):
+        def __init__(self, bin_time=40e-3, output_file=None, points=100):
                 """ Create a capture pipeline. The bin length is given in timer units. """
                 self.channels = defaultdict(lambda: CapturePipeline.Channel(points))
 
@@ -72,25 +72,22 @@ class CapturePipeline(object):
                 self.binner = subprocess.Popen(cmd, stdin=src, stdout=PIPE)
                 logging.info("Started process %s" % cmd)
 
-                self.listener = threading.Thread(name='Data Listener', target=self.listen)
+                self.listener = threading.Thread(name='Data Listener', target=self._listen)
                 self.listener.daemon = True
                 self.listener.start()
 
                 self.tagger = timetag_interface.Timetag(self.source.stdin)
                 self.tagger.start_capture()
 
-        def listen(self):
+        def _listen(self):
                 while True:
                         l = self.binner.stdout.readline()
                         if len(l) == 0: return
                         chan, start_time, count, lost = map(int, l.split())
-                        #start_time /= CAPTURE_CLOCK
                         c = self.channels[chan]
-                        c.times.append(1.0*start_time)# / CapturePipeline.CAPTURE_CLOCK)
+                        c.times.append(1.0*start_time / CAPTURE_CLOCK)
                         c.counts.append(count)
-                        if self.update_cb: self.update_cb()
 
-                        #if chan==1 and c.idx % 20 == 0: print c.idx, c.times, c.counts
 
         def stop(self):
                 logging.info("Capture pipeline shutdown")

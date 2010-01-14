@@ -63,13 +63,12 @@ class MainWindow(object):
                         file = self.builder.get_object('data_file').get_filename()
 
                 def update_cb():
-                        if time.time() - self.last_update > 1.0/30:
-                                gobject.idle_add(self.update_plot)
-                                self.update_pending = True
+                        self.update_plot()
+                        return True
+                gobject.timeout_add(1000.0/10, update_cb)
 
                 self.pipeline = CapturePipeline(output_file=file)
                 #self.pipeline = TestPipeline(100)
-                self.pipeline.update_cb = update_cb
                 self.pipeline.start()
                 self.pipeline.tagger.start_capture()
                 self.sync_pulse_seq()
