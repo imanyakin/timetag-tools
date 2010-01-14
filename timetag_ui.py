@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import logging
+from collections import defaultdict
 import time
 import gobject, gtk
 from matplotlib.figure import Figure
@@ -171,22 +172,23 @@ class MainWindow(object):
                 self.figure.canvas.draw()
 
         def update_indicators(self):
-                t = time.time()
-                photon_count = 0
-                loss_count = 0
-                for n, count, lost in self.pipeline.stats():
-                        photon_count += count
-                        loss_count += lost
+                photon_rates = []
+                loss_rates = []
+                for n, photon_count, lost_count, timestamp in self.pipeline.stats():
+                        last_photon_count, last_lost_count, last_timestamp = self.last_stats[n]
+                        if last_timestamp != timestamp:
+                                photon_rates.append( (photon_count - last_photon_count) / (timestamp - last_timestamp) )
+                                loss_rates.append( (lost_count - last_lost_count) / (timestamp - last_timestamp) )
+                        self.last_stats[n] = (photon_count, lost_count, timestamp)
+
+                loss_rate = sum(loss_rates)
+                photon_rate = sum(photon_rates)
 
                 l = self.builder.get_object('photon_rate')
-                rate = (photon_count - self.last_photon_count) / (t - self.last_update)
-                l.props.label = "<span color='darkgreen'size='xx-large'>%d</span> <span size='large'>photons/second</span>" % rate
+                l.props.label = "<span color='darkgreen'size='xx-large'>%d</span> <span size='large'>photons/second</span>" % photon_rate
 
                 l = self.builder.get_object('loss_rate')
-                rate = (loss_count - self.last_loss_count) / (t - self.last_update)
-
-                self.last_photon_count = photon_count
-                self.last_loss_count = loss_count
+                l.props.label = "<span color='darkred'size='xx-large'>%d</span> <span size='large'>loss events/second</span>" % loss_rate
 
         def start_pipeline(self):
                 if self.pipeline:
@@ -201,13 +203,10 @@ class MainWindow(object):
                 self.pipeline.start()
 
                 # Start update loop for plot
-                self.last_loss_count = 0
-                self.last_photon_count = 0
-                self.last_update = time.time()
+                self.last_stats = defaultdict(lambda: (0, 0, 0))
                 def update_cb():
                         self.update_plot()
                         self.update_indicators()
-                        self.last_update = time.time()
                         return True
                 gobject.timeout_add(int(1000.0/self.update_rate), update_cb)
 

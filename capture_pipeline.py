@@ -41,6 +41,7 @@ class CapturePipeline(object):
                         self.counts = RingBuffer(npts)
                         self.loss_count = 0
                         self.photon_count = 0
+                        self.latest_timestamp = 0
 
         def bins(self):
                 for n, chan in self.channels.items():
@@ -48,7 +49,7 @@ class CapturePipeline(object):
 
         def stats(self):
                 for n, chan in self.channels.items():
-                        yield n, chan.photon_count, chan.loss_count
+                        yield n, chan.photon_count, chan.loss_count, chan.latest_timestamp
 
         def __init__(self, bin_time=40e-3, output_file=None, points=100):
                 """ Create a capture pipeline. The bin_time is given in milliseconds """
@@ -89,10 +90,12 @@ class CapturePipeline(object):
                         if len(l) == 0: return
                         chan, start_time, count, lost = map(int, l.split())
                         c = self.channels[chan]
-                        c.times.append(1.0*start_time / CAPTURE_CLOCK)
+                        start_time = 1.0*start_time / CAPTURE_CLOCK
+                        c.times.append(start_time)
                         c.counts.append(count)
                         c.photon_count += count
                         c.loss_count += lost
+                        c.latest_timestamp = start_time
 
         def stop(self):
                 logging.info("Capture pipeline shutdown")
@@ -116,7 +119,7 @@ class TestPipeline(object):
                 yield 0, self.times.get(), self.counts.get()
 
         def stats(self):
-                yield 0, self.count_total, 0
+                yield 0, self.count_total, 0, self.t
 
         def start(self):
                 self._running = True
