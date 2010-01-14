@@ -120,29 +120,6 @@ class OutputChannel(object):
 
 
 class MainWindow(object):
-        def update_plot(self):
-                if not self.pipeline:
-                        self.update_pending = False
-                        return False
-
-                for n,times,counts,_ in self.pipeline:
-                        if not self.lines.has_key(n):
-                                self.lines[n], = self.axes.plot(times, counts)#, animated=True)
-                        else:
-                                self.lines[n].set_data(times, counts)
-
-                # There must be a better way to do this
-                self.axes.relim()
-                self.axes.autoscale_view(scalex=True, scaley=False, tight=True)
-                self.axes.autoscale_view(scalex=False, scaley=True, tight=False)
-                _,ymax = self.axes.get_ylim()
-                self.axes.set_ylim(ymin=0, ymax=1.1*ymax)
-
-                self.figure.canvas.draw()
-                self.last_update = time.time()
-                self.update_pending = False
-                return False
-
         def __init__(self):
                 self.dt = 0
                 self.last_update = 0
@@ -175,6 +152,29 @@ class MainWindow(object):
                 self.builder.get_object('plot_container').pack_start(canvas)
 
                 self.win.show_all()
+
+        def update_plot(self):
+                if not self.pipeline:
+                        self.update_pending = False
+                        return False
+
+                for n,times,counts,_ in self.pipeline:
+                        if not self.lines.has_key(n):
+                                self.lines[n], = self.axes.plot(times, counts)#, animated=True)
+                        else:
+                                self.lines[n].set_data(times, counts)
+
+                # There must be a better way to do this
+                self.axes.relim()
+                self.axes.autoscale_view(scalex=True, scaley=False, tight=True)
+                self.axes.autoscale_view(scalex=False, scaley=True, tight=False)
+                _,ymax = self.axes.get_ylim()
+                self.axes.set_ylim(ymin=0, ymax=1.1*ymax)
+
+                self.figure.canvas.draw()
+                self.last_update = time.time()
+                self.update_pending = False
+                return False
 
         def start_pipeline(self):
                 if self.pipeline:
