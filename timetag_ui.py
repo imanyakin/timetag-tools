@@ -172,6 +172,13 @@ class MainWindow(object):
                 self.figure.canvas.draw()
 
         def update_indicators(self):
+                display_type = self.builder.get_object('show_totals').props.current_value
+                if display_type == 1:
+                        self._update_rate_indicators()
+                else:
+                        self._update_total_indicators()
+
+        def _update_rate_indicators(self):
                 photon_rates = []
                 loss_rates = []
                 for n, photon_count, lost_count, timestamp in self.pipeline.stats():
@@ -189,6 +196,19 @@ class MainWindow(object):
 
                 l = self.builder.get_object('loss_rate')
                 l.props.label = "<span color='darkred'size='xx-large'>%d</span> <span size='large'>loss events/second</span>" % loss_rate
+
+        def _update_total_indicators(self):
+                photon_total = 0
+                loss_total = 0
+                for n, photon_count, lost_count, timestamp in self.pipeline.stats():
+                        photon_total += photon_count
+                        loss_total += lost_count
+
+                l = self.builder.get_object('photon_rate')
+                l.props.label = "<span color='darkgreen'size='xx-large'>%1.3e</span> <span size='large'>photons</span>" % photon_total
+
+                l = self.builder.get_object('loss_rate')
+                l.props.label = "<span color='darkred'size='xx-large'>%d</span> <span size='large'>loss events</span>" % loss_total
 
         def start_pipeline(self):
                 if self.pipeline:

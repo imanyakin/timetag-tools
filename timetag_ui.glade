@@ -29,8 +29,8 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">file_output_enabled</property>
+                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                         <property name="draw_indicator">True</property>
                       </object>
@@ -60,8 +60,8 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">pipeline_running</property>
+                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                       </object>
                       <packing>
@@ -103,8 +103,8 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">readout_running</property>
+                        <property name="use_action_appearance">True</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -200,8 +200,8 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">True</property>
                                 <property name="related_action">stop_outputs</property>
+                                <property name="use_action_appearance">True</property>
                                 <property name="use_underline">True</property>
                               </object>
                               <packing>
@@ -217,8 +217,8 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">True</property>
                                 <property name="related_action">start_outputs</property>
+                                <property name="use_action_appearance">True</property>
                                 <property name="use_underline">True</property>
                               </object>
                               <packing>
@@ -257,7 +257,67 @@
               </packing>
             </child>
             <child>
-              <placeholder/>
+              <object class="GtkFrame" id="frame4">
+                <property name="visible">True</property>
+                <property name="label_xalign">0</property>
+                <property name="shadow_type">none</property>
+                <child>
+                  <object class="GtkAlignment" id="alignment4">
+                    <property name="visible">True</property>
+                    <property name="left_padding">12</property>
+                    <child>
+                      <object class="GtkVBox" id="vbox3">
+                        <property name="visible">True</property>
+                        <property name="orientation">vertical</property>
+                        <child>
+                          <object class="GtkRadioButton" id="radiobutton1">
+                            <property name="label" translatable="yes">Rates</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">False</property>
+                            <property name="related_action">show_rates</property>
+                            <property name="use_action_appearance">True</property>
+                            <property name="use_underline">True</property>
+                            <property name="active">True</property>
+                            <property name="draw_indicator">True</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkRadioButton" id="radiobutton2">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">False</property>
+                            <property name="related_action">show_totals</property>
+                            <property name="use_action_appearance">True</property>
+                            <property name="use_underline">True</property>
+                            <property name="draw_indicator">True</property>
+                            <property name="group">radiobutton1</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child type="label">
+                  <object class="GtkLabel" id="label6">
+                    <property name="visible">True</property>
+                    <property name="label" translatable="yes">&lt;b&gt;Numerical Display&lt;/b&gt;</property>
+                    <property name="use_markup">True</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="position">1</property>
+              </packing>
             </child>
             <child>
               <object class="GtkTable" id="table1">
@@ -355,5 +415,18 @@
     <property name="label">Stopped</property>
     <property name="sensitive">False</property>
     <signal name="toggled" handler="readout_running_toggled_cb"/>
+  </object>
+  <object class="GtkToggleAction" id="toggleaction1"/>
+  <object class="GtkRadioAction" id="show_totals">
+    <property name="label">Totals</property>
+    <property name="draw_as_radio">True</property>
+    <property name="group">show_rates</property>
+    <property name="current_value">1</property>
+  </object>
+  <object class="GtkRadioAction" id="show_rates">
+    <property name="label">Rates</property>
+    <property name="draw_as_radio">True</property>
+    <property name="value">1</property>
+    <property name="current_value">1</property>
   </object>
 </interface>
