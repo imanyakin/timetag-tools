@@ -204,6 +204,8 @@ class MainWindow(object):
                 self.stop_readout()
                 self.pipeline.stop()
                 self.pipeline = None
+                # As a precaution to prevent accidental overwriting of acquired data
+                self.builder.get_object('file_output_enabled').props.active = False
 
         def pipeline_running_toggled_cb(self, action):
                 state = action.props.active
