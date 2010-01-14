@@ -110,17 +110,21 @@ class CapturePipeline(object):
 class TestPipeline(object):
         def __init__(self, npts=10):
                 self.times = RingBuffer(npts)
-                self.counts = RingBuffer(npts)
-                self.count_total = 0
+                self.counts = []
+                self.counts.append(RingBuffer(npts))
+                self.counts.append(RingBuffer(npts))
+
+                self.count_totals = [0,0]
                 self.t = 0
-                self.update_cb = None
                 self.tagger = timetag_interface.Timetag(sys.stderr)
 
         def bins(self):
-                yield 0, self.times.get(), self.counts.get()
+                for i,c in enumerate(self.counts):
+                        yield 0, self.times.get(), c.get()
 
         def stats(self):
-                yield 0, self.count_total, 0, self.t
+                for i,c in enumerate(self.counts):
+                        yield 0, self.count_totals[c], 0, self.t
 
         def start(self):
                 self._running = True
@@ -131,12 +135,12 @@ class TestPipeline(object):
         def worker(self):
                 while self._running:
                         self.times.append(self.t)
-                        count = random.randint(0, 200)
-                        self.counts.append(count)
-                        self.count_total += count
+                        for i,c in enumerate(self.counts):
+                                count = random.randint(0, 200)
+                                self.counts[i].append(count)
+                                self.count_totals[i] += count
+
                         self.t += 1.0/40
-                        
-                        if self.update_cb: self.update_cb()
                         time.sleep(1.0/40)
 
         def stop(self):
