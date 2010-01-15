@@ -156,6 +156,15 @@ class MainWindow(object):
 
                 self.win.show_all()
 
+        def select_output_file_activate_cb(self, action):
+                fc = gtk.FileChooserDialog('Select output file', self.win, gtk.FILE_CHOOSER_ACTION_SAVE,
+                        (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,  gtk.STOCK_OK, gtk.RESPONSE_OK))
+                fc.props.do_overwrite_confirmation = True
+                res = fc.run()
+                fc.hide()
+                if res == gtk.RESPONSE_OK:
+                        self.builder.get_object('output_file').props.text = fc.get_filename()
+
         def update_plot(self):
                 if not self.pipeline:
                         return False
@@ -226,7 +235,7 @@ class MainWindow(object):
 
                 file = None
                 if self.builder.get_object('file_output_enabled').props.active:
-                        file = self.builder.get_object('output_file').get_filename()
+                        file = self.builder.get_object('output_file').props.text
 
                 bin_time = self.builder.get_object('bin_time').props.value
                 self.pipeline = CapturePipeline(output_file=file, bin_time=bin_time*1e-3)
@@ -259,7 +268,7 @@ class MainWindow(object):
 
         def pipeline_running_toggled_cb(self, action):
                 state = action.props.active
-                for o in [ 'file_output_enabled', 'output_file' ]:
+                for o in [ 'file_output_enabled', 'output_file', 'select_output_file' ]:
                         self.builder.get_object(o).props.sensitive = not state
                 for o in [ 'readout_running', 'stop_outputs', 'start_outputs' ]:
                         self.builder.get_object(o).props.sensitive = state

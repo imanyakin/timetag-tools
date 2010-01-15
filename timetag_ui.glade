@@ -43,21 +43,6 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkFileChooserButton" id="output_file">
-                        <property name="visible">True</property>
-                        <property name="do_overwrite_confirmation">True</property>
-                        <property name="action">save</property>
-                        <property name="use_preview_label">False</property>
-                        <property name="title" translatable="yes">Select Output File</property>
-                      </object>
-                      <packing>
-                        <property name="left_attach">1</property>
-                        <property name="right_attach">2</property>
-                        <property name="top_attach">1</property>
-                        <property name="bottom_attach">2</property>
-                      </packing>
-                    </child>
-                    <child>
                       <object class="GtkToggleButton" id="running">
                         <property name="label" translatable="yes">Running</property>
                         <property name="visible">True</property>
@@ -119,6 +104,39 @@
                     </child>
                     <child>
                       <placeholder/>
+                    </child>
+                    <child>
+                      <object class="GtkHBox" id="hbox6">
+                        <property name="visible">True</property>
+                        <child>
+                          <object class="GtkEntry" id="output_file">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="invisible_char">&#x25CF;</property>
+                          </object>
+                          <packing>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="button1">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">True</property>
+                            <property name="use_action_appearance">True</property>
+                            <property name="related_action">select_output_file</property>
+                          </object>
+                          <packing>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="left_attach">1</property>
+                        <property name="right_attach">2</property>
+                        <property name="top_attach">1</property>
+                        <property name="bottom_attach">2</property>
+                      </packing>
                     </child>
                   </object>
                 </child>
@@ -408,7 +426,6 @@
     <property name="sensitive">False</property>
     <signal name="toggled" handler="readout_running_toggled_cb"/>
   </object>
-  <object class="GtkToggleAction" id="toggleaction1"/>
   <object class="GtkRadioAction" id="show_totals">
     <property name="label">Totals</property>
     <property name="draw_as_radio">True</property>
@@ -426,5 +443,10 @@
     <property name="upper">1000</property>
     <property name="step_increment">5</property>
     <property name="page_increment">25</property>
+  </object>
+  <object class="GtkAction" id="select_output_file">
+    <property name="label">Select File</property>
+    <property name="stock_id">gtk-save</property>
+    <signal name="activate" handler="select_output_file_activate_cb"/>
   </object>
 </interface>
