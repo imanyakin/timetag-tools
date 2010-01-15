@@ -37,10 +37,10 @@ int main(int argc, char** argv) {
 				photon & REC_TYPE_MASK ? "DELTA" : "STROBE",
 				photon & TIMER_WRAP_MASK ? "WRAP" : "",
 				photon & LOST_SAMPLE_MASK ? "LOST" : "",
-				photon & CHAN_1_MASK != 0,
-				photon & CHAN_2_MASK != 0,
-				photon & CHAN_3_MASK != 0,
-				photon & CHAN_4_MASK != 0
+				(int) (photon & CHAN_1_MASK != 0),
+				(int) (photon & CHAN_2_MASK != 0),
+				(int) (photon & CHAN_3_MASK != 0),
+				(int) (photon & CHAN_4_MASK != 0)
 		);
 	}
 
