@@ -158,7 +158,6 @@ class MainWindow(object):
 
         def update_plot(self):
                 if not self.pipeline:
-                        self.update_pending = False
                         return False
 
                 for n,times,counts in self.pipeline.bins():
