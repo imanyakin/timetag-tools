@@ -8,7 +8,7 @@
  *
  * Decodes a binary photon stream to human readable format.
  * Usage:
- *   dump_photons
+ *   dump_records
  *
  * Input:
  *   A binary photon stream
