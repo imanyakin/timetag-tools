@@ -1,3 +1,4 @@
+#include <vector>
 #include <cstdio>
 #include <cstdlib>
 
@@ -26,12 +27,14 @@
  *
  */
 
-struct channel {
+struct input_channel {
+	int chan_n;
 	record_t mask;
 	count_t bin_start;
 	int count;
 	int lost;	// IMPORTANT: This is not a count of lost photons, only
-			//            sprees of lost photons
+			//            potential sprees of lost photons
+	input_channel(int chan_n, record_t mask) : chan_n(chan_n), mask(mask) { }
 };
 
 int main(int argc, char** argv) {
@@ -41,12 +44,11 @@ int main(int argc, char** argv) {
 	}
 	count_t bin_length = atoi(argv[1]);
 
-#define N_CHAN 4
-	channel chans[N_CHAN] = {
-		{ CHAN_1_MASK },
-		{ CHAN_2_MASK },
-		{ CHAN_3_MASK },
-		{ CHAN_4_MASK },
+	std::vector<input_channel> chans = {
+		{ input_channel(0, CHAN_1_MASK) },
+		{ input_channel(1, CHAN_2_MASK) },
+		{ input_channel(2, CHAN_3_MASK) },
+		{ input_channel(3, CHAN_4_MASK) },
 	};
 
 	// For handling wraparound
@@ -69,21 +71,21 @@ int main(int argc, char** argv) {
 
 		time += time_offset;
 
-		for (int c=0; c < 4; c++) {
+		for (auto c=chans.begin(); c != chans.end(); c++) {
 			if (photon & LOST_SAMPLE_MASK)
-				chans[c].lost++;
-			if (!(photon & REC_TYPE_MASK) && (photon & chans[c].mask))
-				chans[c].count++;
+				c->lost++;
+			if (!(photon & REC_TYPE_MASK) && (photon & c->mask))
+				c->count++;
 
-			if (time > (chans[c].bin_start + bin_length)) {
+			if (time > (c->bin_start + bin_length)) {
 				printf("%d\t%11llu\t%d\t%d\n",
-						c+1,
-						chans[c].bin_start,
-						chans[c].count,
-						chans[c].lost);
-				chans[c].lost = 0;
-				chans[c].count = 0;
-				chans[c].bin_start = (time / bin_length) * bin_length;
+						c->chan_n,
+						c->bin_start,
+						c->count,
+						c->lost);
+				c->lost = 0;
+				c->count = 0;
+				c->bin_start = (time / bin_length) * bin_length;
 			}
 		}
 	}
