@@ -74,9 +74,9 @@ int main(int argc, char** argv) {
                                 printf("%11llu\t%d\t", time, chan->chan_n);
                                 for (auto out=outputs.begin(); out != outputs.end(); out++) {
                                         if (out->state)
-                                                printf("%d ", out->chan_n);
+                                                printf("%d\t", out->chan_n);
                                         else
-                                                printf("  ");
+                                                printf(" \t");
                                 }
                                 printf("\n");
                         }
