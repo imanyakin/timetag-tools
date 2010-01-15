@@ -31,8 +31,8 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">file_output_enabled</property>
+                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                         <property name="draw_indicator">True</property>
                       </object>
@@ -48,8 +48,8 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">pipeline_running</property>
+                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                       </object>
                       <packing>
@@ -100,12 +100,6 @@
                       </packing>
                     </child>
                     <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
                       <object class="GtkHBox" id="hbox6">
                         <property name="visible">True</property>
                         <child>
@@ -123,8 +117,8 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
-                            <property name="use_action_appearance">True</property>
                             <property name="related_action">select_output_file</property>
+                            <property name="use_action_appearance">True</property>
                           </object>
                           <packing>
                             <property name="position">1</property>
@@ -137,6 +131,12 @@
                         <property name="top_attach">1</property>
                         <property name="bottom_attach">2</property>
                       </packing>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
                     </child>
                   </object>
                 </child>
@@ -172,8 +172,8 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">readout_running</property>
+                        <property name="use_action_appearance">True</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -204,27 +204,17 @@
           </packing>
         </child>
         <child>
-          <object class="GtkHBox" id="hbox1">
+          <object class="GtkTable" id="channel_stats">
             <property name="visible">True</property>
+            <property name="n_columns">3</property>
             <child>
-              <object class="GtkLabel" id="photon_rate">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">&lt;span color='darkgreen'size='xx-large'&gt;0&lt;/span&gt; &lt;span size='large'&gt;photons/second&lt;/span&gt;</property>
-                <property name="use_markup">True</property>
-              </object>
-              <packing>
-                <property name="position">0</property>
-              </packing>
+              <placeholder/>
             </child>
             <child>
-              <object class="GtkLabel" id="loss_rate">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">&lt;span color='darkred' size='xx-large'&gt;0&lt;/span&gt; &lt;span size='large'&gt;loss events/second&lt;/span&gt;</property>
-                <property name="use_markup">True</property>
-              </object>
-              <packing>
-                <property name="position">1</property>
-              </packing>
+              <placeholder/>
+            </child>
+            <child>
+              <placeholder/>
             </child>
           </object>
           <packing>
@@ -269,8 +259,8 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">True</property>
                                 <property name="related_action">stop_outputs</property>
+                                <property name="use_action_appearance">True</property>
                                 <property name="use_underline">True</property>
                               </object>
                               <packing>
@@ -286,8 +276,8 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">True</property>
                                 <property name="related_action">start_outputs</property>
+                                <property name="use_action_appearance">True</property>
                                 <property name="use_underline">True</property>
                               </object>
                               <packing>
@@ -344,8 +334,8 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
-                            <property name="use_action_appearance">True</property>
                             <property name="related_action">show_rates</property>
+                            <property name="use_action_appearance">True</property>
                             <property name="use_underline">True</property>
                             <property name="active">True</property>
                             <property name="draw_indicator">True</property>
@@ -360,8 +350,8 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
-                            <property name="use_action_appearance">True</property>
                             <property name="related_action">show_totals</property>
+                            <property name="use_action_appearance">True</property>
                             <property name="use_underline">True</property>
                             <property name="draw_indicator">True</property>
                             <property name="group">radiobutton1</property>

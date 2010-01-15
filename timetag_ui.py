@@ -141,6 +141,18 @@ class MainWindow(object):
                 self.win = self.builder.get_object('main_window')
                 self.win.connect('destroy', quit)
 
+		n_inputs = 4
+		self.inputs = []
+		table = self.builder.get_object('channel_stats')
+		table.resize(n_inputs, 3)
+		for c in range(n_inputs):
+			label, photons, lost = gtk.Label(), gtk.Label(), gtk.Label()
+			label.set_markup('<span size="large">Channel %d</span>' % c)
+			table.attach(label, 0,1, c,c+1)
+			table.attach(photons, 1,2, c,c+1)
+			table.attach(lost, 2,3, c,c+1)
+			self.inputs.append((photons, lost))
+
                 self.outputs = []
                 notebook = self.builder.get_object('output_channels')
                 for c in range(4):
@@ -198,36 +210,26 @@ class MainWindow(object):
                         self._update_total_indicators()
 
         def _update_rate_indicators(self):
-                photon_rates = []
-                loss_rates = []
                 for n, photon_count, lost_count, timestamp in self.pipeline.stats():
                         last_photon_count, last_lost_count, last_timestamp = self.last_stats[n]
                         if last_timestamp != timestamp:
-                                photon_rates.append( (photon_count - last_photon_count) / (timestamp - last_timestamp) )
-                                loss_rates.append( (lost_count - last_lost_count) / (timestamp - last_timestamp) )
+                                photon_rate = (photon_count - last_photon_count) / (timestamp - last_timestamp)
+                                loss_rate = (lost_count - last_lost_count) / (timestamp - last_timestamp)
+
+				markup = "<span color='darkgreen'size='xx-large'>%d</span> <span size='large'>photons/second</span>" % photon_rate
+				self.inputs[n][0].set_markup(markup)
+				markup = "<span color='darkred'size='xx-large'>%d</span> <span size='large'>loss events/second</span>" % loss_rate
+				self.inputs[n][1].set_markup(markup)
                         self.last_stats[n] = (photon_count, lost_count, timestamp)
 
-                loss_rate = sum(loss_rates)
-                photon_rate = sum(photon_rates)
-
-                l = self.builder.get_object('photon_rate')
-                l.props.label = "<span color='darkgreen'size='xx-large'>%d</span> <span size='large'>photons/second</span>" % photon_rate
-
-                l = self.builder.get_object('loss_rate')
-                l.props.label = "<span color='darkred'size='xx-large'>%d</span> <span size='large'>loss events/second</span>" % loss_rate
 
         def _update_total_indicators(self):
-                photon_total = 0
-                loss_total = 0
                 for n, photon_count, lost_count, timestamp in self.pipeline.stats():
-                        photon_total += photon_count
-                        loss_total += lost_count
-
-                l = self.builder.get_object('photon_rate')
-                l.props.label = "<span color='darkgreen'size='xx-large'>%1.3e</span> <span size='large'>photons</span>" % photon_total
-
-                l = self.builder.get_object('loss_rate')
-                l.props.label = "<span color='darkred'size='xx-large'>%d</span> <span size='large'>loss events</span>" % loss_total
+			markup = "<span color='darkgreen'size='xx-large'>%1.3e</span> <span size='large'>photons</span>" % photon_count
+			self.inputs[n][0].set_markup(markup)
+			markup = "<span color='darkred'size='xx-large'>%d</span> <span size='large'>loss events</span>" % lost_count
+			self.inputs[n][1].set_markup(markup)
+				
 
         def start_pipeline(self):
                 if self.pipeline:
