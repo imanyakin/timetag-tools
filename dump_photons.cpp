@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
                         // Strobe record
                         for (auto chan=inputs.begin(); chan != inputs.end(); chan++) {
                                 if (!(photon & chan->mask)) continue;
-                                printf("%9llx\t%d\t", time, chan->chan_n);
+                                printf("%11llu\t%d\t", time, chan->chan_n);
                                 for (auto out=outputs.begin(); out != outputs.end(); out++) {
                                         if (out->state)
                                                 printf("%d ", out->chan_n);

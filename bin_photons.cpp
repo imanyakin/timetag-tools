@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
 				chans[c].count++;
 
 			if (time > (chans[c].bin_start + bin_length)) {
-				printf("%d\t%llu\t%d\t%d\n",
+				printf("%d\t%11llu\t%d\t%d\n",
 						c+1,
 						chans[c].bin_start,
 						chans[c].count,
