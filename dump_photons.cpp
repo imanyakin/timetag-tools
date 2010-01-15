@@ -39,16 +39,16 @@ struct output_channel {
 
 int main(int argc, char** argv) {
         std::vector<output_channel> outputs = {
+                output_channel(0, CHAN_0_MASK),
                 output_channel(1, CHAN_1_MASK),
                 output_channel(2, CHAN_2_MASK),
-                output_channel(3, CHAN_3_MASK),
-                output_channel(4, CHAN_4_MASK)
+                output_channel(3, CHAN_3_MASK)
         };
         std::vector<input_channel> inputs = {
+                input_channel(0, CHAN_0_MASK),
                 input_channel(1, CHAN_1_MASK),
                 input_channel(2, CHAN_2_MASK),
-                input_channel(3, CHAN_3_MASK),
-                input_channel(4, CHAN_4_MASK)
+                input_channel(3, CHAN_3_MASK)
         };
 
         setvbuf(stdout, NULL, _IONBF, NULL);

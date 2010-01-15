@@ -45,10 +45,10 @@ int main(int argc, char** argv) {
 	count_t bin_length = atoi(argv[1]);
 
 	std::vector<input_channel> chans = {
-		{ input_channel(0, CHAN_1_MASK) },
-		{ input_channel(1, CHAN_2_MASK) },
-		{ input_channel(2, CHAN_3_MASK) },
-		{ input_channel(3, CHAN_4_MASK) },
+		{ input_channel(0, CHAN_0_MASK) },
+		{ input_channel(1, CHAN_1_MASK) },
+		{ input_channel(2, CHAN_2_MASK) },
+		{ input_channel(3, CHAN_3_MASK) },
 	};
 
 	// For handling wraparound
