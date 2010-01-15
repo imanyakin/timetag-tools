@@ -31,10 +31,11 @@ struct input_channel {
 	int chan_n;
 	record_t mask;
 	count_t bin_start;
-	int count;
-	int lost;	// IMPORTANT: This is not a count of lost photons, only
-			//            potential sprees of lost photons
-	input_channel(int chan_n, record_t mask) : chan_n(chan_n), mask(mask) { }
+	unsigned int count;
+	unsigned int lost;	// IMPORTANT: This is not a count of lost photons, only
+				//            potential sprees of lost photons
+	input_channel(int chan_n, record_t mask) :
+		chan_n(chan_n), mask(mask), bin_start(0), count(0), lost(0) { }
 };
 
 int main(int argc, char** argv) {
@@ -68,7 +69,6 @@ int main(int argc, char** argv) {
 		// Handle wrap-around
 		if (photon & TIMER_WRAP_MASK)
 			time_offset += (1ULL<<TIME_BITS) - 1;
-
 		time += time_offset;
 
 		for (auto c=chans.begin(); c != chans.end(); c++) {
@@ -78,7 +78,7 @@ int main(int argc, char** argv) {
 				c->count++;
 
 			if (time > (c->bin_start + bin_length)) {
-				printf("%d\t%11llu\t%d\t%d\n",
+				printf("%d\t%11llu\t%u\t%u\n",
 						c->chan_n,
 						c->bin_start,
 						c->count,
