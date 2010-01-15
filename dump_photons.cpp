@@ -72,12 +72,8 @@ int main(int argc, char** argv) {
                         for (auto chan=inputs.begin(); chan != inputs.end(); chan++) {
                                 if (!(photon & chan->mask)) continue;
                                 printf("%11llu\t%d\t", time, chan->chan_n);
-                                for (auto out=outputs.begin(); out != outputs.end(); out++) {
-                                        if (out->state)
-                                                printf("%d\t", out->chan_n);
-                                        else
-                                                printf(" \t");
-                                }
+                                for (auto out=outputs.begin(); out != outputs.end(); out++)
+                                        printf("%d\t", out->state);
                                 printf("\n");
                         }
                 }
