@@ -32,15 +32,15 @@ int main(int argc, char** argv) {
 		photon = be64toh(photon) >> 16;
 		count_t time = photon & TIME_MASK;
 
-		printf("%u\t%11llu\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
+		printf("%u\t%11llu\t%s\t%s\t%s\t%d\t%d\t%d\t%d\n",
 				count, time,
 				photon & REC_TYPE_MASK ? "DELTA" : "STROBE",
 				photon & TIMER_WRAP_MASK ? "WRAP" : "",
 				photon & LOST_SAMPLE_MASK ? "LOST" : "",
-				photon & CHAN_1_MASK ? "1" : " ",
-				photon & CHAN_2_MASK ? "2" : " ",
-				photon & CHAN_3_MASK ? "3" : " ",
-				photon & CHAN_4_MASK ? "4" : " "
+				photon & CHAN_1_MASK != 0,
+				photon & CHAN_2_MASK != 0,
+				photon & CHAN_3_MASK != 0,
+				photon & CHAN_4_MASK != 0
 		);
 	}
 
