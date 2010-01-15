@@ -8,7 +8,7 @@
 
 /*
  *
- * Decodes a binary photon stream to human readable format.
+ * Decodes binary records to human readable photon stream.
  * Usage:
  *   dump_photons
  *
@@ -16,9 +16,8 @@
  *   A binary photon stream
  *
  * Output:
- *   REC_NUM	TIME	TYPE	A B C D		WRAP	LOST
+ *   TIME       CHAN    OUTPUTS...
  *
- * Where A, B, C, D are flag statuses
  */
 
 struct input_channel {
