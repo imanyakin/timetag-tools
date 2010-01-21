@@ -19,11 +19,11 @@ void timetagger::send_simple_command(uint8_t mask, cmd_data data)
 		(uint8_t) data.size(),	// Command length
 		mask			// Command mask
 	};
-	for (int i=0; i<data.size(); i++)
+	for (unsigned int i=0; i<data.size(); i++)
 		buffer.push_back(data[i]);
 
 	int ret, transferred;
-	if (ret = libusb_bulk_transfer(dev, CMD_ENDP, &buffer[0], buffer.size(), &transferred, TIMEOUT) )
+	if ( (ret = libusb_bulk_transfer(dev, CMD_ENDP, &buffer[0], buffer.size(), &transferred, TIMEOUT)) )
 		fprintf(stderr, "Failed sending request: %d\n", ret);
 
 #if 0
