@@ -1,4 +1,3 @@
-#include <stdexcept>
 #include "record.h"
 
 record::type record::get_type() const {
@@ -29,10 +28,13 @@ record_stream::record_stream(int fd) : time_offset(0), fd(fd) { }
 
 record record_stream::get_record() {
         record_t data;
-        if (read(fd, &data, RECORD_LENGTH) < RECORD_LENGTH)
+        int res = read(fd, &data, RECORD_LENGTH);
+        if (res == 0)
+                throw end_stream();
+        else if (res < RECORD_LENGTH)
                 throw std::runtime_error("Incomplete record");
-        data = be64toh(data) >> 16;
 
+        data = be64toh(data) >> 16;
         record rec(data);
         if (rec.get_wrap_flag())
                 time_offset += (1ULL<<TIME_BITS) - 1;
