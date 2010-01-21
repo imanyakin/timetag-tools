@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
                 std::bitset<4> channels = r.get_channels();
                 uint64_t time = r.get_time();
                 for (auto c=chans.begin(); c != chans.end(); c++) {
-                        if (time > (c->bin_start + bin_length)) {
+                        if (time >= (c->bin_start + bin_length)) {
                                 printf("%d\t%11llu\t%u\t%u\n",
                                                 c->chan_n,
                                                 (long long unsigned) c->bin_start,
