@@ -239,7 +239,7 @@ class MainWindow(object):
                         file = self.builder.get_object('output_file').props.text
 
                 bin_time = self.builder.get_object('bin_time').props.value
-                self.pipeline = CapturePipeline(output_file=file, bin_time=bin_time*1e-3)
+                self.pipeline = CapturePipeline(output_file=file, bin_time=bin_time*1e-3, npts=100)
                 #self.pipeline = TestPipeline(100)
                 self.pipeline.start()
 

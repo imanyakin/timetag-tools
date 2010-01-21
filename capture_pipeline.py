@@ -55,9 +55,9 @@ class CapturePipeline(object):
                 for n, chan in self.channels.items():
                         yield n, chan.photon_count, chan.loss_count, chan.latest_timestamp
 
-        def __init__(self, bin_time=40e-3, output_file=None, points=100):
+        def __init__(self, bin_time, npts, output_file=None):
                 """ Create a capture pipeline. The bin_time is given in seconds """
-                self.channels = defaultdict(lambda: CapturePipeline.Channel(points))
+                self.channels = defaultdict(lambda: CapturePipeline.Channel(npts))
 
                 self.bin_length = int(bin_time * CAPTURE_CLOCK)
                 self.output_file = output_file
