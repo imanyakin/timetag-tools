@@ -126,7 +126,7 @@ class OutputChannel(object):
 
 
 class MainWindow(object):
-        def __init__(self):
+        def __init__(self, n_inputs=4):
                 self.update_rate = 10 # in Hertz
                 self.pipeline = None
 
@@ -141,7 +141,6 @@ class MainWindow(object):
                 self.win = self.builder.get_object('main_window')
                 self.win.connect('destroy', quit)
 
-		n_inputs = 4
 		self.inputs = []
 		table = self.builder.get_object('channel_stats')
 		table.resize(n_inputs, 3)
