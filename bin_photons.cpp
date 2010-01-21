@@ -51,6 +51,16 @@ int main(int argc, char** argv) {
 		{ input_channel(3) },
 	};
         record_stream stream(0);
+        
+        /*
+         * We throw away the first photon to get the bin start times.
+         */
+        {
+                record r = stream.get_record();
+                uint64_t time = r.get_time();
+                for (auto c=chans.begin(); c != chans.end(); c++)
+                        c->bin_start = time;
+        }
 
 	while (true) {
                 record r = stream.get_record();
