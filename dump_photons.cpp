@@ -4,7 +4,7 @@
 #include <vector>
 #include <endian.h>
 
-#include "record_format.h"
+#include "record.h"
 
 /*
  *
@@ -22,55 +22,47 @@
 
 struct input_channel {
         int chan_n;
-        uint64_t mask;
 
-        input_channel(int chan_n, uint64_t mask) :
-                chan_n(chan_n), mask(mask) { }
+        input_channel(int chan_n) : chan_n(chan_n) { }
 };
 
 struct output_channel {
         int chan_n;
-        uint64_t mask;
         bool state;
 
-        output_channel(int chan_n, uint64_t mask) :
-                chan_n(chan_n), mask(mask), state(false) { }
+        output_channel(int chan_n) :
+                chan_n(chan_n), state(false) { }
 };
 
 int main(int argc, char** argv) {
         std::vector<output_channel> outputs = {
-                output_channel(0, CHAN_0_MASK),
-                output_channel(1, CHAN_1_MASK),
-                output_channel(2, CHAN_2_MASK),
-                output_channel(3, CHAN_3_MASK)
+                output_channel(0),
+                output_channel(1),
+                output_channel(2),
+                output_channel(3)
         };
         std::vector<input_channel> inputs = {
-                input_channel(0, CHAN_0_MASK),
-                input_channel(1, CHAN_1_MASK),
-                input_channel(2, CHAN_2_MASK),
-                input_channel(3, CHAN_3_MASK)
+                input_channel(0),
+                input_channel(1),
+                input_channel(2),
+                input_channel(3)
         };
+        record_stream stream(0);
 
-        setvbuf(stdout, NULL, _IONBF, NULL);
         while (true) {
-                record_t photon = 0;
+                record r = stream.get_record();
+                std::bitset<4> channels = r.get_channels();
+                uint64_t time = r.get_time();
 
-                if (fread(&photon, RECORD_LENGTH, 1, stdin) != 1)
-                        exit(!feof(stdin));
-
-                photon = be64toh(photon) >> 16;
-                count_t time = photon & TIME_MASK;
-                
-                
-                if (photon & REC_TYPE_MASK) {
+                if (r.get_type() == record::record_type::DELTA) {
                         // Delta record
                         for (auto chan=outputs.begin(); chan != outputs.end(); chan++)
-                                chan->state = photon & chan->mask;
+                                chan->state = channels[chan->chan_n];
                 } else  {
                         // Strobe record
                         for (auto chan=inputs.begin(); chan != inputs.end(); chan++) {
-                                if (!(photon & chan->mask)) continue;
-                                printf("%11llu\t%d\t", time, chan->chan_n);
+                                if (!channels[chan->chan_n]) continue;
+                                printf("%11llu\t%d\t", (long long unsigned) time, chan->chan_n);
                                 for (auto out=outputs.begin(); out != outputs.end(); out++)
                                         printf("%d\t", out->state);
                                 printf("\n");

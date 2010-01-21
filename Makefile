@@ -9,6 +9,7 @@ all : ${PROGS}
 timetag_acquire : timetag_acquire.o timetagger.o
 	g++ -lusb-1.0 -lboost_thread -o$@ $+
 
+dump_photons : dump_photons.o record.o
 bin_photons : bin_photons.o record.o
 
 install :
