@@ -93,6 +93,38 @@
                             <property name="position">1</property>
                           </packing>
                         </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="label1">
+                            <property name="visible">True</property>
+                            <property name="label" translatable="yes">Plot width</property>
+                          </object>
+                          <packing>
+                            <property name="position">3</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkSpinButton" id="plot_width_spin">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="invisible_char">&#x25CF;</property>
+                            <property name="adjustment">plot_width</property>
+                          </object>
+                          <packing>
+                            <property name="position">4</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="label5">
+                            <property name="visible">True</property>
+                            <property name="label" translatable="yes">sec.</property>
+                          </object>
+                          <packing>
+                            <property name="position">5</property>
+                          </packing>
+                        </child>
                       </object>
                       <packing>
                         <property name="left_attach">1</property>
@@ -429,14 +461,19 @@
   </object>
   <object class="GtkAdjustment" id="bin_time">
     <property name="value">40</property>
-    <property name="lower">10</property>
+    <property name="lower">1</property>
     <property name="upper">1000</property>
     <property name="step_increment">5</property>
-    <property name="page_increment">25</property>
+    <property name="page_increment">10</property>
   </object>
   <object class="GtkAction" id="select_output_file">
     <property name="label">Select File</property>
     <property name="stock_id">gtk-save</property>
     <signal name="activate" handler="select_output_file_activate_cb"/>
+  </object>
+  <object class="GtkAdjustment" id="plot_width">
+    <property name="upper">100</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
   </object>
 </interface>
