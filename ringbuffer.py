@@ -3,8 +3,8 @@ from array import array
 class RingBuffer:
 	def __init__(self, length, fmt='f'):
 		self._cur = 0
-		self._size = length
-		self._data = array.array(fmt, [0] * length)
+		self._size = int(length)
+		self._data = array(fmt, [0] * int(length))
 
 	def append(self, x):
 		"""append an element at the end of the buffer"""
@@ -28,7 +28,7 @@ class RingBuffer:
                         self._cur = int((self._cur+1) % self._size)
 
                 def get(self):
-                        return self.data[self._cur:] + self.data[:self._cur]
+                        return self._data[self._cur:] + self._data[:self._cur]
                 
                 def get_unordered(self):
                         return self.data
