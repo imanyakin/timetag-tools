@@ -15,27 +15,28 @@ bin_root = "/usr/bin"
 
 class RingBuffer:
 	def __init__(self, size_max):
-		self.max = size_max
-		self.data = []
+		self._cur = 0
+		self._size = size_max
+		self._data = []
 
 	def append(self, x):
 		"""append an element at the end of the buffer"""
-		self.data.append(x)
-		if len(self.data) == self.max:
-			self.cur = 0
+		self._data.append(x)
+		if len(self._data) == self._size:
+			self._cur = 0
 			self.__class__ = RingBuffer.RingBufferFull
 	def get(self):
   		""" return a list of elements from the oldest to the newest"""
-		return self.data
+		return self._data
 
 
         class RingBufferFull:
                 def append(self,x):		
-                        self.data[self.cur] = x
-                        self.cur = (self.cur+1) % self.max
+                        self._data[self._cur] = x
+                        self._cur = int((self._cur+1) % self._size)
 
                 def get(self):
-                        return self.data[self.cur:] + self.data[:self.cur]
+                        return self.data[self._cur:] + self.data[:self._cur]
 		
 
 class CapturePipeline(object):
