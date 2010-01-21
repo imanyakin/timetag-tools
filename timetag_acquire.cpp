@@ -25,8 +25,6 @@ struct data_cb : timetagger::data_cb_t {
 static void read_loop(timetagger& t)
 {
 	using boost::lexical_cast;
-
-	int ret, transferred;
 	t.start_readout();
 
 	// Command loop
