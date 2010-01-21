@@ -9,6 +9,8 @@ all : ${PROGS}
 timetag_acquire : timetag_acquire.o timetagger.o
 	g++ -lusb-1.0 -lboost_thread -o$@ $+
 
+bin_photons : bin_photons.o record.o
+
 install :
 	cp timetag_acquire ${PREFIX}/bin/timetag_acquire
 	chmod ug+s ${PREFIX}/bin/timetag_acquire
