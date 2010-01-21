@@ -1,8 +1,11 @@
 #ifndef _PHOTON_FORMAT_H
 #define _PHOTON_FORMAT_H
 
-typedef unsigned long long record_t;
-typedef unsigned long long count_t; // Represents a time counter value
+#include <cstdint>
+
+typedef uint64_t record_t;
+typedef uint64_t count_t; // Represents a time counter value
+
 
 #define RECORD_LENGTH 6
 #define TIME_BITS 36
