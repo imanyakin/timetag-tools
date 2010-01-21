@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
                 std::bitset<4> channels = r.get_channels();
                 uint64_t time = r.get_time();
 
-                if (r.get_type() == record::record_type::DELTA) {
+                if (r.get_type() == record::type::DELTA) {
                         // Delta record
                         for (auto chan=outputs.begin(); chan != outputs.end(); chan++)
                                 chan->state = channels[chan->chan_n];

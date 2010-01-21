@@ -6,10 +6,10 @@
 struct record {
         record_t data;
         uint64_t time_offset;
-        enum record_type { STROBE, DELTA };
+        enum type { STROBE, DELTA };
 
         record(record_t data, int64_t time_offset=0) : data(data), time_offset(time_offset) { }
-        record_type get_type() const;
+        type get_type() const;
         uint64_t get_time() const;
         uint64_t get_raw_time() const;
         bool get_wrap_flag() const;

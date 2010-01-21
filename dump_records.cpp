@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
 		printf("%u\t%11llu\t%s\t%s\t%s\t%d\t%d\t%d\t%d\n",
 				count, 
                                 (unsigned long long) time,
-				r.get_type() == record::record_type::DELTA ? "DELTA" : "STROBE",
+				r.get_type() == record::type::DELTA ? "DELTA" : "STROBE",
 				r.get_wrap_flag() ? "WRAP" : "",
 				r.get_lost_flag() ? "LOST" : "",
 				(int) (channels[0]),

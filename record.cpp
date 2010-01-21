@@ -1,7 +1,7 @@
 #include <stdexcept>
 #include "record.h"
 
-record::record_type record::get_type() const {
+record::type record::get_type() const {
         return (data & REC_TYPE_MASK) ? DELTA : STROBE;
 }
 

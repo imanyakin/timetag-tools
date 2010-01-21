@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
 		for (auto c=chans.begin(); c != chans.end(); c++) {
 			if (r.get_lost_flag())
 				c->lost++;
-                        if (r.get_type() == record::record_type::STROBE &&
+                        if (r.get_type() == record::type::STROBE &&
                                         channels[c->chan_n])
 				c->count++;
 
