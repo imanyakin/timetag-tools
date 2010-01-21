@@ -2,7 +2,7 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include "photon_format.h"
+#include "record_format.h"
 
 /*
  *

@@ -1,7 +1,7 @@
 #include <cstdio>
 #include <cstring>
 #include "timetagger.h"
-#include "photon_format.h"
+#include "record_format.h"
 
 #define CMD_ENDP	0x02
 #define DATA_ENDP	0x86

@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <time.h>
 
-#include "photon_format.h"
+#include "record_format.h"
 
 using namespace std;
 

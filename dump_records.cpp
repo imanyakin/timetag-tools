@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include <endian.h>
 
-#include "photon_format.h"
+#include "record_format.h"
 
 /*
  *

@@ -10,7 +10,7 @@
 #include <boost/lexical_cast.hpp>
 
 #include "timetagger.h"
-#include "photon_format.h"
+#include "record_format.h"
 
 #define VENDOR_ID 0x04b4
 #define PRODUCT_ID 0x1004
