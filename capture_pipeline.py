@@ -9,8 +9,9 @@ from collections import defaultdict
 
 import timetag_interface
 
-CAPTURE_CLOCK=30e6 # Hz
+logging.basicConfig(level=logging.DEBUG)
 
+CAPTURE_CLOCK=30e6 # Hz
 bin_root = "/usr/bin"
 
 class RingBuffer:
@@ -93,8 +94,11 @@ class CapturePipeline(object):
         def _listen(self):
                 while True:
                         l = self.binner.stdout.readline()
+                        #print l
                         self.last_bin_walltime = time()
-                        if len(l) == 0: return
+                        if len(l) == 0: 
+				logging.debug("Listener reached end of stream. Stopping...")
+				return
                         chan, start_time, count, lost = map(int, l.split())
                         c = self.channels[chan]
                         start_time = 1.0*start_time / CAPTURE_CLOCK
