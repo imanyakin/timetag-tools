@@ -15,9 +15,9 @@ CAPTURE_CLOCK=30e6 # Hz
 bin_root = "/usr/bin"
 
 class RingBuffer:
-	def __init__(self, size_max):
+	def __init__(self, length):
 		self._cur = 0
-		self._size = size_max
+		self._size = length
 		self._data = []
 
 	def append(self, x):
@@ -32,7 +32,7 @@ class RingBuffer:
 
 
         class RingBufferFull:
-                def append(self,x):		
+                def append(self, x):
                         self._data[self._cur] = x
                         self._cur = int((self._cur+1) % self._size)
 
@@ -94,7 +94,6 @@ class CapturePipeline(object):
         def _listen(self):
                 while True:
                         l = self.binner.stdout.readline()
-                        #print l
                         self.last_bin_walltime = time()
                         if len(l) == 0: 
 				logging.debug("Listener reached end of stream. Stopping...")
