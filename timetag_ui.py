@@ -127,7 +127,7 @@ class OutputChannel(object):
 
 class MainWindow(object):
         def __init__(self, n_inputs=4):
-                self.update_rate = 10 # in Hertz
+                self.update_rate = 30 # in Hertz
                 self.pipeline = None
 
                 self.builder = gtk.Builder()
@@ -271,7 +271,7 @@ class MainWindow(object):
         def pipeline_running_toggled_cb(self, action):
 		get_object = self.builder.get_object
                 state = action.props.active
-                for o in [ 'file_output_enabled', 'output_file', 'select_output_file', 'bin_time_spin' ]:
+                for o in [ 'file_output_enabled', 'output_file', 'select_output_file', 'bin_time_spin', 'plot_width_spin' ]:
                         get_object(o).props.sensitive = not state
                 for o in [ 'readout_running', 'stop_outputs', 'start_outputs' ]:
                         get_object(o).props.sensitive = state
