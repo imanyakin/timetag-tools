@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include <endian.h>
 
-#include "record_format.h"
+#include "record.h"
 
 /*
  *
@@ -21,27 +21,24 @@
 
 int main(int argc, char** argv) {
 	unsigned int count = 0;
+        record_stream stream(0);
+
 	setvbuf(stdout, NULL, _IONBF, NULL);
 	while (true) {
-		record_t photon = 0;
+                record r = stream.get_record();
+		uint64_t time = r.get_raw_time();
+                std::bitset<4> channels = r.get_channels();
 		count++;
-
-		if (fread(&photon, RECORD_LENGTH, 1, stdin) != 1)
-			exit(!feof(stdin));
-
-		photon = be64toh(photon) >> 16;
-		count_t time = photon & TIME_MASK;
-
 		printf("%u\t%11llu\t%s\t%s\t%s\t%d\t%d\t%d\t%d\n",
-				count, time,
-				photon & REC_TYPE_MASK ? "DELTA" : "STROBE",
-				photon & TIMER_WRAP_MASK ? "WRAP" : "",
-				photon & LOST_SAMPLE_MASK ? "LOST" : "",
-				(int) (photon & CHAN_0_MASK != 0),
-				(int) (photon & CHAN_1_MASK != 0),
-				(int) (photon & CHAN_2_MASK != 0),
-				(int) (photon & CHAN_3_MASK != 0)
-		);
+				count, 
+                                (unsigned long long) time,
+				r.get_type() == record::record_type::DELTA ? "DELTA" : "STROBE",
+				r.get_wrap_flag() ? "WRAP" : "",
+				r.get_lost_flag() ? "LOST" : "",
+				(int) (channels[0]),
+				(int) (channels[1]),
+				(int) (channels[2]),
+				(int) (channels[3]) );
 	}
 
 	return 0;
