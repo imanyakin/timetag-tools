@@ -268,15 +268,17 @@ class MainWindow(object):
                 self.builder.get_object('file_output_enabled').props.active = False
 
         def pipeline_running_toggled_cb(self, action):
+		get_object = self.builder.get_object
                 state = action.props.active
                 for o in [ 'file_output_enabled', 'output_file', 'select_output_file' ]:
-                        self.builder.get_object(o).props.sensitive = not state
+                        get_object(o).props.sensitive = not state
                 for o in [ 'readout_running', 'stop_outputs', 'start_outputs' ]:
-                        self.builder.get_object(o).props.sensitive = state
+                        get_object(o).props.sensitive = state
 
                 if state:
                         self.start_pipeline()
                 else:
+			get_object('readout_running').set_active(False)
                         self.stop_pipeline()
 
         def start_readout(self):
