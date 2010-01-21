@@ -6,6 +6,7 @@ from time import sleep, time
 import os
 import threading
 from collections import defaultdict
+from array import array
 
 import timetag_interface
 
@@ -18,14 +19,16 @@ class RingBuffer:
 	def __init__(self, length):
 		self._cur = 0
 		self._size = length
-		self._data = []
+		self._data = array.array('f', [0] * length)
 
 	def append(self, x):
 		"""append an element at the end of the buffer"""
-		self._data.append(x)
-		if len(self._data) == self._size:
+		self._data[self._cur] = x
+                self._cur += 1
+		if self._cur == self._size:
 			self._cur = 0
 			self.__class__ = RingBuffer.RingBufferFull
+
 	def get(self):
   		""" return a list of elements from the oldest to the newest"""
 		return self._data
