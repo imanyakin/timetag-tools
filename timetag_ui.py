@@ -18,6 +18,7 @@ logging.basicConfig(level=logging.DEBUG)
 PULSESEQ_FREQ = 30e6
 
 glade_prefix='/usr/share/timetag'
+default_config = os.path.expanduser('~/.timetag.cfg')
 
 class OutputChannel(object):
         sensitive_widgets = [
@@ -27,25 +28,93 @@ class OutputChannel(object):
         ]
 
         def __init__(self, main_window, output_n):
-                self.main_window = main_window
-
-                self.builder = gtk.Builder()
+		self.builder = gtk.Builder()
                 self.builder.add_from_file(os.path.join(glade_prefix, 'output_channel.glade'))
                 self.builder.connect_signals(self)
+                self.widget = self.builder.get_object('output_channel')
 
                 self.icon = gtk.image_new_from_stock('Stop', gtk.ICON_SIZE_BUTTON)
                 header = gtk.HBox()
                 header.pack_start(self.icon)
-                header.pack_start(gtk.Label('Channel %d' % output_n))
+		label = gtk.Label()
+                header.pack_start(label)
                 header.show_all()
                 self.notebook_label = header
+		self.label = label
 
-                self._set_sensitivity(False)
-                self.widget = self.builder.get_object('output_channel')
+		self.main_window = main_window
                 self.output_n = output_n
+		self.name = 'Channel %d' % output_n
+                self._set_sensitivity(False)
+	
+	@property
+	def name(self):
+		return self.builder.get_object('name').props.text
+	@name.setter
+	def name(self, value):
+		self.builder.get_object('name').props.text = value
+		self.label.props.label = value
+
+	@property
+	def running(self):
+		return self.builder.get_object('running').props.active
+	@running.setter
+	def running(self, value):
+		self.builder.get_object('running').props.active = value
+
+	@property
+	def offset_time(self):
+		return self.builder.get_object('offset_time').props.value
+	@offset_time.setter
+	def offset_time(self, value):
+		self.builder.get_object('offset_time').props.value = value
+		self._update_offset_time()
+
+	@property
+	def initial_state(self):
+		return self.builder.get_object('initial_state').props.active
+	@initial_state.setter
+	def initial_state(self, value):
+		self.builder.get_object('initial_state').props.active = value
+		self._update_initial_state()
+
+	@property
+	def high_time(self):
+		return self.builder.get_object('high_time').props.value
+	@high_time.setter
+	def high_time(self, value):
+		self.builder.get_object('high_time').props.value = value
+		self._update_high_time()
+
+	@property
+	def low_time(self):
+		return self.builder.get_object('low_time').props.value
+	@low_time.setter
+	def low_time(self, value):
+		self.builder.get_object('low_time').props.value = value
+		self._update_low_time()
+	
+	@property
+	def override_state(self):
+                return self.builder.get_object('override_state').props.active
+	@override_state.setter
+	def override_state(self, value):
+		self.builder.get_object('override_state').props.active = value
+
+	@property
+	def override_enabled(self):
+		return self.builder.get_object('override_enabled').props.active
+	@override_enabled.setter
+	def override_enabled(self, value):
+		self.builder.get_object('override_enabled').props.active = value
 
         def pipeline_started(self):
                 self._set_sensitivity(True)
+		self._update_running_state()
+		self._update_initial_state()
+		self._update_offset_time()
+		self._update_low_time()
+		self._update_high_time()
 
         def pipeline_stopped(self):
                 self._set_sensitivity(False)
@@ -59,9 +128,10 @@ class OutputChannel(object):
                 if not self.main_window.pipeline: return None
                 return self.main_window.pipeline.tagger
 
-        def running_toggled_cb(self, action):
-                active = action.props.active
-                if active:
+	def _update_running_state(self):
+		action = self.builder.get_object('running')
+		state = action.props.active
+                if state:
                         action.props.label = 'Running'
                         self.icon.set_from_stock('Play', gtk.ICON_SIZE_MENU)
                 else:
@@ -71,47 +141,48 @@ class OutputChannel(object):
                         self.tagger.set_initial_state(self.output_n, initial_state)
 
                 if not self.tagger: return
-                if active:
+                if state:
                         self.tagger.start_outputs([self.output_n])
                 else:
                         self.tagger.stop_outputs([self.output_n])
 
-        def offset_time_value_changed_cb(self, adj):
+	def _update_offset_time(self):
                 if not self.tagger: return
-                count = adj.props.value * PULSESEQ_FREQ / 1e3
+		time = self.builder.get_object('offset_time').props.value
+                count = time * PULSESEQ_FREQ / 1e3
                 self.tagger.set_initial_count(self.output_n, count)
 
-        def high_time_value_changed_cb(self, adj):
+	def _update_high_time(self):
                 if not self.tagger: return
-                count = adj.props.value * PULSESEQ_FREQ / 1e3
+		time = self.builder.get_object('high_time').props.value
+                count = time * PULSESEQ_FREQ / 1e3
                 self.tagger.set_high_count(self.output_n, count)
 
-        def low_time_value_changed_cb(self, adj):
+	def _update_low_time(self):
                 if not self.tagger: return
-                count = adj.props.value * PULSESEQ_FREQ / 1e3
+		time = self.builder.get_object('low_time').props.value
+                count = time * PULSESEQ_FREQ / 1e3
                 self.tagger.set_low_count(self.output_n, count)
 
-        def initial_state_toggled_cb(self, action):
-                state = action.props.active
+	def _update_initial_state(self):
+		action = self.builder.get_object('initial_state')
+		state = action.props.active
                 if state:
                         action.props.label = "High"
                 else:
                         action.props.label = "Low"
 
                 if not self.tagger: return
-                self.tagger.set_initial_state(self.output_n, action.props.active)
+                self.tagger.set_initial_state(self.output_n, state)
 
-        def override_enabled_changed_cb(self, action, current):
-                override_enabled = bool(current)
+	def _update_override_enabled(self):
+                override_enabled = self.builder.get_object('override_enabled').props.active
                 if override_enabled:
-                        self._do_override()
+                        self._update_override_state()
                 else:
                         self.sync_pulse_seq()
 
-        def override_state_toggled_cb(self, action):
-                self._do_override()
-
-        def _do_override(self):
+        def _update_override_state(self):
                 self.builder.get_object('running').props.active = False
                 action = self.builder.get_object('override_state')
                 state = action.props.active
@@ -124,6 +195,24 @@ class OutputChannel(object):
 
                 if not self.tagger: return
                 self.tagger.set_initial_state(self.output_n, state)
+
+
+        def offset_time_value_changed_cb(self, adj):
+		self._update_offset_time()
+        def high_time_value_changed_cb(self, adj):
+		self._update_high_time()
+        def low_time_value_changed_cb(self, adj):
+		self._update_low_time()
+        def initial_state_toggled_cb(self, action):
+                self._update_initial_state()
+        def running_toggled_cb(self, action):
+		self._update_running_state()
+        def override_enabled_changed_cb(self, action, current):
+		self._update_override_enabled()
+        def override_state_toggled_cb(self, action):
+                self._update_override_state()
+	def name_changed_cb(self, editable):
+		self.name = editable.props.text
 
 
 class MainWindow(object):
@@ -166,6 +255,9 @@ class MainWindow(object):
                 self.lines = {}
                 canvas = FigureCanvas(self.figure)
                 self.builder.get_object('plot_container').pack_start(canvas)
+
+		if default_config and os.path.isfile(default_config):
+			self.load_config(default_config)
 
                 self.win.show_all()
 
@@ -217,18 +309,18 @@ class MainWindow(object):
                                 photon_rate = (photon_count - last_photon_count) / (timestamp - last_timestamp)
                                 loss_rate = (lost_count - last_lost_count) / (timestamp - last_timestamp)
 
-				markup = "<span color='darkgreen'size='xx-large'>%d</span> <span size='large'>photons/second</span>" % photon_rate
+				markup = "<span color='darkgreen' size='xx-large'>%d</span> <span size='large'>photons/second</span>" % photon_rate
 				self.inputs[n][0].set_markup(markup)
-				markup = "<span color='darkred'size='xx-large'>%d</span> <span size='large'>loss events/second</span>" % loss_rate
+				markup = "<span color='darkred' size='xx-large'>%d</span> <span size='large'>loss events/second</span>" % loss_rate
 				self.inputs[n][1].set_markup(markup)
                         self.last_stats[n] = (photon_count, lost_count, timestamp)
 
 
         def _update_total_indicators(self):
                 for n, photon_count, lost_count, timestamp in self.pipeline.stats():
-			markup = "<span color='darkgreen'size='xx-large'>%1.3e</span> <span size='large'>photons</span>" % photon_count
+			markup = "<span color='darkgreen' size='xx-large'>%1.3e</span> <span size='large'>photons</span>" % photon_count
 			self.inputs[n][0].set_markup(markup)
-			markup = "<span color='darkred'size='xx-large'>%d</span> <span size='large'>loss events</span>" % lost_count
+			markup = "<span color='darkred' size='xx-large'>%d</span> <span size='large'>loss events</span>" % lost_count
 			self.inputs[n][1].set_markup(markup)
 				
 
@@ -304,6 +396,64 @@ class MainWindow(object):
         def stop_outputs_activate_cb(self, action):
                 self.pipeline.tagger.stop_outputs([0,1,2,3])
 
+	def load_config_activate_cb(self, action):
+                fc = gtk.FileChooserDialog('Select configuration file', self.win, gtk.FILE_CHOOSER_ACTION_OPEN,
+                        (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,  gtk.STOCK_OK, gtk.RESPONSE_OK))
+                res = fc.run()
+                fc.hide()
+                if res == gtk.RESPONSE_OK:
+                        self.load_config(fc.get_filename())
+
+	def save_config_activate_cb(self, action):
+                fc = gtk.FileChooserDialog('Select configuration file', self.win, gtk.FILE_CHOOSER_ACTION_SAVE,
+                        (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,  gtk.STOCK_OK, gtk.RESPONSE_OK))
+                fc.props.do_overwrite_confirmation = True
+                res = fc.run()
+                fc.hide()
+                if res == gtk.RESPONSE_OK:
+                        self.save_config(fc.get_filename())
+		
+	def load_config(self, file):
+		from ConfigParser import ConfigParser
+		get_object = self.builder.get_object
+		config = ConfigParser()
+		config.read(file)
+
+		for sect in config.sections():
+			if sect.startswith("output-"):
+				output_n = int(sect[len('output-'):])
+				chan = self.outputs[output_n]
+				chan.name = config.get(sect, 'name')
+				chan.initial_state = config.getboolean(sect, 'initial-state')
+				chan.offset_time = config.getfloat(sect, 'offset-time')
+				chan.high_time = config.getfloat(sect, 'high-time')
+				chan.low_time = config.getfloat(sect, 'low-time')
+				chan.override_enabled = config.getboolean(sect, 'override-enabled')
+				chan.override_state = config.getboolean(sect, 'override-state')
+
+		get_object('bin_time').props.value = config.getfloat('acquire', 'bin_time')
+		get_object('plot_width').props.value = config.getfloat('acquire', 'plot_width')
+
+	def save_config(self, file):
+		from ConfigParser import ConfigParser
+		get_object = self.builder.get_object
+		config = ConfigParser()
+
+		for n,o in enumerate(self.outputs):
+			sect = 'output-%d' % n
+			config.add_section(sect)
+			config.set(sect, 'name', o.name)
+			config.set(sect, 'initial-state', o.initial_state)
+			config.set(sect, 'offset-time', o.offset_time)
+			config.set(sect, 'high-time', o.high_time)
+			config.set(sect, 'low-time', o.low_time)
+			config.set(sect, 'override-enabled', o.override_enabled)
+			config.set(sect, 'override-state', o.override_state)
+
+		config.add_section('acquire')
+		config.set('acquire', 'bin_time', get_object('bin_time').props.value)
+		config.set('acquire', 'plot_width', get_object('plot_width').props.value)
+		config.write(open(file,'w'))
 
 if __name__ == '__main__':
         gtk.gdk.threads_init()

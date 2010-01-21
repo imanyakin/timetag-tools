@@ -29,7 +29,7 @@
   </object>
   <object class="GtkTable" id="output_channel">
     <property name="visible">True</property>
-    <property name="n_rows">7</property>
+    <property name="n_rows">9</property>
     <property name="n_columns">3</property>
     <child>
       <object class="GtkSpinButton" id="offset_time_spin">
@@ -41,8 +41,8 @@
       <packing>
         <property name="left_attach">1</property>
         <property name="right_attach">2</property>
-        <property name="top_attach">4</property>
-        <property name="bottom_attach">5</property>
+        <property name="top_attach">6</property>
+        <property name="bottom_attach">7</property>
       </packing>
     </child>
     <child>
@@ -55,8 +55,8 @@
       <packing>
         <property name="left_attach">1</property>
         <property name="right_attach">2</property>
-        <property name="top_attach">5</property>
-        <property name="bottom_attach">6</property>
+        <property name="top_attach">7</property>
+        <property name="bottom_attach">8</property>
       </packing>
     </child>
     <child>
@@ -69,8 +69,8 @@
       <packing>
         <property name="left_attach">1</property>
         <property name="right_attach">2</property>
-        <property name="top_attach">6</property>
-        <property name="bottom_attach">7</property>
+        <property name="top_attach">8</property>
+        <property name="bottom_attach">9</property>
       </packing>
     </child>
     <child>
@@ -79,8 +79,8 @@
         <property name="label" translatable="yes">Offset Time</property>
       </object>
       <packing>
-        <property name="top_attach">4</property>
-        <property name="bottom_attach">5</property>
+        <property name="top_attach">6</property>
+        <property name="bottom_attach">7</property>
       </packing>
     </child>
     <child>
@@ -89,8 +89,8 @@
         <property name="label" translatable="yes">High Time</property>
       </object>
       <packing>
-        <property name="top_attach">5</property>
-        <property name="bottom_attach">6</property>
+        <property name="top_attach">7</property>
+        <property name="bottom_attach">8</property>
       </packing>
     </child>
     <child>
@@ -99,8 +99,8 @@
         <property name="label" translatable="yes">Low Time</property>
       </object>
       <packing>
-        <property name="top_attach">6</property>
-        <property name="bottom_attach">7</property>
+        <property name="top_attach">8</property>
+        <property name="bottom_attach">9</property>
       </packing>
     </child>
     <child>
@@ -116,6 +116,8 @@
       <packing>
         <property name="left_attach">1</property>
         <property name="right_attach">2</property>
+        <property name="top_attach">2</property>
+        <property name="bottom_attach">3</property>
       </packing>
     </child>
     <child>
@@ -124,8 +126,8 @@
       </object>
       <packing>
         <property name="right_attach">3</property>
-        <property name="top_attach">1</property>
-        <property name="bottom_attach">2</property>
+        <property name="top_attach">3</property>
+        <property name="bottom_attach">4</property>
       </packing>
     </child>
     <child>
@@ -134,8 +136,8 @@
         <property name="label" translatable="yes">Initial State</property>
       </object>
       <packing>
-        <property name="top_attach">3</property>
-        <property name="bottom_attach">4</property>
+        <property name="top_attach">5</property>
+        <property name="bottom_attach">6</property>
       </packing>
     </child>
     <child>
@@ -146,8 +148,8 @@
       <packing>
         <property name="left_attach">2</property>
         <property name="right_attach">3</property>
-        <property name="top_attach">4</property>
-        <property name="bottom_attach">5</property>
+        <property name="top_attach">6</property>
+        <property name="bottom_attach">7</property>
       </packing>
     </child>
     <child>
@@ -158,8 +160,8 @@
       <packing>
         <property name="left_attach">2</property>
         <property name="right_attach">3</property>
-        <property name="top_attach">5</property>
-        <property name="bottom_attach">6</property>
+        <property name="top_attach">7</property>
+        <property name="bottom_attach">8</property>
       </packing>
     </child>
     <child>
@@ -170,8 +172,8 @@
       <packing>
         <property name="left_attach">2</property>
         <property name="right_attach">3</property>
-        <property name="top_attach">6</property>
-        <property name="bottom_attach">7</property>
+        <property name="top_attach">8</property>
+        <property name="bottom_attach">9</property>
       </packing>
     </child>
     <child>
@@ -185,8 +187,8 @@
       <packing>
         <property name="left_attach">1</property>
         <property name="right_attach">2</property>
-        <property name="top_attach">3</property>
-        <property name="bottom_attach">4</property>
+        <property name="top_attach">5</property>
+        <property name="bottom_attach">6</property>
       </packing>
     </child>
     <child>
@@ -198,6 +200,10 @@
         <property name="use_action_appearance">True</property>
         <property name="draw_indicator">True</property>
       </object>
+      <packing>
+        <property name="top_attach">2</property>
+        <property name="bottom_attach">3</property>
+      </packing>
     </child>
     <child>
       <object class="GtkRadioButton" id="radiobutton2">
@@ -210,8 +216,8 @@
         <property name="group">radiobutton1</property>
       </object>
       <packing>
-        <property name="top_attach">2</property>
-        <property name="bottom_attach">3</property>
+        <property name="top_attach">4</property>
+        <property name="bottom_attach">5</property>
       </packing>
     </child>
     <child>
@@ -225,8 +231,18 @@
       <packing>
         <property name="left_attach">1</property>
         <property name="right_attach">2</property>
-        <property name="top_attach">2</property>
-        <property name="bottom_attach">3</property>
+        <property name="top_attach">4</property>
+        <property name="bottom_attach">5</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkHSeparator" id="hseparator2">
+        <property name="visible">True</property>
+      </object>
+      <packing>
+        <property name="right_attach">3</property>
+        <property name="top_attach">1</property>
+        <property name="bottom_attach">2</property>
       </packing>
     </child>
     <child>
@@ -237,6 +253,28 @@
     </child>
     <child>
       <placeholder/>
+    </child>
+    <child>
+      <placeholder/>
+    </child>
+    <child>
+      <object class="GtkLabel" id="label1">
+        <property name="visible">True</property>
+        <property name="label" translatable="yes">Name</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkEntry" id="name">
+        <property name="visible">True</property>
+        <property name="can_focus">True</property>
+        <property name="invisible_char">&#x25CF;</property>
+        <property name="width_chars">10</property>
+        <signal name="changed" handler="name_changed_cb"/>
+      </object>
+      <packing>
+        <property name="left_attach">1</property>
+        <property name="right_attach">2</property>
+      </packing>
     </child>
   </object>
   <object class="GtkToggleAction" id="initial_state">
