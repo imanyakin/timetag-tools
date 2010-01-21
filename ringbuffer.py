@@ -16,7 +16,10 @@ class RingBuffer:
 
 	def get(self):
   		""" return a list of elements from the oldest to the newest"""
-		return self._data
+		return self._data[:self._cur]
+
+        def get_unordered(self):
+                return self._data[:self._cur]
 
 
         class RingBufferFull:
@@ -26,4 +29,6 @@ class RingBuffer:
 
                 def get(self):
                         return self.data[self._cur:] + self.data[:self._cur]
-
+                
+                def get_unordered(self):
+                        return self.data
