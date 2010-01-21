@@ -66,7 +66,7 @@ int main(int argc, char** argv) {
 			if (time > (c->bin_start + bin_length)) {
 				printf("%d\t%11llu\t%u\t%u\n",
 						c->chan_n,
-						c->bin_start,
+						(long long unsigned) c->bin_start,
 						c->count,
 						c->lost);
 				c->lost = 0;
