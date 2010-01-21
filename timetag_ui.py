@@ -6,6 +6,7 @@ import time
 import os
 
 import gobject, gtk
+import matplotlib
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_gtk import FigureCanvasGTK as FigureCanvas
 #from matplotlib.backends.backend_gtkagg import FigureCanvasGTKAgg as FigureCanvas
@@ -161,6 +162,7 @@ class MainWindow(object):
 
                 self.figure = Figure()
                 self.axes = self.figure.add_subplot(111)
+                self.axes.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
                 self.lines = {}
                 canvas = FigureCanvas(self.figure)
                 self.builder.get_object('plot_container').pack_start(canvas)
