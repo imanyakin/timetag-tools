@@ -67,12 +67,6 @@ int main(int argc, char** argv) {
                 std::bitset<4> channels = r.get_channels();
                 uint64_t time = r.get_time();
 		for (auto c=chans.begin(); c != chans.end(); c++) {
-			if (r.get_lost_flag())
-				c->lost++;
-                        if (r.get_type() == record::type::STROBE &&
-                                        channels[c->chan_n])
-				c->count++;
-
 			if (time > (c->bin_start + bin_length)) {
 				printf("%d\t%11llu\t%u\t%u\n",
 						c->chan_n,
@@ -83,6 +77,11 @@ int main(int argc, char** argv) {
 				c->count = 0;
 				c->bin_start = (time / bin_length) * bin_length;
 			}
+
+			if (r.get_lost_flag())
+				c->lost++;
+                        if (r.get_type() == record::type::STROBE && channels[c->chan_n])
+				c->count++;
 		}
 	}
 
