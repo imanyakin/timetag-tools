@@ -2,7 +2,7 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include "record_format.h"
+#include "record.h"
 
 /*
  *
@@ -29,13 +29,12 @@
 
 struct input_channel {
 	int chan_n;
-	record_t mask;
 	count_t bin_start;
 	unsigned int count;
 	unsigned int lost;	// IMPORTANT: This is not a count of lost photons, only
 				//            potential sprees of lost photons
-	input_channel(int chan_n, record_t mask) :
-		chan_n(chan_n), mask(mask), bin_start(0), count(0), lost(0) { }
+	input_channel(int chan_n) :
+		chan_n(chan_n), bin_start(0), count(0), lost(0) { }
 };
 
 int main(int argc, char** argv) {
@@ -46,35 +45,22 @@ int main(int argc, char** argv) {
 	count_t bin_length = atoi(argv[1]);
 
 	std::vector<input_channel> chans = {
-		{ input_channel(0, CHAN_0_MASK) },
-		{ input_channel(1, CHAN_1_MASK) },
-		{ input_channel(2, CHAN_2_MASK) },
-		{ input_channel(3, CHAN_3_MASK) },
+		{ input_channel(0) },
+		{ input_channel(1) },
+		{ input_channel(2) },
+		{ input_channel(3) },
 	};
-
-	// For handling wraparound
-	count_t time_offset = 0;
-
-	// Disable buffering
-	setvbuf(stdout, NULL, _IONBF, NULL);
+        record_stream stream(0);
 
 	while (true) {
-		record_t photon;
-		if (fread(&photon, RECORD_LENGTH, 1, stdin) != 1)
-			exit(!feof(stdin));
-
-		photon = be64toh(photon) >> 16;
-		count_t time = photon & TIME_MASK;
-
-		// Handle wrap-around
-		if (photon & TIMER_WRAP_MASK)
-			time_offset += (1ULL<<TIME_BITS) - 1;
-		time += time_offset;
-
+                record r = stream.get_record();
+                std::bitset<4> channels = r.get_channels();
+                uint64_t time = r.get_time();
 		for (auto c=chans.begin(); c != chans.end(); c++) {
-			if (photon & LOST_SAMPLE_MASK)
+			if (r.get_lost_flag())
 				c->lost++;
-			if (!(photon & REC_TYPE_MASK) && (photon & c->mask))
+                        if (r.get_type() == record::record_type::STROBE &&
+                                        channels[c->chan_n])
 				c->count++;
 
 			if (time > (c->bin_start + bin_length)) {
