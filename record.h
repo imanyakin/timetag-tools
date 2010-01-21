@@ -1,7 +1,9 @@
 #include <cstdint>
+#include <stdexcept>
 #include <bitset>
 #include "record_format.h"
 
+struct end_stream : std::exception { };
 
 struct record {
         record_t data;
