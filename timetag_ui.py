@@ -17,8 +17,9 @@ logging.basicConfig(level=logging.DEBUG)
 
 PULSESEQ_FREQ = 30e6
 
-glade_prefix='/usr/share/timetag'
-default_config = os.path.expanduser('~/.timetag.cfg')
+resource_prefix = '/usr/share/timetag'
+default_configs = [ os.path.expanduser('~/.timetag.cfg'),
+		    os.path.join(resource_prefix, 'default.cfg') ]
 
 class OutputChannel(object):
         sensitive_widgets = [
@@ -29,7 +30,7 @@ class OutputChannel(object):
 
         def __init__(self, main_window, output_n):
 		self.builder = gtk.Builder()
-                self.builder.add_from_file(os.path.join(glade_prefix, 'output_channel.glade'))
+                self.builder.add_from_file(os.path.join(resource_prefix, 'output_channel.glade'))
                 self.builder.connect_signals(self)
                 self.widget = self.builder.get_object('output_channel')
 
@@ -221,7 +222,7 @@ class MainWindow(object):
                 self.pipeline = None
 
                 self.builder = gtk.Builder()
-                self.builder.add_from_file(os.path.join(glade_prefix, 'timetag_ui.glade'))
+                self.builder.add_from_file(os.path.join(resource_prefix, 'timetag_ui.glade'))
                 self.builder.connect_signals(self)
 
                 def quit(unused):
@@ -256,8 +257,10 @@ class MainWindow(object):
                 canvas = FigureCanvas(self.figure)
                 self.builder.get_object('plot_container').pack_start(canvas)
 
-		if default_config and os.path.isfile(default_config):
-			self.load_config(default_config)
+		for f in default_configs:
+			if os.path.isfile(f):
+				self.load_config(f)
+				break
 
                 self.win.show_all()
 
