@@ -5,7 +5,7 @@ class Timetag(object):
                 self.fd = file
 
 	def _submit_cmd(self, cmd):
-		logging.debug(cmd)
+		logging.debug(cmd[:-1])
 		self.fd.write(cmd)
 
         def _output_mask(self, output):
