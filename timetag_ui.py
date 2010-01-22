@@ -133,6 +133,7 @@ class OutputChannel(object):
 		action = self.builder.get_object('running')
 		state = action.props.active
                 if state:
+			self.builder.get_object('sequencer_enabled').props.active = True
                         action.props.label = 'Running'
                         self.icon.set_from_stock('Play', gtk.ICON_SIZE_MENU)
                 else:
@@ -179,12 +180,15 @@ class OutputChannel(object):
 	def _update_override_enabled(self):
                 override_enabled = self.builder.get_object('override_enabled').props.active
                 if override_enabled:
+			self.running = False
                         self._update_override_state()
                 else:
-                        self.sync_pulse_seq()
+			self._update_low_time()
+			self._update_high_time()
+			self._update_offset_time()
+			self._update_initial_state()
 
         def _update_override_state(self):
-                self.builder.get_object('running').props.active = False
                 action = self.builder.get_object('override_state')
                 state = action.props.active
                 if state:
@@ -193,10 +197,6 @@ class OutputChannel(object):
                 else:
                         action.props.label = "Low"
                         self.icon.set_from_stock('Down', gtk.ICON_SIZE_MENU)
-
-                if not self.tagger: return
-                self.tagger.set_initial_state(self.output_n, state)
-
 
         def offset_time_value_changed_cb(self, adj):
 		self._update_offset_time()
