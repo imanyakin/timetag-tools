@@ -36,6 +36,8 @@ public:
 		libusb_release_interface(dev, 0);
 	}
 	
+	void reset();
+
 	void start_readout();
 	void stop_readout();
 

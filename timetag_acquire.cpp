@@ -103,8 +103,7 @@ int main(int argc, char** argv)
 
 	data_cb cb;
 	timetagger t(dev, cb);
-
-	t.stop_capture();
+	t.reset();
 	read_loop(t);
 
 	libusb_close(dev);

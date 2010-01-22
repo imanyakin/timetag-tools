@@ -12,6 +12,16 @@
 
 #define TRANSFER_LEN (85*RECORD_LENGTH)
 
+void timetagger::reset()
+{
+	int transferred = 1;
+	stop_capture();
+	do {
+		uint8_t buffer[512];
+		libusb_bulk_transfer(dev, DATA_ENDP, buffer, 512, &transferred, 10);
+	} while (transferred > 0);
+}
+
 void timetagger::send_simple_command(uint8_t mask, cmd_data data)
 {
 	std::vector<uint8_t> buffer = {
