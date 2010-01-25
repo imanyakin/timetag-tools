@@ -32,10 +32,13 @@ class CapturePipeline(object):
                 for n, chan in self.channels.items():
                         yield n, chan.photon_count, chan.loss_count, chan.latest_timestamp
 
+        def resize_buffer(self, npts):
+                """ Creates a new bin ringbuffer. """
+                self.channels = defaultdict(lambda: CapturePipeline.Channel(npts))
+		
         def __init__(self, bin_time, npts, output_file=None):
                 """ Create a capture pipeline. The bin_time is given in seconds """
-                self.channels = defaultdict(lambda: CapturePipeline.Channel(npts))
-
+                self.resize_buffer(npts)
                 self.bin_length = int(bin_time * CAPTURE_CLOCK)
                 self.output_file = output_file
                 self.last_bin_walltime = time()
