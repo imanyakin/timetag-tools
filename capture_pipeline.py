@@ -38,7 +38,6 @@ class CapturePipeline(object):
 
                 self.bin_length = int(bin_time * CAPTURE_CLOCK)
                 self.output_file = output_file
-                self.update_cb = None
                 self.last_bin_walltime = time()
 
         def start(self):
