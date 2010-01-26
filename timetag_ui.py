@@ -216,6 +216,51 @@ class OutputChannel(object):
 		self.name = editable.props.text
 
 
+class NumericalIndicators(object):
+        def __init__(self, n_inputs, main_win):
+                self.main_win = main_win
+                self.rate_mode = True
+                self.last_stats = defaultdict(lambda: (0, 0, 0))
+
+		self.inputs = []
+		table = gtk.Table(n_inputs, 3)
+		for c in range(n_inputs):
+			label, photons, lost = gtk.Label(), gtk.Label(), gtk.Label()
+			label.set_markup('<span size="large">Channel %d</span>' % c)
+			table.attach(label, 0,1, c,c+1)
+			table.attach(photons, 1,2, c,c+1)
+			table.attach(lost, 2,3, c,c+1)
+			self.inputs.append((photons, lost))
+
+                self.widget = table
+
+        def update(self):
+                if self.rate_mode:
+                        self._update_rate_indicators()
+                else:
+                        self._update_total_indicators()
+
+        def _update_rate_indicators(self):
+                for n, photon_count, lost_count, timestamp in self.main_win.pipeline.stats():
+                        last_photon_count, last_lost_count, last_timestamp = self.last_stats[n]
+                        if last_timestamp != timestamp:
+                                photon_rate = (photon_count - last_photon_count) / (timestamp - last_timestamp)
+                                loss_rate = (lost_count - last_lost_count) / (timestamp - last_timestamp)
+
+				markup = "<span color='darkgreen' size='xx-large'>%d</span> <span size='large'>photons/second</span>" % photon_rate
+				self.inputs[n][0].set_markup(markup)
+				markup = "<span color='darkred' size='xx-large'>%d</span> <span size='large'>loss events/second</span>" % loss_rate
+				self.inputs[n][1].set_markup(markup)
+                        self.last_stats[n] = (photon_count, lost_count, timestamp)
+
+
+        def _update_total_indicators(self):
+                for n, photon_count, lost_count, timestamp in self.main_win.pipeline.stats():
+			markup = "<span color='darkgreen' size='xx-large'>%1.3e</span> <span size='large'>photons</span>" % photon_count
+			self.inputs[n][0].set_markup(markup)
+			markup = "<span color='darkred' size='xx-large'>%d</span> <span size='large'>loss events</span>" % lost_count
+			self.inputs[n][1].set_markup(markup)
+
 class MainWindow(object):
         def __init__(self, n_inputs=4):
                 self.update_rate = 30 # in Hertz
@@ -231,17 +276,9 @@ class MainWindow(object):
                         gtk.main_quit()
                 self.win = self.builder.get_object('main_window')
                 self.win.connect('destroy', quit)
-
-		self.inputs = []
-		table = self.builder.get_object('channel_stats')
-		table.resize(n_inputs, 3)
-		for c in range(n_inputs):
-			label, photons, lost = gtk.Label(), gtk.Label(), gtk.Label()
-			label.set_markup('<span size="large">Channel %d</span>' % c)
-			table.attach(label, 0,1, c,c+1)
-			table.attach(photons, 1,2, c,c+1)
-			table.attach(lost, 2,3, c,c+1)
-			self.inputs.append((photons, lost))
+                
+                self.indicators = NumericalIndicators(n_inputs, self)
+                self.builder.get_object('channel_stats').pack_start(self.indicators.widget)
 
                 self.outputs = []
                 notebook = self.builder.get_object('output_channels')
@@ -305,7 +342,6 @@ class MainWindow(object):
                         xmin, xmax = calc_x_bounds()
                         
 		self.axes.set_xlim(xmin, xmax)
-                print "%10.3f   %5.2f   %5.2f   %5.2f" % (time.time(), xmin, xmax, self.pipeline.last_bin_walltime)
 
 		# Scale Y axis:
 		ymin,ymax = None,None
@@ -321,35 +357,6 @@ class MainWindow(object):
 
                 self.figure.canvas.draw()
 
-        def update_indicators(self):
-                display_type = self.builder.get_object('show_totals').props.current_value
-                if display_type == 1:
-                        self._update_rate_indicators()
-                else:
-                        self._update_total_indicators()
-
-        def _update_rate_indicators(self):
-                for n, photon_count, lost_count, timestamp in self.pipeline.stats():
-                        last_photon_count, last_lost_count, last_timestamp = self.last_stats[n]
-                        if last_timestamp != timestamp:
-                                photon_rate = (photon_count - last_photon_count) / (timestamp - last_timestamp)
-                                loss_rate = (lost_count - last_lost_count) / (timestamp - last_timestamp)
-
-				markup = "<span color='darkgreen' size='xx-large'>%d</span> <span size='large'>photons/second</span>" % photon_rate
-				self.inputs[n][0].set_markup(markup)
-				markup = "<span color='darkred' size='xx-large'>%d</span> <span size='large'>loss events/second</span>" % loss_rate
-				self.inputs[n][1].set_markup(markup)
-                        self.last_stats[n] = (photon_count, lost_count, timestamp)
-
-
-        def _update_total_indicators(self):
-                for n, photon_count, lost_count, timestamp in self.pipeline.stats():
-			markup = "<span color='darkgreen' size='xx-large'>%1.3e</span> <span size='large'>photons</span>" % photon_count
-			self.inputs[n][0].set_markup(markup)
-			markup = "<span color='darkred' size='xx-large'>%d</span> <span size='large'>loss events</span>" % lost_count
-			self.inputs[n][1].set_markup(markup)
-				
-
         def start_pipeline(self):
                 if self.pipeline:
                         raise "Tried to start a capture pipeline while one is already running"
@@ -363,12 +370,11 @@ class MainWindow(object):
                 self.pipeline.start()
 
                 # Start update loop for plot
-                self.last_stats = defaultdict(lambda: (0, 0, 0))
                 def update_cb():
                         try:
                                 self.update_plot()
-                                self.update_indicators()
-                        except e:
+                                self.indicators.update()
+                        except AttributeError as e:
                                 # Ignore exceptions if pipeline is shut down
                                 if not self.pipeline: return False
                                 raise e

@@ -205,15 +205,9 @@
           </packing>
         </child>
         <child>
-          <object class="GtkTable" id="channel_stats">
+          <object class="GtkVBox" id="channel_stats">
             <property name="visible">True</property>
-            <property name="n_columns">3</property>
-            <child>
-              <placeholder/>
-            </child>
-            <child>
-              <placeholder/>
-            </child>
+            <property name="orientation">vertical</property>
             <child>
               <placeholder/>
             </child>
