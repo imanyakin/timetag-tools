@@ -435,9 +435,10 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkExpander" id="y_opts_expander">
+                  <object class="GtkFrame" id="frame7">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
+                    <property name="label_xalign">0</property>
+                    <property name="shadow_type">none</property>
                     <child>
                       <object class="GtkAlignment" id="alignment7">
                         <property name="visible">True</property>
@@ -449,11 +450,14 @@
                             <property name="n_columns">3</property>
                             <child>
                               <object class="GtkCheckButton" id="y_auto_checkbox">
+                                <property name="label" translatable="yes">Automatic</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
                                 <property name="use_action_appearance">True</property>
                                 <property name="related_action">y_auto</property>
+                                <property name="use_underline">True</property>
+                                <property name="active">True</property>
                                 <property name="draw_indicator">True</property>
                               </object>
                               <packing>
