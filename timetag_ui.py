@@ -400,11 +400,6 @@ class MainWindow(object):
                 self.pipeline.tagger.stop_capture()
                 self.plot.scroll = False
 
-        def y_auto_toggled_cb(self, action):
-                state = action.props.active
-                for o in [ 'y_upper_spin', 'y_lower_spin' ]:
-                        self.builder.get_object(o).props.sensitive = not state
-
         def readout_running_toggled_cb(self, action):
                 if action.props.active:
                         self.start_readout()
@@ -421,6 +416,18 @@ class MainWindow(object):
 
         def indicator_mode_changed_cb(self, widget):
                 self.indicators.rate_mode = bool(self.builder.get_object('show_rates').props.active)
+
+        def y_bounds_changed_cb(self, *args):
+                get_object = self.builder.get_object
+
+                auto = get_object('y_auto').props.active
+                for o in [ 'y_upper_spin', 'y_lower_spin' ]:
+                        get_object(o).props.sensitive = not auto
+
+                if auto:
+                        self.plot.y_bounds = None
+                else:
+                        self.plot.y_bounds = (get_object('y_lower').props.value, get_object('y_upper').props.value)
 
 	def load_config_activate_cb(self, action):
                 fc = gtk.FileChooserDialog('Select configuration file', self.win, gtk.FILE_CHOOSER_ACTION_OPEN,
