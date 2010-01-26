@@ -274,6 +274,7 @@ class MainWindow(object):
                         self.builder.get_object('output_file').props.text = fc.get_filename()
 
         def update_plot(self):
+		get_object = self.builder.get_object
                 if not self.pipeline:
                         return False
 
@@ -283,18 +284,29 @@ class MainWindow(object):
                         else:
                                 self.lines[n].set_data(times, counts)
 
-                # There must be a better way to do this
                 self.axes.relim()
+		# Scale X axis:
                 self.axes.autoscale_view(scalex=True, scaley=False, tight=True)
-                self.axes.autoscale_view(scalex=False, scaley=True, tight=False)
-                _,ymax = self.axes.get_ylim()
-                self.axes.set_ylim(ymin=0, ymax=1.1*ymax)
                 xmin,xmax = self.axes.get_xlim()
-                offset = 0
-                readout_running = self.builder.get_object('readout_running').props.active
+                readout_running = get_object('readout_running').props.active
                 if readout_running:
                         offset = time.time() - self.pipeline.last_bin_walltime
-                self.axes.set_xlim(xmin=xmin+offset, xmax=xmax+offset)
+                        xmax += offset
+                width = get_object('x_width').props.value
+                xmin = xmax - width
+		self.axes.set_xlim(xmin, xmax)
+
+		# Scale Y axis:
+		ymin,ymax = None,None
+		if get_object('y_auto').props.active:
+			self.axes.autoscale_view(scalex=False, scaley=True, tight=False)
+			_,ymax = self.axes.get_ylim()
+			ymax *= 1.1
+			ymin = 0
+		else:
+			ymin = get_object('y_lower').props.value
+			ymax = get_object('y_upper').props.value
+                self.axes.set_ylim(ymin, ymax)
 
                 self.figure.canvas.draw()
 
@@ -335,9 +347,7 @@ class MainWindow(object):
                 if self.builder.get_object('file_output_enabled').props.active:
                         file = self.builder.get_object('output_file').props.text
 
-                bin_time = self.builder.get_object('bin_time').props.value / 1000.0
-                plot_width = self.builder.get_object('plot_width').props.value / bin_time
-                self.pipeline = CapturePipeline(output_file=file, bin_time=bin_time, npts=plot_width)
+                self.pipeline = CapturePipeline(output_file=file, bin_time=self.bin_time, npts=self.n_points)
                 #self.pipeline = TestPipeline(100)
                 self.pipeline.start()
 
@@ -356,6 +366,21 @@ class MainWindow(object):
                 for c in self.outputs:
                         c.pipeline_started()
 
+        @property
+        def bin_time(self):
+                return self.builder.get_object('bin_time').props.value / 1000.0
+
+        @property
+        def n_points(self):
+                """ The required number of points to fill the entire
+                width of the plot at the given bin_time """
+		x_width = self.builder.get_object('x_width').props.value
+                return x_width / self.bin_time
+
+	def x_width_value_changed_cb(self, *args):
+		if not self.pipeline: return
+		self.pipeline.resize_buffer(self.n_points)
+
         def stop_pipeline(self):
                 for c in self.outputs:
                         c.pipeline_stopped()
@@ -368,7 +393,7 @@ class MainWindow(object):
         def pipeline_running_toggled_cb(self, action):
 		get_object = self.builder.get_object
                 state = action.props.active
-                for o in [ 'file_output_enabled', 'output_file', 'select_output_file', 'bin_time_spin', 'plot_width_spin' ]:
+                for o in [ 'file_output_enabled', 'output_file', 'select_output_file', 'bin_time_spin' ]:
                         get_object(o).props.sensitive = not state
                 for o in [ 'readout_running', 'stop_outputs', 'start_outputs' ]:
                         get_object(o).props.sensitive = state
@@ -384,6 +409,11 @@ class MainWindow(object):
 
         def stop_readout(self):
                 self.pipeline.tagger.stop_capture()
+
+        def y_auto_toggled_cb(self, action):
+                state = action.props.active
+                for o in [ 'y_upper_spin', 'y_lower_spin' ]:
+                        self.builder.get_object(o).props.sensitive = not state
 
         def readout_running_toggled_cb(self, action):
                 if action.props.active:
@@ -435,7 +465,7 @@ class MainWindow(object):
 				chan.override_state = config.getboolean(sect, 'override-state')
 
 		get_object('bin_time').props.value = config.getfloat('acquire', 'bin_time')
-		get_object('plot_width').props.value = config.getfloat('acquire', 'plot_width')
+		get_object('x_width').props.value = config.getfloat('acquire', 'plot_width')
 
 	def save_config(self, file):
 		from ConfigParser import ConfigParser
@@ -455,7 +485,7 @@ class MainWindow(object):
 
 		config.add_section('acquire')
 		config.set('acquire', 'bin_time', get_object('bin_time').props.value)
-		config.set('acquire', 'plot_width', get_object('plot_width').props.value)
+		config.set('acquire', 'plot_width', get_object('x_width').props.value)
 		config.write(open(file,'w'))
 
 if __name__ == '__main__':
