@@ -37,6 +37,14 @@ struct input_channel {
                 chan_n(chan_n), bin_start(0), count(0), lost(0) { }
 };
 
+void print_bin(int chan_n, uint64_t bin_start, unsigned int count, unsigned int lost) {
+        printf("%d\t%11llu\t%u\t%u\n",
+                        chan_n,
+                        (long long unsigned) bin_start,
+                        count,
+                        lost);
+}
+
 int main(int argc, char** argv) {
         if (argc <= 1) {
                 fprintf(stderr, "Usage: %s [bin_length]\n", argv[0]);
@@ -68,14 +76,18 @@ int main(int argc, char** argv) {
                 uint64_t time = r.get_time();
                 for (auto c=chans.begin(); c != chans.end(); c++) {
                         if (time >= (c->bin_start + bin_length)) {
-                                printf("%d\t%11llu\t%u\t%u\n",
-                                                c->chan_n,
-                                                (long long unsigned) c->bin_start,
-                                                c->count,
-                                                c->lost);
+                                // First print photons in last bin
+                                print_bin(c->chan_n, c->bin_start, c->count, c->lost);
+
+                                // Then print zero bins
+                                uint64_t new_bin_start = (time / bin_length) * bin_length;
+                                for (uint64_t t=c->bin_start+bin_length; t < new_bin_start; t += bin_length)
+                                        print_bin(c->chan_n, t, 0, 0);
+
+                                // Then start our new bin
                                 c->lost = 0;
                                 c->count = 0;
-                                c->bin_start = (time / bin_length) * bin_length;
+                                c->bin_start = new_bin_start;
                         }
 
                         if (r.get_lost_flag())
