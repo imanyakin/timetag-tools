@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
                 record r = stream.get_record();
                 uint64_t time = r.get_time();
                 for (auto c=chans.begin(); c != chans.end(); c++)
-                        c->bin_start = time;
+                        c->bin_start = (time / bin_length) * bin_length;
         }
 
         while (true) {
