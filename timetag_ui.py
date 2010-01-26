@@ -22,11 +22,7 @@ default_configs = [ os.path.expanduser('~/.timetag.cfg'),
 		    os.path.join(resource_prefix, 'default.cfg') ]
 
 class OutputChannel(object):
-        sensitive_widgets = [
-                'override_state', 'initial_state', 'running',
-                'override_enabled', 'sequencer_enabled',
-                'offset_time_spin', 'high_time_spin', 'low_time_spin',
-        ]
+        sensitive_widgets = [ 'initial_state', 'running', 'offset_time_spin', 'high_time_spin', 'low_time_spin', ]
 
         def __init__(self, main_window, output_n):
 		self.builder = gtk.Builder()
@@ -94,20 +90,6 @@ class OutputChannel(object):
 	def low_time(self, value):
 		self.builder.get_object('low_time').props.value = value
 		self._update_low_time()
-	
-	@property
-	def override_state(self):
-                return self.builder.get_object('override_state').props.active
-	@override_state.setter
-	def override_state(self, value):
-		self.builder.get_object('override_state').props.active = value
-
-	@property
-	def override_enabled(self):
-		return self.builder.get_object('override_enabled').props.active
-	@override_enabled.setter
-	def override_enabled(self, value):
-		self.builder.get_object('override_enabled').props.active = value
 
         def pipeline_started(self):
                 self._set_sensitivity(True)
@@ -131,22 +113,19 @@ class OutputChannel(object):
 
 	def _update_running_state(self):
 		action = self.builder.get_object('running')
-		state = action.props.active
-                if state:
-			self.builder.get_object('sequencer_enabled').props.active = True
+                if self.running:
                         action.props.label = 'Running'
                         self.icon.set_from_stock('Play', gtk.ICON_SIZE_MENU)
                 else:
                         action.props.label = 'Stopped'
                         self.icon.set_from_stock('Stop', gtk.ICON_SIZE_MENU)
-                        initial_state = self.builder.get_object('initial_state').props.active
-                        self.tagger.set_initial_state(self.output_n, initial_state)
 
                 if not self.tagger: return
-                if state:
+                if self.running:
                         self.tagger.start_outputs([self.output_n])
                 else:
                         self.tagger.stop_outputs([self.output_n])
+                        self.tagger.set_initial_state(self.output_n, self.initial_state)
 
 	def _update_offset_time(self):
                 if not self.tagger: return
@@ -177,27 +156,6 @@ class OutputChannel(object):
                 if not self.tagger: return
                 self.tagger.set_initial_state(self.output_n, state)
 
-	def _update_override_enabled(self):
-                override_enabled = self.builder.get_object('override_enabled').props.active
-                if override_enabled:
-			self.running = False
-                        self._update_override_state()
-                else:
-			self._update_low_time()
-			self._update_high_time()
-			self._update_offset_time()
-			self._update_initial_state()
-
-        def _update_override_state(self):
-                action = self.builder.get_object('override_state')
-                state = action.props.active
-                if state:
-                        action.props.label = "High"
-                        self.icon.set_from_stock('Up', gtk.ICON_SIZE_MENU)
-                else:
-                        action.props.label = "Low"
-                        self.icon.set_from_stock('Down', gtk.ICON_SIZE_MENU)
-
         def offset_time_value_changed_cb(self, adj):
 		self._update_offset_time()
         def high_time_value_changed_cb(self, adj):
@@ -208,10 +166,6 @@ class OutputChannel(object):
                 self._update_initial_state()
         def running_toggled_cb(self, action):
 		self._update_running_state()
-        def override_enabled_changed_cb(self, action, current):
-		self._update_override_enabled()
-        def override_state_toggled_cb(self, action):
-                self._update_override_state()
 	def name_changed_cb(self, editable):
 		self.name = editable.props.text
 
@@ -500,8 +454,6 @@ class MainWindow(object):
 				chan.offset_time = config.getfloat(sect, 'offset-time')
 				chan.high_time = config.getfloat(sect, 'high-time')
 				chan.low_time = config.getfloat(sect, 'low-time')
-				chan.override_enabled = config.getboolean(sect, 'override-enabled')
-				chan.override_state = config.getboolean(sect, 'override-state')
 
 		get_object('bin_time').props.value = config.getfloat('acquire', 'bin_time')
 		get_object('x_width').props.value = config.getfloat('acquire', 'plot_width')
@@ -519,8 +471,6 @@ class MainWindow(object):
 			config.set(sect, 'offset-time', o.offset_time)
 			config.set(sect, 'high-time', o.high_time)
 			config.set(sect, 'low-time', o.low_time)
-			config.set(sect, 'override-enabled', o.override_enabled)
-			config.set(sect, 'override-state', o.override_state)
 
 		config.add_section('acquire')
 		config.set('acquire', 'bin_time', get_object('bin_time').props.value)
