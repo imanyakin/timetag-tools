@@ -18,6 +18,7 @@ bin_root = "/usr/bin"
 class CapturePipeline(object):
         class Channel(object):
                 def __init__(self, npts):
+			self.buffer_lock = threading.Lock()
                         self.times = RingBuffer(npts)
                         self.counts = RingBuffer(npts)
                         self.loss_count = 0
@@ -26,7 +27,9 @@ class CapturePipeline(object):
 
         def bins(self):
                 for n, chan in self.channels.items():
+			chan.buffer_lock.acquire()
                         yield n, chan.times.get(), chan.counts.get()
+			chan.buffer_lock.release()
 
         def stats(self):
                 for n, chan in self.channels.items():
@@ -79,8 +82,10 @@ class CapturePipeline(object):
                         chan, start_time, count, lost = map(int, l.split())
                         c = self.channels[chan]
                         start_time = 1.0*start_time / CAPTURE_CLOCK
+			c.buffer_lock.acquire()
                         c.times.append(start_time)
                         c.counts.append(count)
+			c.buffer_lock.release()
                         c.photon_count += count
                         c.loss_count += lost
                         self.latest_timestamp = c.latest_timestamp = start_time
