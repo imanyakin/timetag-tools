@@ -261,6 +261,67 @@ class NumericalIndicators(object):
 			markup = "<span color='darkred' size='xx-large'>%d</span> <span size='large'>loss events</span>" % lost_count
 			self.inputs[n][1].set_markup(markup)
 
+class Plot(object):
+        def __init__(self, main_win):
+                self.scroll = False
+                self.width = 1
+                self.y_bounds = None
+
+                self.main_win = main_win
+                self.sync_timestamp = 0
+                self.sync_walltime = 0
+                self.figure = Figure()
+                self.axes = self.figure.add_subplot(111)
+                self.axes.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
+                self.lines = {}
+                self.canvas = FigureCanvas(self.figure)
+
+        @property
+        def pipeline(self):
+                return self.main_win.pipeline
+
+        def update(self):
+                if not self.pipeline:
+                        return False
+
+                for n,times,counts in self.pipeline.bins():
+                        if not self.lines.has_key(n):
+                                self.lines[n], = self.axes.plot(times, counts)#, animated=True)
+                        else:
+                                self.lines[n].set_data(times, counts)
+
+                self.axes.relim()
+
+		# Scale X axis:
+                def calc_x_bounds():
+                        xmax = self.sync_timestamp
+                        if self.scroll:
+                                xmax += time.time() - self.sync_walltime
+                        xmin = xmax - self.width
+                        return xmin, xmax
+
+                xmin, xmax = calc_x_bounds()
+                if not xmin < self.pipeline.latest_timestamp < xmax:
+                        self.sync_walltime = time.time()
+                        self.sync_timestamp = self.pipeline.latest_timestamp
+                        xmin, xmax = calc_x_bounds()
+                        
+		self.axes.set_xlim(xmin, xmax)
+
+		# Scale Y axis:
+		ymin,ymax = None,None
+		if self.y_bounds:
+                        ymin, ymax = self.y_bounds
+                else:
+			self.axes.autoscale_view(scalex=False, scaley=True, tight=False)
+			_,ymax = self.axes.get_ylim()
+			ymax *= 1.1
+			ymin = 0
+                self.axes.set_ylim(ymin, ymax)
+
+                self.figure.canvas.draw()
+
+
 class MainWindow(object):
         def __init__(self, n_inputs=4):
                 self.update_rate = 30 # in Hertz
@@ -287,15 +348,8 @@ class MainWindow(object):
                         notebook.append_page(chan.widget, chan.notebook_label)
                         self.outputs.append(chan)
 
-                self.plot_sync_timestamp = 0
-                self.plot_sync_walltime = 0
-                self.figure = Figure()
-                self.axes = self.figure.add_subplot(111)
-                self.axes.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
-                self.lines = {}
-                canvas = FigureCanvas(self.figure)
-                self.builder.get_object('plot_container').pack_start(canvas)
-
+                self.plot = Plot(self)
+                self.builder.get_object('plot_container').pack_start(self.plot.canvas)
 		for f in default_configs:
 			if os.path.isfile(f):
 				self.load_config(f)
@@ -312,51 +366,6 @@ class MainWindow(object):
                 if res == gtk.RESPONSE_OK:
                         self.builder.get_object('output_file').props.text = fc.get_filename()
 
-        def update_plot(self):
-		get_object = self.builder.get_object
-                if not self.pipeline:
-                        return False
-
-                for n,times,counts in self.pipeline.bins():
-                        if not self.lines.has_key(n):
-                                self.lines[n], = self.axes.plot(times, counts)#, animated=True)
-                        else:
-                                self.lines[n].set_data(times, counts)
-
-                self.axes.relim()
-
-		# Scale X axis:
-                def calc_x_bounds():
-                        xmax = self.plot_sync_timestamp
-                        readout_running = get_object('readout_running').props.active
-                        if readout_running:
-                                xmax += time.time() - self.plot_sync_walltime
-                        width = get_object('x_width').props.value
-                        xmin = xmax - width
-                        return xmin, xmax
-
-                xmin, xmax = calc_x_bounds()
-                if not xmin < self.pipeline.latest_timestamp < xmax:
-                        self.plot_sync_walltime = time.time()
-                        self.plot_sync_timestamp = self.pipeline.latest_timestamp
-                        xmin, xmax = calc_x_bounds()
-                        
-		self.axes.set_xlim(xmin, xmax)
-
-		# Scale Y axis:
-		ymin,ymax = None,None
-		if get_object('y_auto').props.active:
-			self.axes.autoscale_view(scalex=False, scaley=True, tight=False)
-			_,ymax = self.axes.get_ylim()
-			ymax *= 1.1
-			ymin = 0
-		else:
-			ymin = get_object('y_lower').props.value
-			ymax = get_object('y_upper').props.value
-                self.axes.set_ylim(ymin, ymax)
-
-                self.figure.canvas.draw()
-
         def start_pipeline(self):
                 if self.pipeline:
                         raise "Tried to start a capture pipeline while one is already running"
@@ -372,7 +381,7 @@ class MainWindow(object):
                 # Start update loop for plot
                 def update_cb():
                         try:
-                                self.update_plot()
+                                self.plot.update()
                                 self.indicators.update()
                         except AttributeError as e:
                                 # Ignore exceptions if pipeline is shut down
@@ -391,15 +400,19 @@ class MainWindow(object):
                 return self.builder.get_object('bin_time').props.value / 1000.0
 
         @property
+        def plot_width(self):
+		return self.builder.get_object('x_width').props.value
+        
+        @property
         def n_points(self):
                 """ The required number of points to fill the entire
                 width of the plot at the given bin_time """
-		x_width = self.builder.get_object('x_width').props.value
-                return x_width / self.bin_time
+                return self.plot_width / self.bin_time
 
 	def x_width_value_changed_cb(self, *args):
 		if not self.pipeline: return
 		self.pipeline.resize_buffer(self.n_points)
+                self.plot.width = self.plot_width
 
         def stop_pipeline(self):
                 for c in self.outputs:
@@ -426,9 +439,11 @@ class MainWindow(object):
 
         def start_readout(self):
                 self.pipeline.tagger.start_capture()
+                self.plot.scroll = True
 
         def stop_readout(self):
                 self.pipeline.tagger.stop_capture()
+                self.plot.scroll = False
 
         def y_auto_toggled_cb(self, action):
                 state = action.props.active
@@ -448,6 +463,9 @@ class MainWindow(object):
 
         def stop_outputs_activate_cb(self, action):
                 self.pipeline.tagger.stop_outputs([0,1,2,3])
+
+        def indicator_mode_changed_cb(self, widget):
+                self.indicators.rate_mode = bool(self.builder.get_object('show_rates').props.active)
 
 	def load_config_activate_cb(self, action):
                 fc = gtk.FileChooserDialog('Select configuration file', self.win, gtk.FILE_CHOOSER_ACTION_OPEN,
