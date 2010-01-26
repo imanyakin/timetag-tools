@@ -42,6 +42,7 @@ class CapturePipeline(object):
                 self.bin_length = int(bin_time * CAPTURE_CLOCK)
                 self.output_file = output_file
                 self.last_bin_walltime = time()
+                self.latest_timestamp = 0
 
         def start(self):
                 #cmd = [os.path.join(bin_root, 'photon_generator'), str(1000)]
@@ -82,7 +83,7 @@ class CapturePipeline(object):
                         c.counts.append(count)
                         c.photon_count += count
                         c.loss_count += lost
-                        c.latest_timestamp = start_time
+                        self.latest_timestamp = c.latest_timestamp = start_time
 
         def stop(self):
                 logging.info("Capture pipeline shutdown")

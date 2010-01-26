@@ -250,6 +250,8 @@ class MainWindow(object):
                         notebook.append_page(chan.widget, chan.notebook_label)
                         self.outputs.append(chan)
 
+                self.plot_sync_timestamp = 0
+                self.plot_sync_walltime = 0
                 self.figure = Figure()
                 self.axes = self.figure.add_subplot(111)
                 self.axes.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter(useOffset=False))
@@ -285,16 +287,25 @@ class MainWindow(object):
                                 self.lines[n].set_data(times, counts)
 
                 self.axes.relim()
+
 		# Scale X axis:
-                self.axes.autoscale_view(scalex=True, scaley=False, tight=True)
-                xmin,xmax = self.axes.get_xlim()
-                readout_running = get_object('readout_running').props.active
-                if readout_running:
-                        offset = time.time() - self.pipeline.last_bin_walltime
-                        xmax += offset
-                width = get_object('x_width').props.value
-                xmin = xmax - width
+                def calc_x_bounds():
+                        xmax = self.plot_sync_timestamp
+                        readout_running = get_object('readout_running').props.active
+                        if readout_running:
+                                xmax += time.time() - self.plot_sync_walltime
+                        width = get_object('x_width').props.value
+                        xmin = xmax - width
+                        return xmin, xmax
+
+                xmin, xmax = calc_x_bounds()
+                if not xmin < self.pipeline.latest_timestamp < xmax:
+                        self.plot_sync_walltime = time.time()
+                        self.plot_sync_timestamp = self.pipeline.latest_timestamp
+                        xmin, xmax = calc_x_bounds()
+                        
 		self.axes.set_xlim(xmin, xmax)
+                print "%10.3f   %5.2f   %5.2f   %5.2f" % (time.time(), xmin, xmax, self.pipeline.last_bin_walltime)
 
 		# Scale Y axis:
 		ymin,ymax = None,None
@@ -357,9 +368,12 @@ class MainWindow(object):
                         try:
                                 self.update_plot()
                                 self.update_indicators()
-                        except:
-                                pass
-                        return self.pipeline != None
+                        except e:
+                                # Ignore exceptions if pipeline is shut down
+                                if not self.pipeline: return False
+                                raise e
+                        return True
+
                 gobject.timeout_add(int(1000.0/self.update_rate), update_cb)
 
                 # Sensitize outputs
