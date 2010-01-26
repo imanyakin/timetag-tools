@@ -261,6 +261,7 @@ class NumericalIndicators(object):
 			markup = "<span color='darkred' size='xx-large'>%d</span> <span size='large'>loss events</span>" % lost_count
 			self.inputs[n][1].set_markup(markup)
 
+
 class Plot(object):
         def __init__(self, main_win):
                 self.scroll = False
