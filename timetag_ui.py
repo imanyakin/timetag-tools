@@ -279,7 +279,8 @@ class Plot(object):
 
 class MainWindow(object):
         def __init__(self, n_inputs=4):
-                self.update_rate = 30 # in Hertz
+                self.plot_update_rate = 30 # in Hertz
+                self.indicators_update_rate = 5 # in Hertz
                 self.pipeline = None
 
                 self.builder = gtk.Builder()
@@ -334,9 +335,17 @@ class MainWindow(object):
                 self.pipeline.start()
 
                 # Start update loop for plot
-                def update_cb():
+                def update_plot():
                         try:
                                 self.plot.update()
+                        except AttributeError as e:
+                                # Ignore exceptions if pipeline is shut down
+                                if not self.pipeline: return False
+                                raise e
+                        return True
+
+                def update_indicators():
+                        try:
                                 self.indicators.update()
                         except AttributeError as e:
                                 # Ignore exceptions if pipeline is shut down
@@ -344,7 +353,8 @@ class MainWindow(object):
                                 raise e
                         return True
 
-                gobject.timeout_add(int(1000.0/self.update_rate), update_cb)
+                gobject.timeout_add(int(1000.0/self.indicators_update_rate), update_indicators)
+                gobject.timeout_add(int(1000.0/self.plot_update_rate), update_plot)
 
                 # Sensitize outputs
                 for c in self.outputs:
