@@ -38,3 +38,6 @@ class Timetag(object):
         def stop_capture(self):
                 self._submit_cmd("stop_capture\n")
 
+	def reset(self):
+		self._submit_cmd("reset\n")
+
