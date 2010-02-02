@@ -403,6 +403,7 @@ class MainWindow(object):
                         self.stop_pipeline()
 
         def start_readout(self):
+                self.pipeline.tagger.reset()
                 self.pipeline.tagger.start_capture()
                 self.plot.scroll = True
 
