@@ -44,6 +44,7 @@ static void read_loop(timetagger& t)
 		} else if (cmd == "stop_capture") {
 			t.stop_capture();
 		} else if (cmd == "reset") {
+			t.reset();
 			t.reset_counter();
 		} else if (cmd == "set_initial_state") {
 			int output = lexical_cast<int>(*tok); tok++;
