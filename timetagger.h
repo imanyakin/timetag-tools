@@ -34,6 +34,7 @@ private:
 	bool needs_flush;
 	
 	void send_simple_command(uint8_t mask, cmd_data data);
+	void flush_fx2_fifo();
 
 public:
 	data_cb_t& data_cb;

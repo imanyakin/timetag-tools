@@ -15,6 +15,7 @@
 void timetagger::reset()
 {
 	stop_capture();
+	flush_fx2_fifo();
 	needs_flush = true;
 }
 
@@ -130,6 +131,12 @@ void timetagger::reset_counter()
 	send_simple_command(0x01, data);
 }
 
+void timetagger::flush_fx2_fifo() {
+	// Request FIFO flush
+	#define REQ_TYPE_VENDOR 0x02
+	libusb_control_transfer(dev, REQ_TYPE_VENDOR, 0x02, 0, 0, NULL, 0, 0);
+	usleep(1000);
+}
 
 void timetagger::readout_handler::do_flush() {
 	int transferred = 0;
