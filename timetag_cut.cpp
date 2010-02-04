@@ -49,6 +49,7 @@ int main(int argc, char** argv) {
 		if (c == channels.end()) continue;
 		
 		write_record(1, r);
+		i++;
 	}
 }
 
