@@ -3,6 +3,7 @@
 import logging
 from collections import defaultdict
 import time
+from datetime import datetime
 import os
 
 import gobject, gtk
@@ -293,7 +294,8 @@ class MainWindow(object):
                         gtk.main_quit()
                 self.win = self.builder.get_object('main_window')
                 self.win.connect('destroy', quit)
-                
+
+		self.set_default_output_file()
                 self.indicators = NumericalIndicators(n_inputs, self)
                 self.builder.get_object('channel_stats').pack_start(self.indicators.widget)
 
@@ -312,6 +314,12 @@ class MainWindow(object):
 				break
 
                 self.win.show_all()
+
+	def set_default_output_file(self):
+		file_n = 0 # TODO: Automatically assign
+		now = datetime.today()
+		self.builder.get_object('output_file').props.text = \
+			"timetag-%04u-%02u-%02u-%02u" % (now.year, now.month, now.day, file_n)
 
         def select_output_file_activate_cb(self, action):
                 fc = gtk.FileChooserDialog('Select output file', self.win, gtk.FILE_CHOOSER_ACTION_SAVE,
