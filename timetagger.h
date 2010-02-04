@@ -14,9 +14,24 @@ public:
 	};
 
 private:
+	struct readout_handler {
+		libusb_device_handle* dev;
+		timetagger::data_cb_t& cb;
+		const unsigned int data_timeout; // milliseconds
+		bool& needs_flush;
+
+		readout_handler(libusb_device_handle* dev, timetagger::data_cb_t& cb, bool& needs_flush) :
+			dev(dev), cb(cb), data_timeout(500), needs_flush(needs_flush) { }
+		void operator()();
+	private:
+		void do_flush();
+	};
+
+private:
 	typedef std::vector<uint8_t> cmd_data;
 	libusb_device_handle* dev;
 	boost::shared_ptr<boost::thread> readout_thread;
+	bool needs_flush;
 	
 	void send_simple_command(uint8_t mask, cmd_data data);
 
@@ -25,6 +40,7 @@ public:
 
 	timetagger(libusb_device_handle* dev, data_cb_t& data_cb) :
 		dev(dev),
+		needs_flush(false),
 		data_cb(data_cb)
 	{
 		libusb_claim_interface(dev, 0);

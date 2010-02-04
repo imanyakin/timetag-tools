@@ -14,12 +14,8 @@
 
 void timetagger::reset()
 {
-	int transferred = 1;
 	stop_capture();
-	do {
-		uint8_t buffer[512];
-		libusb_bulk_transfer(dev, DATA_ENDP, buffer, 512, &transferred, 10);
-	} while (transferred > 0);
+	needs_flush = true;
 }
 
 void timetagger::send_simple_command(uint8_t mask, cmd_data data)
@@ -130,42 +126,50 @@ void timetagger::reset_counter()
 	send_simple_command(0x01, data);
 }
 
-struct readout_handler {
-	libusb_device_handle* dev;
-	timetagger::data_cb_t& cb;
 
-	readout_handler(libusb_device_handle* dev, timetagger::data_cb_t& cb) :
-		dev(dev), cb(cb) { }
+void timetagger::readout_handler::do_flush() {
+	int transferred = 0;
+	do {
+		uint8_t buffer[512];
+		fprintf(stderr, "hi\n");
+		libusb_bulk_transfer(dev, DATA_ENDP, buffer, 512, &transferred, 10);
+		fprintf(stderr, "Throwing away %d\n", transferred);
+	} while (transferred > 0);
+	needs_flush = false;
+}
 
-	void operator()()
-	{
-		uint8_t* buffer = new uint8_t[TRANSFER_LEN];
+void timetagger::readout_handler::operator()()
+{
+	uint8_t* buffer = new uint8_t[TRANSFER_LEN];
 
-		do {
-			int transferred, res;
-			res = libusb_bulk_transfer(dev, DATA_ENDP, buffer, TRANSFER_LEN, &transferred, 0);
-			if (!res) {
-				if (transferred % RECORD_LENGTH != 0)
-					fprintf(stderr, "Warning: Received partial record.");
-				cb(buffer, transferred);
-			} else
-				fprintf(stderr, "Transfer failed: %d\n", res);
+	do {
+		int transferred, res;
+		res = libusb_bulk_transfer(dev, DATA_ENDP, buffer, TRANSFER_LEN, &transferred, data_timeout);
+		if (!res) {
+			if (transferred % RECORD_LENGTH != 0)
+				fprintf(stderr, "Warning: Received partial record.");
+			cb(buffer, transferred);
+		} else if (res == LIBUSB_ERROR_TIMEOUT) {
+		} else
+			fprintf(stderr, "Transfer failed: %d\n", res);
 
-			try {
-				boost::this_thread::interruption_point();
-			} catch (...) {
-				break;
-			}
-		} while (true);
-		delete [] buffer;
-	}
-};
+		if (needs_flush)
+			do_flush();
+
+		try {
+			boost::this_thread::interruption_point();
+		} catch (...) {
+			break;
+		}
+	} while (true);
+	delete [] buffer;
+}
 
 void timetagger::start_readout() 
 {
 	assert(readout_thread == 0);
-	readout_handler h(dev, data_cb);
-	readout_thread = boost::shared_ptr<boost::thread>(new boost::thread(h));
+	readout_handler readout(dev, data_cb, needs_flush);
+	readout_thread = boost::shared_ptr<boost::thread>(new boost::thread(readout));
 }
 
 void timetagger::stop_readout() {
