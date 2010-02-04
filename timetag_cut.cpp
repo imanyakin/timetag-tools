@@ -1,4 +1,5 @@
 #include <vector>
+#include <iostream>
 #include <boost/program_options.hpp>
 #include "record.h"
 
@@ -8,7 +9,7 @@ int main(int argc, char** argv) {
 	po::options_description desc("Allowed options");
 	desc.add_options()
 		("help,h", "Display help message")
-		("channels,c", po::value<unsigned int>(), "include only channels N")
+		("channels,c", po::value<unsigned int>(), "include only records with channels N,... active")
 		("start-time,t", po::value<uint64_t>(), "start at timestamp TIME")
 		("end-time,T", po::value<uint64_t>(), "end at timestamp TIME")
 		("skip-records,r", po::value<unsigned int>(), "skip N records");
@@ -20,6 +21,11 @@ int main(int argc, char** argv) {
 	std::vector<unsigned int> channels = { 0, 1, 2, 3 };
 	uint64_t start_time = 0,  end_time = 1ULL << 63;
 	unsigned int skip_records = 0;
+
+	if (vm.count("help")) {
+		std::cout << desc << "\n";
+		return 0;
+	}
 
 	if (vm.count("channels"))
 		channels = vm["channels"].as< std::vector<unsigned int> >();
