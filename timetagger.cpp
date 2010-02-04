@@ -133,7 +133,9 @@ void timetagger::reset_counter()
 void timetagger::flush_fx2_fifo() {
 	// Request FIFO flush
 	#define REQ_TYPE_VENDOR 0x02
-	libusb_control_transfer(dev, REQ_TYPE_VENDOR, 0x02, 0, 0, NULL, 0, 0);
+	int res = libusb_control_transfer(dev, REQ_TYPE_VENDOR, 0x02, 0, 0, NULL, 0, 0);
+	if (!res)
+		fprintf(stderr, "Error requesting FX2 FIFO flush: %d\n", res);
 	usleep(1000);
 }
 
