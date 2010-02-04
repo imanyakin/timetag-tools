@@ -26,5 +26,5 @@ install :
 	cp default.cfg ${PREFIX}/share/timetag
 
 clean :
-	rm -f ${PROGS} *.o
+	rm -f ${PROGS} *.o *.pyc
 
