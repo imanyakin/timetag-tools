@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
 		end_time = vm["end-time"].as<uint64_t>();
 	
 	if (vm.count("skip-records"))
-		skip_records = vm["skip-records"].as<int>();
+		skip_records = vm["skip-records"].as<unsigned int>();
 
 	record_stream stream(0);
 	unsigned int i=0;
