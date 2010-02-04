@@ -54,6 +54,7 @@ public:
 	}
 	
 	void reset();
+	void set_send_window(unsigned int records);
 
 	void start_readout();
 	void stop_readout();

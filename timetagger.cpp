@@ -12,6 +12,9 @@
 
 #define TRANSFER_LEN (85*RECORD_LENGTH)
 
+#define REQ_TYPE_VENDOR 0x02
+
+
 void timetagger::reset()
 {
 	stop_capture();
@@ -130,9 +133,25 @@ void timetagger::reset_counter()
 	send_simple_command(0x01, data);
 }
 
+void timetagger::set_send_window(unsigned int records)
+{
+	unsigned int bytes = RECORD_LENGTH*records;
+	if (bytes > 512) {
+		fprintf(stderr, "Error: Send window too large\n");
+		return;
+	}
+
+	uint8_t data[2] = {
+		(uint8_t) (bytes & 0xff),
+		(uint8_t) ((bytes >> 8) & 0x8)
+	};
+	int res = libusb_control_transfer(dev, REQ_TYPE_VENDOR, 0x01, 0, 0, data, 2, 0);
+	if (!res)
+		fprintf(stderr, "Error setting send window size: %d\n", res);
+}
+
 void timetagger::flush_fx2_fifo() {
 	// Request FIFO flush
-	#define REQ_TYPE_VENDOR 0x02
 	int res = libusb_control_transfer(dev, REQ_TYPE_VENDOR, 0x02, 0, 0, NULL, 0, 0);
 	if (!res)
 		fprintf(stderr, "Error requesting FX2 FIFO flush: %d\n", res);
