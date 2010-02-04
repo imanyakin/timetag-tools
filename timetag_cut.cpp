@@ -14,8 +14,7 @@ int main(int argc, char** argv) {
 		("skip-records,r", po::value<unsigned int>(), "skip N records");
 
 	po::variables_map vm;
-	po::store(po::command_line_parser(argc, argv).
-			options(desc).run(), vm);
+	po::store(po::parse_command_line(argc, argv, desc), vm);
 	po::notify(vm);
 
 	std::vector<unsigned int> channels = { 0, 1, 2, 3 };
