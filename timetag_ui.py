@@ -232,6 +232,17 @@ class Plot(object):
                 self.lines = {}
                 self.canvas = FigureCanvas(self.figure)
 
+		self.fps_interval = 5 # seconds
+		self.frame_cnt = 0
+		def display_fps():
+			if not self.frame_cnt > 0: return True
+			fps = self.frame_cnt / self.fps_interval
+			self.frame_cnt = 0
+			logging.debug("Plot: %2.1f FPS" % fps)
+			return True
+		gobject.timeout_add_seconds(self.fps_interval, display_fps)
+			
+
         @property
         def pipeline(self):
                 return self.main_win.pipeline
@@ -276,6 +287,7 @@ class Plot(object):
                 self.axes.set_ylim(ymin, ymax)
 
                 self.figure.canvas.draw()
+		self.frame_cnt += 1
 
 
 class MainWindow(object):
