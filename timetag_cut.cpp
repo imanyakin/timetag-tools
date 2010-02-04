@@ -22,16 +22,16 @@ int main(int argc, char** argv) {
 	uint64_t start_time = 0,  end_time = 1ULL << 63;
 	unsigned int skip_records = 0;
 
-	if (vm.count("channels") > 1)
+	if (vm.count("channels"))
 		channels = vm["channels"].as< std::vector<unsigned int> >();
 
-	if (vm.count("start-time") > 1)
+	if (vm.count("start-time"))
 		start_time = vm["start-time"].as<uint64_t>();
 
-	if (vm.count("end-time") > 1)
+	if (vm.count("end-time"))
 		end_time = vm["end-time"].as<uint64_t>();
 	
-	if (vm.count("skip-records") > 1)
+	if (vm.count("skip-records"))
 		skip_records = vm["skip-records"].as<int>();
 
 	record_stream stream(0);
