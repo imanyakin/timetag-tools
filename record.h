@@ -28,3 +28,5 @@ public:
         record get_record();
 };
 
+void write_record(int fd, record r);
+

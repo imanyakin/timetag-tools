@@ -42,3 +42,15 @@ record record_stream::get_record() {
         return rec;
 }
 
+void write_record(int fd, record r) {
+	record_t data;
+	data = r.data;
+	data = htobe64(data << 16);
+
+	int res = write(fd, &data, RECORD_LENGTH);
+        if (res == 0)
+                throw end_stream();
+        else if (res < RECORD_LENGTH)
+                throw std::runtime_error("Incomplete record");
+}
+
