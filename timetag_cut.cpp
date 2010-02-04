@@ -37,6 +37,7 @@ int main(int argc, char** argv) {
 	unsigned int i=0;
 	while (true) {
 		record r = stream.get_record();
+		i++;
 		
 		if (r.get_time() < start_time) continue;
 		if (i < skip_records) continue;
@@ -48,7 +49,6 @@ int main(int argc, char** argv) {
 		if (c == channels.end()) continue;
 		
 		write_record(1, r);
-		i++;
 	}
 }
 
