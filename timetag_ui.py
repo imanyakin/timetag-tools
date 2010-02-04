@@ -328,10 +328,13 @@ class MainWindow(object):
                 self.win.show_all()
 
 	def set_default_output_file(self):
-		file_n = 0 # TODO: Automatically assign
-		now = datetime.today()
-		self.builder.get_object('output_file').props.text = \
-			"timetag-%04u-%02u-%02u-%02u" % (now.year, now.month, now.day, file_n)
+		file_n = 0
+		def get_name(file_n):
+			now = datetime.today()
+			return "timetag-%04u-%02u-%02u-run_%03u" % (now.year, now.month, now.day, file_n)
+		while os.path.exists(get_name(file_n)):
+			file_n += 1
+		self.builder.get_object('output_file').props.text = get_name(file_n)
 
         def select_output_file_activate_cb(self, action):
                 fc = gtk.FileChooserDialog('Select output file', self.win, gtk.FILE_CHOOSER_ACTION_SAVE,
