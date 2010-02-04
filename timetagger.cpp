@@ -131,9 +131,7 @@ void timetagger::readout_handler::do_flush() {
 	int transferred = 0;
 	do {
 		uint8_t buffer[512];
-		fprintf(stderr, "hi\n");
 		libusb_bulk_transfer(dev, DATA_ENDP, buffer, 512, &transferred, 10);
-		fprintf(stderr, "Throwing away %d\n", transferred);
 	} while (transferred > 0);
 	needs_flush = false;
 }
@@ -150,6 +148,8 @@ void timetagger::readout_handler::operator()()
 				fprintf(stderr, "Warning: Received partial record.");
 			cb(buffer, transferred);
 		} else if (res == LIBUSB_ERROR_TIMEOUT) {
+			// Ignore timeouts, we just need to fall through to the
+			// needs_flush check every once in a while
 		} else
 			fprintf(stderr, "Transfer failed: %d\n", res);
 
