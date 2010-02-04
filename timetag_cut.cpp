@@ -39,6 +39,7 @@ int main(int argc, char** argv) {
 		record r = stream.get_record();
 		i++;
 		
+		if (r.get_time() > end_time) break;
 		if (r.get_time() < start_time) continue;
 		if (i <= skip_records) continue;
 
