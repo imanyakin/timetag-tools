@@ -110,6 +110,10 @@ void timetagger::pulseseq_stop(std::tr1::array<bool, 4> units)
 
 void timetagger::start_capture()
 {
+	if (needs_flush) {
+		fprintf(stderr, "Still flushing readout. Refusing to start.\n");
+		return;
+	}
 	cmd_data data = { 0x1 };
 	send_simple_command(0x01, data);
 }
