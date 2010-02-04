@@ -279,7 +279,7 @@ class Plot(object):
 
 class MainWindow(object):
         def __init__(self, n_inputs=4):
-                self.plot_update_rate = 30 # in Hertz
+                self.plot_update_rate = 20 # in Hertz
                 self.indicators_update_rate = 5 # in Hertz
                 self.pipeline = None
 
