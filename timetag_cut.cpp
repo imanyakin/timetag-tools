@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
 		i++;
 		
 		if (r.get_time() < start_time) continue;
-		if (i < skip_records) continue;
+		if (i <= skip_records) continue;
 
 		std::bitset<4> chans = r.get_channels();
 		auto c=channels.begin();
