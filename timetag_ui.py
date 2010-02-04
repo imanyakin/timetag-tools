@@ -356,20 +356,20 @@ class MainWindow(object):
 
                 # Start update loop for plot
                 def update_plot():
+			if not self.pipeline: return False
                         try:
                                 self.plot.update()
                         except AttributeError as e:
                                 # Ignore exceptions if pipeline is shut down
-                                if not self.pipeline: return False
                                 raise e
                         return True
 
                 def update_indicators():
+			if not self.pipeline: return False
                         try:
                                 self.indicators.update()
                         except AttributeError as e:
                                 # Ignore exceptions if pipeline is shut down
-                                if not self.pipeline: return False
                                 raise e
                         return True
 
