@@ -1,0 +1,20 @@
+#!/usr/bin/python
+
+from matplotlib import pyplot as pl
+from collections import defaultdict
+import sys
+
+channels = defaultdict(lambda: ([], []))
+bin_factor = 1
+
+for l in sys.stdin:
+        chan, start_time, count, lost = l.split('\t')
+        channels[chan][0].append(float(start_time))
+        channels[chan][1].append(float(count))
+
+for c, (times, counts) in channels.items():
+	range = max(counts) - min(counts)
+        pl.hist(counts, round(range) / bin_factor)
+
+pl.show()
+
