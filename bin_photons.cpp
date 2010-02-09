@@ -79,7 +79,7 @@ int main(int argc, char** argv) {
                 for (auto c=chans.begin(); c != chans.end(); c++) {
                         if (time >= (c->bin_start + bin_length)) {
 				uint64_t new_bin_start = (time / bin_length) * bin_length;
-
+				
                                 // First print photons in last bin
                                 print_bin(c->chan_n, c->bin_start, c->count, c->lost);
 
@@ -87,8 +87,12 @@ int main(int argc, char** argv) {
 				if (all_zero_bins) {
 					for (uint64_t t=c->bin_start+bin_length; t < new_bin_start; t += bin_length)
 						print_bin(c->chan_n, t, 0, 0);
-				} else
+				} else {
+					// Print bin at beginning of zero run
 					print_bin(c->chan_n, c->bin_start+bin_length, 0, 0);
+					// Then print bin at end of zero run
+					print_bin(c->chan_n, new_bin_start, 0, 0);
+				}
 
                                 // Then start our new bin
                                 c->lost = 0;
