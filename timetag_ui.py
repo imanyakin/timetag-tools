@@ -464,17 +464,27 @@ class MainWindow(object):
                         self.plot.y_bounds = (get_object('y_lower').props.value, get_object('y_upper').props.value)
 
 	def load_config_activate_cb(self, action):
+		filter = gtk.FileFilter()
+		filter.set_name("Configuration file")
+		filter.add_pattern("*.cfg")
+
                 fc = gtk.FileChooserDialog('Select configuration file', self.win, gtk.FILE_CHOOSER_ACTION_OPEN,
                         (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,  gtk.STOCK_OK, gtk.RESPONSE_OK))
+		fc.add_filter(filter)
                 res = fc.run()
                 fc.hide()
                 if res == gtk.RESPONSE_OK:
                         self.load_config(fc.get_filename())
 
 	def save_config_activate_cb(self, action):
+		filter = gtk.FileFilter()
+		filter.set_name("Configuration file")
+		filter.add_pattern("*.cfg")
+
                 fc = gtk.FileChooserDialog('Select configuration file', self.win, gtk.FILE_CHOOSER_ACTION_SAVE,
                         (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,  gtk.STOCK_OK, gtk.RESPONSE_OK))
                 fc.props.do_overwrite_confirmation = True
+		fc.add_filter(filter)
                 res = fc.run()
                 fc.hide()
                 if res == gtk.RESPONSE_OK:
