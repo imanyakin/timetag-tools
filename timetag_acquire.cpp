@@ -22,63 +22,73 @@ struct data_cb : timetagger::data_cb_t {
 	}
 };
 
-static void read_loop(timetagger& t)
+/*
+ * Return whether to stop
+ */
+static bool handle_command(timetagger& t, std::string line)
 {
 	using boost::lexical_cast;
+	typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
+	boost::char_separator<char> sep("\t ");
+	tokenizer tokens(line, sep);
+	auto tok = tokens.begin();
+	std::string cmd = *tok;
+	tok++;
+
+	if (cmd == "start_capture") {
+		t.start_capture();
+	} else if (cmd == "stop_capture") {
+		t.stop_capture();
+	} else if (cmd == "reset") {
+		t.reset();
+	} else if (cmd == "reset_counter") {
+		t.reset_counter();
+	} else if (cmd == "set_initial_state") {
+		int output = lexical_cast<int>(*tok); tok++;
+		int state = lexical_cast<int>(*tok);
+		t.pulseseq_set_initial_state(output, state != 0);
+	} else if (cmd == "set_initial_count") {
+		int output = lexical_cast<int>(*tok); tok++;
+		int count = lexical_cast<int>(*tok);
+		t.pulseseq_set_initial_count(output, count);
+	} else if (cmd == "set_high_count") {
+		int output = lexical_cast<int>(*tok); tok++;
+		int count = lexical_cast<int>(*tok);
+		t.pulseseq_set_high_count(output, count);
+	} else if (cmd == "set_low_count") {
+		int output = lexical_cast<int>(*tok); tok++;
+		int count = lexical_cast<int>(*tok);
+		t.pulseseq_set_low_count(output, count);
+	} else if (cmd == "start_outputs") {
+		std::tr1::array<bool,4> outputs;
+		for (int i=0; i<4; i++) {
+			outputs[i] = lexical_cast<int>(*tok); tok++;
+		}
+		t.pulseseq_start(outputs);
+	} else if (cmd == "stop_outputs") {
+		std::tr1::array<bool,4> outputs;
+		for (int i=0; i<4; i++) {
+			outputs[i] = lexical_cast<int>(*tok); tok++;
+		}
+		t.pulseseq_stop(outputs);
+	} else if (cmd == "quit" || cmd == "exit") {
+		return true;
+	} else
+		std::cerr << "Invalid command\n";
+
+	return false;
+}
+
+static void read_loop(timetagger& t)
+{
 	t.start_readout();
 
 	// Command loop
-	while (!std::cin.eof()) {
+	bool stop = false;
+	while (!std::cin.eof() && !stop) {
 		std::string line;
 		std::getline(std::cin, line);
-
-		typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
-		boost::char_separator<char> sep("\t ");
-		tokenizer tokens(line, sep);
-		auto tok = tokens.begin();
-		std::string cmd = *tok;
-		tok++;
-
-		if (cmd == "start_capture") {
-			t.start_capture();
-		} else if (cmd == "stop_capture") {
-			t.stop_capture();
-		} else if (cmd == "reset") {
-			t.reset();
-		} else if (cmd == "reset_counter") {
-			t.reset_counter();
-		} else if (cmd == "set_initial_state") {
-			int output = lexical_cast<int>(*tok); tok++;
-			int state = lexical_cast<int>(*tok);
-			t.pulseseq_set_initial_state(output, state != 0);
-		} else if (cmd == "set_initial_count") {
-			int output = lexical_cast<int>(*tok); tok++;
-			int count = lexical_cast<int>(*tok);
-			t.pulseseq_set_initial_count(output, count);
-		} else if (cmd == "set_high_count") {
-			int output = lexical_cast<int>(*tok); tok++;
-			int count = lexical_cast<int>(*tok);
-			t.pulseseq_set_high_count(output, count);
-		} else if (cmd == "set_low_count") {
-			int output = lexical_cast<int>(*tok); tok++;
-			int count = lexical_cast<int>(*tok);
-			t.pulseseq_set_low_count(output, count);
-		} else if (cmd == "start_outputs") {
-			std::tr1::array<bool,4> outputs;
-		        for (int i=0; i<4; i++) {
-				outputs[i] = lexical_cast<int>(*tok); tok++;
-			}
-			t.pulseseq_start(outputs);
-		} else if (cmd == "stop_outputs") {
-			std::tr1::array<bool,4> outputs;
-		        for (int i=0; i<4; i++) {
-				outputs[i] = lexical_cast<int>(*tok); tok++;
-			}
-			t.pulseseq_stop(outputs);
-		} else if (cmd == "quit" || cmd == "exit") {
-			break;
-		} else
-			std::cerr << "Invalid command\n";
+		stop = handle_command(t, line);
 	}
 
 	t.stop_readout();
