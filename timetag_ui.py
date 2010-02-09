@@ -372,7 +372,7 @@ class MainWindow(object):
 				for p in params.items():
 					f.write("%s\t%s\n", p)
 
-                self.pipeline = CapturePipeline(output_file=file, bin_time=self.bin_time, npts=self.n_points)
+                self.pipeline = CapturePipeline(output_file=file, bin_time=self.bin_time, capture_clock=TAGGER_FREQ, npts=self.n_points)
                 #self.pipeline = TestPipeline(100)
                 self.pipeline.start()
 
