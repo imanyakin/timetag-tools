@@ -5,10 +5,11 @@ from collections import defaultdict
 import sys
 
 channels = defaultdict(lambda: ([], []))
+TAGGER_HZ = 30e6
 
 for l in sys.stdin:
         chan, start_time, count, lost = l.split('\t')
-        channels[chan][0].append(float(start_time))
+        channels[chan][0].append(float(start_time)/TAGGER_HZ)
         channels[chan][1].append(float(count))
 
 if len(channels) == 0:
