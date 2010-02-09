@@ -24,7 +24,7 @@ default_configs = [ os.path.expanduser('~/.timetag.cfg'),
 		    os.path.join(resource_prefix, 'default.cfg') ]
 
 with open(os.path.join(resource_prefix, 'timetag-tools-ver'), 'r') as f:
-        ui_version = f.readline()
+        ui_version = f.readline().strip()
 
 class OutputChannel(object):
         sensitive_widgets = [ 'initial_state', 'running', 'offset_time_spin', 'high_time_spin', 'low_time_spin', ]
@@ -370,7 +370,7 @@ class MainWindow(object):
 			params_file = file.replace('.timetag', '') + ".params"
 			with open(params_file, 'w') as f:
 				for p in params.items():
-					f.write("%s\t%s\n", p)
+					f.write("%s\t%s\n" % p)
 
                 self.pipeline = CapturePipeline(output_file=file, bin_time=self.bin_time, capture_clock=TAGGER_FREQ, npts=self.n_points)
                 #self.pipeline = TestPipeline(100)
