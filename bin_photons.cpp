@@ -89,9 +89,11 @@ int main(int argc, char** argv) {
 						print_bin(c->chan_n, t, 0, 0);
 				} else {
 					// Print bin at beginning of zero run
-					print_bin(c->chan_n, c->bin_start+bin_length, 0, 0);
+                                        if (time >= (c->bin_start+bin_length))
+                                                print_bin(c->chan_n, c->bin_start+bin_length, 0, 0);
 					// Then print bin at end of zero run
-					print_bin(c->chan_n, new_bin_start, 0, 0);
+                                        if (time >= (c->bin_start+2*bin_length))
+                                                print_bin(c->chan_n, new_bin_start-bin_length, 0, 0);
 				}
 
                                 // Then start our new bin
