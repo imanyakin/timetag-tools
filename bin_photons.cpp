@@ -18,7 +18,7 @@
  *
  * Output:
  *   A list of records in the following format:
- *   [CHAN]     [BIN_START_TIME]        [BIN_PHOTON_COUNT]
+ *   [CHAN]     [BIN_START_TIME]        [BIN_PHOTON_COUNT]	[LOST_COUNT]
  *
  * Notes:
  *   We handle wrap-around here by simply keeping all times as 64-bit and
