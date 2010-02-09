@@ -41,3 +41,5 @@ class Timetag(object):
 	def reset(self):
 		self._submit_cmd("reset\n")
 
+	def reset_counter(self):
+		self._submit_cmd("reset_counter\n")
