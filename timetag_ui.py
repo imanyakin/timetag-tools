@@ -375,6 +375,7 @@ class MainWindow(object):
                 self.pipeline = CapturePipeline(output_file=file, bin_time=self.bin_time, capture_clock=TAGGER_FREQ, npts=self.n_points)
                 #self.pipeline = TestPipeline(100)
                 self.pipeline.start()
+                self.pipeline.tagger.reset_counter()
 
                 # Start update loop for plot
                 def update_plot():
