@@ -8,8 +8,8 @@ channels = defaultdict(lambda: ([], []))
 
 for l in sys.stdin:
         chan, start_time, count, lost = l.split('\t')
-        channels[chan][0].append(start_time)
-        channels[chan][1].append(count)
+        channels[chan][0].append(float(start_time))
+        channels[chan][1].append(float(count))
 
 for c, (times, counts) in channels.items():
         pl.plot(times, counts)
