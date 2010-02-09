@@ -75,7 +75,7 @@ static void read_loop(timetagger& t)
 				outputs[i] = lexical_cast<int>(*tok); tok++;
 			}
 			t.pulseseq_stop(outputs);
-		} else if (cmd == "quit") {
+		} else if (cmd == "quit" || cmd == "exit") {
 			break;
 		} else
 			std::cerr << "Invalid command\n";
