@@ -337,8 +337,13 @@ class MainWindow(object):
 		self.builder.get_object('output_file').props.text = get_name(file_n)
 
         def select_output_file_activate_cb(self, action):
+		filter = gtk.FileFilter()
+		filter.set_name('Timetag data file')
+		filter.add_pattern('*.timetag')
+
                 fc = gtk.FileChooserDialog('Select output file', self.win, gtk.FILE_CHOOSER_ACTION_SAVE,
                         (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,  gtk.STOCK_OK, gtk.RESPONSE_OK))
+		fc.add_filter(filter)
                 fc.props.do_overwrite_confirmation = True
                 res = fc.run()
                 fc.hide()
