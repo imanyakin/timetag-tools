@@ -24,6 +24,7 @@ install :
 	mkdir -p ${PREFIX}/share/timetag
 	cp timetag_ui.glade output_channel.glade ${PREFIX}/share/timetag
 	cp default.cfg ${PREFIX}/share/timetag
+	git rev-parse HEAD > ${PREFIX}/share/timetag/timetag-tools-ver
 
 clean :
 	rm -f ${PROGS} *.o *.pyc

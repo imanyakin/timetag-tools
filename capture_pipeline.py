@@ -12,7 +12,6 @@ import timetag_interface
 
 logging.basicConfig(level=logging.DEBUG)
 
-CAPTURE_CLOCK=30e6 # Hz
 bin_root = "/usr/bin"
 
 class CapturePipeline(object):
@@ -40,10 +39,12 @@ class CapturePipeline(object):
                 logging.debug("Resizing capture ring-buffer to %d points" % npts)
                 self.channels = defaultdict(lambda: CapturePipeline.Channel(npts))
 		
-        def __init__(self, bin_time, npts, output_file=None):
-                """ Create a capture pipeline. The bin_time is given in seconds """
+        def __init__(self, bin_time, npts, capture_clock, output_file=None):
+                """ Create a capture pipeline. The bin_time is given in
+                    seconds. capture_clock given in Hz. """
+                self.capture_clock = capture_clock
                 self.resize_buffer(npts)
-                self.bin_length = int(bin_time * CAPTURE_CLOCK)
+                self.bin_length = int(bin_time * self.capture_clock)
                 self.output_file = output_file
                 self.last_bin_walltime = time()
                 self.latest_timestamp = 0
@@ -82,7 +83,7 @@ class CapturePipeline(object):
 				return
                         chan, start_time, count, lost = map(int, l.split())
                         c = self.channels[chan]
-                        start_time = 1.0*start_time / CAPTURE_CLOCK
+                        start_time = 1.0*start_time / self.capture_clock
 			c.buffer_lock.acquire()
                         c.times.append(start_time)
                         c.counts.append(count)
