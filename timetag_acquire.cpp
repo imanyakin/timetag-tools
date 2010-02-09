@@ -44,6 +44,9 @@ static bool handle_command(timetagger& t, std::string line)
 		t.stop_capture();
 	} else if (cmd == "reset") {
 		t.reset();
+	} else if (cmd == "set_send_window") {
+		int records = lexical_cast<int>(*tok);
+		t.set_send_window(records);
 	} else if (cmd == "reset_counter") {
 		t.reset_counter();
 	} else if (cmd == "set_initial_state") {
