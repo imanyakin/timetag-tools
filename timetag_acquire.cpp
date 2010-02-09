@@ -31,6 +31,9 @@ static bool handle_command(timetagger& t, std::string line)
 	typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
 	boost::char_separator<char> sep("\t ");
 	tokenizer tokens(line, sep);
+	if (tokens.begin() == tokens.end())
+		return false;
+
 	auto tok = tokens.begin();
 	std::string cmd = *tok;
 	tok++;
