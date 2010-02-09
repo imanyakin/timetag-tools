@@ -362,15 +362,15 @@ class MainWindow(object):
                 if self.builder.get_object('file_output_enabled').props.active:
                         file = self.builder.get_object('output_file').props.text
 
-                params = {
-                        'start time': datetime.now(),
-                        'ui version': ui_version,
-                        'tagger clock': TAGGER_FREQ,
-                }
-                params_file = file.replace('.timetag', '') + ".params"
-                with open(params_file, 'w') as f:
-                        for p in params.items():
-                                f.write("%s\t%s\n", p)
+			params = {
+				'start time': datetime.now(),
+				'ui version': ui_version,
+				'tagger clock': TAGGER_FREQ,
+			}
+			params_file = file.replace('.timetag', '') + ".params"
+			with open(params_file, 'w') as f:
+				for p in params.items():
+					f.write("%s\t%s\n", p)
 
                 self.pipeline = CapturePipeline(output_file=file, bin_time=self.bin_time, npts=self.n_points)
                 #self.pipeline = TestPipeline(100)
