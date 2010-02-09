@@ -5,7 +5,10 @@ from collections import defaultdict
 import sys
 
 channels = defaultdict(lambda: ([], []))
+
 bin_factor = 1
+if len(sys.argv) > 1:
+	bin_factor = int(sys.argv[1])
 
 for l in sys.stdin:
         chan, start_time, count, lost = l.split('\t')
