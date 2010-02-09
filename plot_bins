@@ -11,6 +11,10 @@ for l in sys.stdin:
         channels[chan][0].append(float(start_time))
         channels[chan][1].append(float(count))
 
+if len(channels) == 0:
+	print "No data to plot"
+	exit(1)
+
 for c, (times, counts) in channels.items():
         pl.plot(times, counts)
 
