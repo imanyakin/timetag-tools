@@ -37,6 +37,7 @@ class CapturePipeline(object):
 
         def resize_buffer(self, npts):
                 """ Creates a new bin ringbuffer. """
+                logging.debug("Resizing capture ring-buffer to %d points" % npts)
                 self.channels = defaultdict(lambda: CapturePipeline.Channel(npts))
 		
         def __init__(self, bin_time, npts, output_file=None):
