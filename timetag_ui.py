@@ -331,7 +331,7 @@ class MainWindow(object):
 		file_n = 0
 		def get_name(file_n):
 			now = datetime.today()
-			return "timetag-%04u-%02u-%02u-run_%03u" % (now.year, now.month, now.day, file_n)
+			return "%04u-%02u-%02u-run_%03u-%02u%02u.timetag" % (now.year, now.month, now.day, file_n, now.hour, now.minute)
 		while os.path.exists(get_name(file_n)):
 			file_n += 1
 		self.builder.get_object('output_file').props.text = get_name(file_n)
