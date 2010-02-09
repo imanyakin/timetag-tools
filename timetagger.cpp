@@ -10,8 +10,6 @@
 #define TIMEOUT 100
 #define DATA_TIMEOUT 5000
 
-#define TRANSFER_LEN (85*RECORD_LENGTH)
-
 #define REQ_TYPE_VENDOR 0x02
 
 
@@ -148,6 +146,8 @@ void timetagger::set_send_window(unsigned int records)
 	int res = libusb_control_transfer(dev, REQ_TYPE_VENDOR, 0x01, 0, 0, data, 2, 0);
 	if (!res)
 		fprintf(stderr, "Error setting send window size: %d\n", res);
+
+	send_window = records;
 }
 
 void timetagger::flush_fx2_fifo() {
@@ -170,14 +170,16 @@ void timetagger::readout_handler::do_flush() {
 
 void timetagger::readout_handler::operator()()
 {
-	uint8_t* buffer = new uint8_t[TRANSFER_LEN];
+	uint8_t* buffer = new uint8_t[send_window*RECORD_LENGTH];
 
 	do {
 		if (needs_flush)
 			do_flush();
 
 		int transferred, res;
-		res = libusb_bulk_transfer(dev, DATA_ENDP, buffer, TRANSFER_LEN, &transferred, data_timeout);
+		res = libusb_bulk_transfer(dev, DATA_ENDP,
+			buffer, send_window*RECORD_LENGTH,
+			&transferred, data_timeout);
 		if (!res) {
 			if (transferred % RECORD_LENGTH != 0)
 				fprintf(stderr, "Warning: Received partial record.");
@@ -200,7 +202,7 @@ void timetagger::readout_handler::operator()()
 void timetagger::start_readout() 
 {
 	assert(readout_thread == 0);
-	readout_handler readout(dev, data_cb, needs_flush);
+	readout_handler readout(dev, data_cb, needs_flush, send_window);
 	readout_thread = boost::shared_ptr<boost::thread>(new boost::thread(readout));
 }
 
