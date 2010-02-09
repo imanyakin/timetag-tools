@@ -1,0 +1,18 @@
+#!/usr/bin/python
+
+from matplotlib import pyplot as pl
+from collections import defaultdict
+import sys
+
+channels = defaultdict(lambda: ([], []))
+
+for l in sys.stdin:
+        chan, start_time, count, lost = l.split('\t')
+        channels[chan][0].append(start_time)
+        channels[chan][1].append(count)
+
+for c, (times, counts) in channels.items():
+        pl.plot(times, counts)
+
+pl.show()
+
