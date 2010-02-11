@@ -34,7 +34,16 @@ record record_stream::get_record() {
         else if (res < RECORD_LENGTH)
                 throw std::runtime_error("Incomplete record");
 
-        data = be64toh(data) >> 16;
+#if defined(LITTLE_ENDIAN)
+        uint8_t* d = (uint8_t*) &data;
+        std::swap(d[0], d[5]);
+        std::swap(d[1], d[4]);
+        std::swap(d[2], d[3]);
+#elif defined(BIG_ENDIAN)
+#else
+#error Either LITTLE_ENDIAN or BIG_ENDIAN must be defined.
+#endif
+	
         record rec(data);
         if (rec.get_wrap_flag())
                 time_offset += (1ULL<<TIME_BITS) - 1;
