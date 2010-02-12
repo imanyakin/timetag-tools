@@ -27,6 +27,8 @@
  *
  */
 
+static bool all_zero_bins = false;
+
 struct input_channel {
         int chan_n;
         count_t bin_start;
@@ -45,7 +47,7 @@ void print_bin(int chan_n, uint64_t bin_start, unsigned int count, unsigned int 
                         lost);
 }
 
-void bin_record(record& r) {
+void bin_record(std::vector<input_channel>& chans, count_t bin_length, record& r) {
 	std::bitset<4> channels = r.get_channels();
 	uint64_t time = r.get_time();
 	for (auto c=chans.begin(); c != chans.end(); c++) {
@@ -82,8 +84,6 @@ void bin_record(record& r) {
 }
 
 int main(int argc, char** argv) {
-	bool all_zero_bins = false;
-
         if (argc <= 1) {
                 fprintf(stderr, "Usage: %s [bin_length]\n", argv[0]);
                 return 1;
@@ -110,7 +110,7 @@ int main(int argc, char** argv) {
 
         while (true) {
                 record r = stream.get_record();
-		bin_record(r);
+		bin_record(chans, bin_length, r);
         }
 
         return 0;
