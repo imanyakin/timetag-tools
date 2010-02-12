@@ -112,8 +112,10 @@ int main(int argc, char** argv) {
         }
 
         while (true) {
-                record r = stream.get_record();
-		bin_record(chans, bin_length, r);
+		try {
+			record r = stream.get_record();
+			bin_record(chans, bin_length, r);
+		} catch (end_stream e) { break; }
         }
 
         return 0;
