@@ -330,6 +330,10 @@ class MainWindow(object):
 				break
 
                 self.win.show_all()
+	
+	def usb_latency_changed_cb(self, combobox):
+		latency = combobox.get_active_iter()[1]
+		self.tagger.set_send_window(latency)
 
 	def set_default_output_file(self):
 		file_n = 0
