@@ -155,14 +155,15 @@ void timetagger::flush_fx2_fifo() {
 	int res = libusb_control_transfer(dev, REQ_TYPE_VENDOR, 0x02, 0, 0, NULL, 0, 0);
 	if (!res)
 		fprintf(stderr, "Error requesting FX2 FIFO flush: %d\n", res);
-	usleep(1000);
 }
 
 void timetagger::readout_handler::do_flush() {
 	int transferred = 0;
 	do {
 		uint8_t buffer[512];
+		usleep(5000); // Give plenty of time for FPGA to fill FIFOs
 		libusb_bulk_transfer(dev, DATA_ENDP, buffer, 512, &transferred, 10);
+		//fprintf(stderr, "Flushed %d bytes\n", transferred);
 	} while (transferred > 0);
 	needs_flush = false;
 }
@@ -172,6 +173,9 @@ void timetagger::readout_handler::operator()()
 	uint8_t* buffer = new uint8_t[TRANSFER_LEN];
 
 	do {
+		if (needs_flush)
+			do_flush();
+
 		int transferred, res;
 		res = libusb_bulk_transfer(dev, DATA_ENDP, buffer, TRANSFER_LEN, &transferred, data_timeout);
 		if (!res) {
@@ -183,9 +187,6 @@ void timetagger::readout_handler::operator()()
 			// needs_flush check every once in a while
 		} else
 			fprintf(stderr, "Transfer failed: %d\n", res);
-
-		if (needs_flush)
-			do_flush();
 
 		try {
 			boost::this_thread::interruption_point();
