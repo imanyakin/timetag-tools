@@ -23,7 +23,7 @@
                 <child>
                   <object class="GtkTable" id="table2">
                     <property name="visible">True</property>
-                    <property name="n_rows">3</property>
+                    <property name="n_rows">2</property>
                     <property name="n_columns">5</property>
                     <child>
                       <object class="GtkCheckButton" id="file_output">
@@ -31,8 +31,8 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">file_output_enabled</property>
+                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                         <property name="draw_indicator">True</property>
                       </object>
@@ -40,6 +40,7 @@
                         <property name="top_attach">1</property>
                         <property name="bottom_attach">2</property>
                         <property name="x_options">GTK_FILL</property>
+                        <property name="x_padding">3</property>
                       </packing>
                     </child>
                     <child>
@@ -49,36 +50,6 @@
                       </object>
                       <packing>
                         <property name="x_options">GTK_FILL</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkLabel" id="label10">
-                        <property name="visible">True</property>
-                        <property name="label" translatable="yes">USB Latency</property>
-                      </object>
-                      <packing>
-                        <property name="top_attach">2</property>
-                        <property name="bottom_attach">3</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkComboBox" id="usb_latency">
-                        <property name="visible">True</property>
-                        <property name="model">latency_store</property>
-                        <property name="active">0</property>
-                        <signal name="changed" handler="usb_latency_changed_cb"/>
-                        <child>
-                          <object class="GtkCellRendererText" id="cellrenderertext1"/>
-                          <attributes>
-                            <attribute name="text">0</attribute>
-                          </attributes>
-                        </child>
-                      </object>
-                      <packing>
-                        <property name="left_attach">1</property>
-                        <property name="right_attach">2</property>
-                        <property name="top_attach">2</property>
-                        <property name="bottom_attach">3</property>
                       </packing>
                     </child>
                     <child>
@@ -102,6 +73,7 @@
                       <packing>
                         <property name="left_attach">1</property>
                         <property name="right_attach">2</property>
+                        <property name="x_padding">3</property>
                       </packing>
                     </child>
                     <child>
@@ -110,8 +82,8 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">pipeline_running</property>
+                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                       </object>
                       <packing>
@@ -126,8 +98,8 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">select_output_file</property>
+                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                       </object>
                       <packing>
@@ -149,24 +121,6 @@
                         <property name="top_attach">1</property>
                         <property name="bottom_attach">2</property>
                       </packing>
-                    </child>
-                    <child>
-                      <object class="GtkLabel" id="label11">
-                        <property name="visible">True</property>
-                        <property name="label" translatable="yes">records</property>
-                      </object>
-                      <packing>
-                        <property name="left_attach">2</property>
-                        <property name="right_attach">3</property>
-                        <property name="top_attach">2</property>
-                        <property name="bottom_attach">3</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
                     </child>
                     <child>
                       <placeholder/>
@@ -208,8 +162,8 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">readout_running</property>
+                        <property name="use_action_appearance">True</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -220,7 +174,42 @@
                       <placeholder/>
                     </child>
                     <child>
-                      <placeholder/>
+                      <object class="GtkLabel" id="label10">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">USB Latency</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="position">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkComboBox" id="usb_latency">
+                        <property name="visible">True</property>
+                        <property name="model">latency_store</property>
+                        <property name="active">0</property>
+                        <signal name="changed" handler="usb_latency_changed_cb"/>
+                        <child>
+                          <object class="GtkCellRendererText" id="cellrenderertext1"/>
+                          <attributes>
+                            <attribute name="text">0</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="padding">3</property>
+                        <property name="position">3</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="label11">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">records</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="position">4</property>
+                      </packing>
                     </child>
                   </object>
                 </child>
@@ -290,8 +279,8 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">True</property>
                                 <property name="related_action">stop_outputs</property>
+                                <property name="use_action_appearance">True</property>
                                 <property name="use_underline">True</property>
                               </object>
                               <packing>
@@ -306,8 +295,8 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">True</property>
                                 <property name="related_action">start_outputs</property>
+                                <property name="use_action_appearance">True</property>
                                 <property name="use_underline">True</property>
                               </object>
                               <packing>
@@ -456,7 +445,7 @@
                             <child>
                               <object class="GtkLabel" id="label13">
                                 <property name="visible">True</property>
-                                <property name="label" translatable="yes">Width</property>
+                                <property name="label" translatable="yes">Width </property>
                               </object>
                               <packing>
                                 <property name="x_options">GTK_FILL</property>
@@ -500,8 +489,8 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
-                                <property name="use_action_appearance">True</property>
                                 <property name="related_action">y_auto</property>
+                                <property name="use_action_appearance">True</property>
                                 <property name="use_underline">True</property>
                                 <property name="active">True</property>
                                 <property name="draw_indicator">True</property>
@@ -630,8 +619,8 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">True</property>
                                 <property name="related_action">save_config</property>
+                                <property name="use_action_appearance">True</property>
                                 <property name="use_underline">True</property>
                               </object>
                               <packing>
@@ -646,8 +635,8 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">True</property>
                                 <property name="related_action">load_config</property>
+                                <property name="use_action_appearance">True</property>
                                 <property name="use_underline">True</property>
                               </object>
                               <packing>
