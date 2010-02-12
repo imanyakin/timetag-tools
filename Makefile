@@ -15,7 +15,7 @@ dump_photons : dump_photons.o record.o
 dump_records : dump_records.o record.o
 bin_photons : bin_photons.o record.o
 
-install :
+install : all
 	cp timetag_acquire ${PREFIX}/bin/timetag_acquire
 	chmod ug+s ${PREFIX}/bin/timetag_acquire
 	cp ${PROGS} ${PREFIX}/bin
