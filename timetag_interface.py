@@ -43,3 +43,6 @@ class Timetag(object):
 
 	def reset_counter(self):
 		self._submit_cmd("reset_counter\n")
+
+	def set_send_window(self, window):
+		self._submit_cmd("set_send_window %d\n" % window)
