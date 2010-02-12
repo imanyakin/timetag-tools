@@ -45,6 +45,42 @@ void print_bin(int chan_n, uint64_t bin_start, unsigned int count, unsigned int 
                         lost);
 }
 
+void bin_record(record& r) {
+	std::bitset<4> channels = r.get_channels();
+	uint64_t time = r.get_time();
+	for (auto c=chans.begin(); c != chans.end(); c++) {
+		if (time >= (c->bin_start + bin_length)) {
+			uint64_t new_bin_start = (time / bin_length) * bin_length;
+			
+			// First print photons in last bin
+			print_bin(c->chan_n, c->bin_start, c->count, c->lost);
+
+			// Then print zero bins
+			if (all_zero_bins) {
+				for (uint64_t t=c->bin_start+bin_length; t < new_bin_start; t += bin_length)
+					print_bin(c->chan_n, t, 0, 0);
+			} else {
+				// Print bin at beginning of zero run
+				if (time >= (c->bin_start+bin_length))
+					print_bin(c->chan_n, c->bin_start+bin_length, 0, 0);
+				// Then print bin at end of zero run
+				if (time >= (c->bin_start+2*bin_length))
+					print_bin(c->chan_n, new_bin_start-bin_length, 0, 0);
+			}
+
+			// Then start our new bin
+			c->lost = 0;
+			c->count = 0;
+			c->bin_start = new_bin_start;
+		}
+
+		if (r.get_lost_flag())
+			c->lost++;
+		if (r.get_type() == record::type::STROBE && channels[c->chan_n])
+			c->count++;
+	}
+}
+
 int main(int argc, char** argv) {
 	bool all_zero_bins = false;
 
@@ -74,39 +110,7 @@ int main(int argc, char** argv) {
 
         while (true) {
                 record r = stream.get_record();
-                std::bitset<4> channels = r.get_channels();
-                uint64_t time = r.get_time();
-                for (auto c=chans.begin(); c != chans.end(); c++) {
-                        if (time >= (c->bin_start + bin_length)) {
-				uint64_t new_bin_start = (time / bin_length) * bin_length;
-				
-                                // First print photons in last bin
-                                print_bin(c->chan_n, c->bin_start, c->count, c->lost);
-
-                                // Then print zero bins
-				if (all_zero_bins) {
-					for (uint64_t t=c->bin_start+bin_length; t < new_bin_start; t += bin_length)
-						print_bin(c->chan_n, t, 0, 0);
-				} else {
-					// Print bin at beginning of zero run
-                                        if (time >= (c->bin_start+bin_length))
-                                                print_bin(c->chan_n, c->bin_start+bin_length, 0, 0);
-					// Then print bin at end of zero run
-                                        if (time >= (c->bin_start+2*bin_length))
-                                                print_bin(c->chan_n, new_bin_start-bin_length, 0, 0);
-				}
-
-                                // Then start our new bin
-                                c->lost = 0;
-                                c->count = 0;
-                                c->bin_start = new_bin_start;
-                        }
-
-                        if (r.get_lost_flag())
-                                c->lost++;
-                        if (r.get_type() == record::type::STROBE && channels[c->chan_n])
-                                c->count++;
-                }
+		bin_record(r);
         }
 
         return 0;
