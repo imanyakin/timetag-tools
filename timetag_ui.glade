@@ -735,6 +735,7 @@
   </object>
   <object class="GtkAdjustment" id="x_width">
     <property name="value">1</property>
+    <property name="lower">0.01</property>
     <property name="upper">100</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
