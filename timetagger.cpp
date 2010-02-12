@@ -176,7 +176,7 @@ void timetagger::readout_handler::do_flush() {
 
 void timetagger::readout_handler::operator()()
 {
-	uint8_t* buffer = new uint8_t[512];
+	uint8_t* buffer = new uint8_t[510];
 
 	do {
 		if (needs_flush)
@@ -184,7 +184,7 @@ void timetagger::readout_handler::operator()()
 
 		int transferred, res;
 		res = libusb_bulk_transfer(dev, DATA_ENDP,
-			buffer, 512,
+			buffer, 510,
 			&transferred, data_timeout);
 		//fprintf(stderr, "Read %d bytes\n", transferred);
 		if (!res || res == LIBUSB_ERROR_OVERFLOW) {
