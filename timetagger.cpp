@@ -10,7 +10,15 @@
 #define TIMEOUT 100
 #define DATA_TIMEOUT 5000
 
-#define REQ_TYPE_VENDOR 0x02
+
+#define REQ_TYPE_TO_DEV		(0x0 << 0)
+#define REQ_TYPE_TO_IFACE	(0x1 << 0)
+#define REQ_TYPE_TO_ENDP	(0x2 << 0)
+
+#define REQ_TYPE_VENDOR 	(0x2 << 5)
+
+#define REQ_TYPE_HOST2DEV 	(0x0 << 7)
+#define REQ_TYPE_DEV2HOST 	(0x1 << 7)
 
 
 void timetagger::reset()
@@ -139,12 +147,11 @@ void timetagger::set_send_window(unsigned int records)
 		return;
 	}
 
-	uint8_t data[2] = {
-		(uint8_t) (bytes & 0xff),
-		(uint8_t) ((bytes >> 8) & 0x8)
-	};
-	int res = libusb_control_transfer(dev, REQ_TYPE_VENDOR, 0x01, 0, 0, data, 2, 0);
-	if (!res)
+	int res = libusb_control_transfer(dev,
+		REQ_TYPE_TO_DEV | REQ_TYPE_VENDOR | REQ_TYPE_HOST2DEV,
+		0x01,
+		bytes, 0, NULL, 0, 1);
+	if (res != 0)
 		fprintf(stderr, "Error setting send window size: %d\n", res);
 
 	send_window = records;
@@ -153,7 +160,7 @@ void timetagger::set_send_window(unsigned int records)
 void timetagger::flush_fx2_fifo() {
 	// Request FIFO flush
 	int res = libusb_control_transfer(dev, REQ_TYPE_VENDOR, 0x02, 0, 0, NULL, 0, 0);
-	if (!res)
+	if (res != 0)
 		fprintf(stderr, "Error requesting FX2 FIFO flush: %d\n", res);
 }
 
@@ -170,7 +177,7 @@ void timetagger::readout_handler::do_flush() {
 
 void timetagger::readout_handler::operator()()
 {
-	uint8_t* buffer = new uint8_t[send_window*RECORD_LENGTH];
+	uint8_t* buffer = new uint8_t[512];
 
 	do {
 		if (needs_flush)
@@ -178,9 +185,10 @@ void timetagger::readout_handler::operator()()
 
 		int transferred, res;
 		res = libusb_bulk_transfer(dev, DATA_ENDP,
-			buffer, send_window*RECORD_LENGTH,
+			buffer, 512,
 			&transferred, data_timeout);
-		if (!res) {
+		//fprintf(stderr, "Read %d bytes\n", transferred);
+		if (!res || res == LIBUSB_ERROR_OVERFLOW) {
 			if (transferred % RECORD_LENGTH != 0)
 				fprintf(stderr, "Warning: Received partial record.");
 			cb(buffer, transferred);
