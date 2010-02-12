@@ -149,8 +149,7 @@ void timetagger::set_send_window(unsigned int records)
 
 	int res = libusb_control_transfer(dev,
 		REQ_TYPE_TO_DEV | REQ_TYPE_VENDOR | REQ_TYPE_HOST2DEV,
-		0x01,
-		bytes, 0, NULL, 0, 1);
+		0x01, bytes, 0, NULL, 0, 1);
 	if (res != 0)
 		fprintf(stderr, "Error setting send window size: %d\n", res);
 
