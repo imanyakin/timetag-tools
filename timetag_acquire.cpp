@@ -16,9 +16,24 @@
 #define PRODUCT_ID 0x1004
 
 
+// TODO: This shouldn't be global
+static unsigned int written = 0;
+
+
 struct data_cb : timetagger::data_cb_t {
+	unsigned int& written;
+	data_cb(unsigned int& written) : written(written) { }
 	void operator()(const uint8_t* buffer, size_t length) {
-		fwrite((const char*) buffer, 1, length, stdout);
+		/*
+		 * HACK: Ignore first 8 records
+		 * Hardware returns old records at beginning of acquisition
+		 */
+		int skip = 0;
+		if (written < 8*RECORD_LENGTH)
+			skip += 8*RECORD_LENGTH;
+
+		write(1, buffer+skip, length-skip);
+		written += length;
 	}
 };
 
@@ -119,7 +134,7 @@ int main(int argc, char** argv)
 		exit(1);
 	}
 
-	data_cb cb;
+	data_cb cb(written);
 	timetagger t(dev, cb);
 	t.reset();
 	read_loop(t);
