@@ -34,6 +34,26 @@ struct output_channel {
                 chan_n(chan_n), state(false) { }
 };
 
+void dump_photon(record& r, std::vector<input_channel>& inputs, std::vector<output_channel>& outputs) {
+	std::bitset<4> channels = r.get_channels();
+	uint64_t time = r.get_time();
+
+	if (r.get_type() == record::type::DELTA) {
+		// Delta record
+		for (auto chan=outputs.begin(); chan != outputs.end(); chan++)
+			chan->state = channels[chan->chan_n];
+	} else  {
+		// Strobe record
+		for (auto chan=inputs.begin(); chan != inputs.end(); chan++) {
+			if (!channels[chan->chan_n]) continue;
+			printf("%11llu\t%d\t", (long long unsigned) time, chan->chan_n);
+			for (auto out=outputs.begin(); out != outputs.end(); out++)
+				printf("%d\t", out->state);
+			printf("\n");
+		}
+	}
+}
+
 int main(int argc, char** argv) {
         std::vector<output_channel> outputs = {
                 output_channel(0),
@@ -50,24 +70,10 @@ int main(int argc, char** argv) {
         record_stream stream(0);
 
         while (true) {
-                record r = stream.get_record();
-                std::bitset<4> channels = r.get_channels();
-                uint64_t time = r.get_time();
-
-                if (r.get_type() == record::type::DELTA) {
-                        // Delta record
-                        for (auto chan=outputs.begin(); chan != outputs.end(); chan++)
-                                chan->state = channels[chan->chan_n];
-                } else  {
-                        // Strobe record
-                        for (auto chan=inputs.begin(); chan != inputs.end(); chan++) {
-                                if (!channels[chan->chan_n]) continue;
-                                printf("%11llu\t%d\t", (long long unsigned) time, chan->chan_n);
-                                for (auto out=outputs.begin(); out != outputs.end(); out++)
-                                        printf("%d\t", out->state);
-                                printf("\n");
-                        }
-                }
+		try {
+			record r = stream.get_record();
+			dump_photon(r, inputs, outputs);
+		} catch (end_stream e) { break; }
         }
 
         return 0;
