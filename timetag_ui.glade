@@ -186,6 +186,7 @@
                     <child>
                       <object class="GtkComboBox" id="usb_latency">
                         <property name="visible">True</property>
+                        <property name="sensitive">False</property>
                         <property name="model">latency_store</property>
                         <property name="active">0</property>
                         <signal name="changed" handler="usb_latency_changed_cb"/>
