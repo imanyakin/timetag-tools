@@ -98,6 +98,9 @@ int main(int argc, char** argv) {
         };
         record_stream stream(0);
         
+	// Disable write buffering
+	setvbuf(stdout, NULL, _IONBF, 0);
+
         /*
          * We throw away the first photon to get the bin start times.
          */
