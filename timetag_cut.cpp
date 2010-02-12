@@ -48,23 +48,25 @@ int main(int argc, char** argv) {
 	record_stream stream(0);
 	unsigned int i=0;
 	while (true) {
-		record r = stream.get_record();
-		i++;
+		try {
+			record r = stream.get_record();
+			i++;
 
-		if (r.get_type() == record::DELTA) {
-			delta_status = r.get_channels();
-			continue;
-		}
+			if (r.get_type() == record::DELTA) {
+				delta_status = r.get_channels();
+				continue;
+			}
+			
+			if (r.get_time() > end_time) break;
+			if (r.get_time() < start_time) continue;
+			if (i <= skip_records) continue;
+
+			std::bitset<4> chans = r.get_channels();
+			if (strobe_on != -1 && !chans[strobe_on]) continue;
+			if (delta_on != -1 && !delta_status[delta_on]) continue;
 		
-		if (r.get_time() > end_time) break;
-		if (r.get_time() < start_time) continue;
-		if (i <= skip_records) continue;
-
-		std::bitset<4> chans = r.get_channels();
-		if (strobe_on != -1 && !chans[strobe_on]) continue;
-		if (delta_on != -1 && !delta_status[delta_on]) continue;
-	
-		write_record(1, r);
+			write_record(1, r);
+		} catch (end_stream e) { break; }
 	}
 }
 
