@@ -27,7 +27,7 @@
  *
  */
 
-static bool all_zero_bins = false;
+static bool prune_zero_bins = true;
 
 struct input_channel {
         int chan_n;
@@ -58,15 +58,15 @@ void bin_record(std::vector<input_channel>& chans, count_t bin_length, record& r
 			print_bin(c->chan_n, c->bin_start, c->count, c->lost);
 
 			// Then print zero bins
-			if (all_zero_bins) {
+			if (!prune_zero_bins) {
 				for (uint64_t t=c->bin_start+bin_length; t < new_bin_start; t += bin_length)
 					print_bin(c->chan_n, t, 0, 0);
 			} else {
 				// Print bin at beginning of zero run
-				if (time >= (c->bin_start+bin_length))
+				if (time >= (c->bin_start+2*bin_length))
 					print_bin(c->chan_n, c->bin_start+bin_length, 0, 0);
 				// Then print bin at end of zero run
-				if (time >= (c->bin_start+2*bin_length))
+				if (time >= (c->bin_start+3*bin_length))
 					print_bin(c->chan_n, new_bin_start-bin_length, 0, 0);
 			}
 
