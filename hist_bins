@@ -3,18 +3,31 @@
 from matplotlib import pyplot as pl
 from collections import defaultdict
 import sys
+import struct
+
+TAGGER_HZ=30e6
+
+take_channels = []
+if len(take_channels) == 0:
+        take_channels = range(4)
 
 channels = defaultdict(lambda: ([], []))
-TAGGER_HZ=30e6
 
 bin_factor = 1
 if len(sys.argv) > 1:
 	bin_factor = int(sys.argv[1])
 
-for l in sys.stdin:
-        chan, start_time, count, lost = l.split('\t')
-        channels[chan][0].append(float(start_time)/TAGGER_HZ)
-        channels[chan][1].append(float(count))
+bin_fmt = 'iQII'
+bin_sz = struct.calcsize(bin_fmt)
+while True:
+        d = sys.stdin.read(bin_sz)
+        if len(d) != bin_sz: break
+
+        chan_n, time, count, lost = struct.unpack(bin_fmt, d)
+        if chan_n not in take_channels: continue
+
+        channels[chan_n][0].append(float(time)/TAGGER_HZ)
+        channels[chan_n][1].append(count)
 
 for c, (times, counts) in channels.items():
 	range = max(counts) - min(counts)
