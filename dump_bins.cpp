@@ -1,7 +1,7 @@
 #include <vector>
 #include <cstdio>
-#include <cstdint>
 #include <unistd.h>
+#include "bin_format.h"
 
 /*
  *
@@ -25,12 +25,6 @@
  *   this gives us 500 years of acquisition time.
  *
  */
-struct bin_record {
-	int chan_n;
-	uint64_t start_time;
-	unsigned int count;
-	unsigned int lost;
-};
 
 int main() {
 	while (true) {
