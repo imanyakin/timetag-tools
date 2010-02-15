@@ -7,6 +7,10 @@ import sys
 
 TAGGER_HZ = 30e6
 
+take_channels = map(int, sys.argv[1:])
+if len(take_channels) == 0:
+        take_channels = range(4)
+
 channels = defaultdict(lambda: ([], []))
 bin_fmt = 'iQII'
 bin_sz = struct.calcsize(bin_fmt)
@@ -15,6 +19,8 @@ while True:
         if len(d) != bin_sz: break
 
         chan_n, time, count, lost = struct.unpack(bin_fmt, d)
+        if chan_n not in take_channels: continue
+
         channels[chan_n][0].append(float(time)/TAGGER_HZ)
         channels[chan_n][1].append(count)
 
