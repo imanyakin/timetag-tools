@@ -1,6 +1,7 @@
 import subprocess
 import logging
 import sys
+import struct
 import random
 from time import sleep, time
 import os
