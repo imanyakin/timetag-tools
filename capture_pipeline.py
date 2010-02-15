@@ -76,9 +76,10 @@ class CapturePipeline(object):
                 self.tagger = timetag_interface.Timetag(self.source.stdin)
 
         def _listen(self):
+                bin_fmt = 'iQII'
+                bin_sz = struct.calcsize(bin_fmt)
                 while True:
-                        bin_fmt = 'iQII'
-                        data = self.binner.stdout.read(struct.calcsize(bin_fmt))
+                        data = self.binner.stdout.read(bin_sz)
                         if len(data) != bin_sz: break
                         self.last_bin_walltime = time()
                         chan, start_time, count, lost = struct.unpack(bin_fmt, data)
