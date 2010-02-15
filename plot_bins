@@ -15,7 +15,7 @@ while True:
         if len(d) < bin_sz: break
 
         chan_n, time, count, lost = struct.unpack(bin_fmt, d)
-        channels[chan_n][0].append(time/TAGGER_HZ)
+        channels[chan_n][0].append(float(time)/TAGGER_HZ)
         channels[chan_n][1].append(count)
 
 if len(channels) == 0:
