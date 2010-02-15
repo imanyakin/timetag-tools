@@ -1,16 +1,22 @@
 #!/usr/bin/python
 
+import struct
 from matplotlib import pyplot as pl
 from collections import defaultdict
 import sys
 
-channels = defaultdict(lambda: ([], []))
 TAGGER_HZ = 30e6
 
-for l in sys.stdin:
-        chan, start_time, count, lost = l.split('\t')
-        channels[chan][0].append(float(start_time)/TAGGER_HZ)
-        channels[chan][1].append(float(count))
+channels = defaultdict(lambda: ([], []))
+bin_fmt = 'iQII'
+bin_sz = struct.calcsize(bin_fmt)
+while True:
+        d = sys.stdin.read(bin_sz)
+        if len(d) < bin_sz: break
+
+        chan_n, time, count, lost = struct.unpack(bin_fmt, d)
+        channels[chan_n][0].append(time/TAGGER_HZ)
+        channels[chan_n][1].append(count)
 
 if len(channels) == 0:
 	print "No data to plot"
