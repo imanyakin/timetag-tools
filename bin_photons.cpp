@@ -17,8 +17,7 @@
  *   A binary photon stream
  *
  * Output:
- *   A list of records in the following format:
- *   [CHAN]     [BIN_START_TIME]        [BIN_PHOTON_COUNT]	[LOST_COUNT]
+ *   A binary stream of bin_records
  *
  * Notes:
  *   We handle wrap-around here by simply keeping all times as 64-bit and
@@ -26,6 +25,12 @@
  *   this gives us 500 years of acquisition time.
  *
  */
+struct bin_record {
+	int chan_n;
+	uint64_t start_time;
+	unsigned int count;
+	unsigned int lost;
+};
 
 static bool prune_zero_bins = true;
 
@@ -40,11 +45,8 @@ struct input_channel {
 };
 
 void print_bin(int chan_n, uint64_t bin_start, unsigned int count, unsigned int lost) {
-        printf("%d\t%11llu\t%u\t%u\n",
-                        chan_n,
-                        (long long unsigned) bin_start,
-                        count,
-                        lost);
+	bin_record b = { chan_n, bin_start, count, lost };
+	write(1, &b, sizeof(bin_record));
 }
 
 void bin_record(std::vector<input_channel>& chans, count_t bin_length, record& r) {
