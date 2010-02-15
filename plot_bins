@@ -12,7 +12,7 @@ bin_fmt = 'iQII'
 bin_sz = struct.calcsize(bin_fmt)
 while True:
         d = sys.stdin.read(bin_sz)
-        if len(d) < bin_sz: break
+        if len(d) != bin_sz: break
 
         chan_n, time, count, lost = struct.unpack(bin_fmt, d)
         channels[chan_n][0].append(float(time)/TAGGER_HZ)
