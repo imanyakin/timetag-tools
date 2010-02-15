@@ -79,6 +79,7 @@ class CapturePipeline(object):
                 while True:
                         bin_fmt = 'iQII'
                         data = self.binner.stdout.read(struct.calcsize(bin_fmt))
+                        if len(data) != bin_sz: break
                         self.last_bin_walltime = time()
                         chan, start_time, count, lost = struct.unpack(bin_fmt, data)
                         c = self.channels[chan]
