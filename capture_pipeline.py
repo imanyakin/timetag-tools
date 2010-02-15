@@ -76,12 +76,10 @@ class CapturePipeline(object):
 
         def _listen(self):
                 while True:
-                        l = self.binner.stdout.readline()
+                        bin_fmt = 'iQII'
+                        data = self.binner.stdout.read(struct.calcsize(bin_fmt))
                         self.last_bin_walltime = time()
-                        if len(l) == 0: 
-				logging.debug("Listener reached end of stream. Stopping...")
-				return
-                        chan, start_time, count, lost = map(int, l.split())
+                        chan, start_time, count, lost = struct.unpack(bin_fmt, data)
                         c = self.channels[chan]
                         start_time = 1.0*start_time / self.capture_clock
 			c.buffer_lock.acquire()
