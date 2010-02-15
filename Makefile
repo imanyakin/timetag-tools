@@ -2,7 +2,7 @@ PREFIX=/usr
 CXXFLAGS=-Wall -std=c++0x -ggdb -I/usr/include/libusb-1.0
 CC=g++
 
-PROGS=timetag_acquire bin_photons photon_generator dump_records dump_photons timetag_cut
+PROGS=timetag_acquire bin_photons photon_generator dump_records dump_photons timetag_cut dump_bins
 
 all : ${PROGS}
 
@@ -14,6 +14,7 @@ timetag_cut : timetag_cut.o record.o
 dump_photons : dump_photons.o record.o
 dump_records : dump_records.o record.o
 bin_photons : bin_photons.o record.o
+dump_bins : dump_bins.o
 
 install : all
 	cp timetag_acquire ${PREFIX}/bin/timetag_acquire
