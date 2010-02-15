@@ -31,8 +31,8 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">file_output_enabled</property>
+                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                         <property name="draw_indicator">True</property>
                       </object>
@@ -82,8 +82,8 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">pipeline_running</property>
+                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                       </object>
                       <packing>
@@ -98,8 +98,8 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">select_output_file</property>
+                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                       </object>
                       <packing>
@@ -213,8 +213,8 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <property name="use_action_appearance">True</property>
                         <property name="related_action">readout_running</property>
+                        <property name="use_action_appearance">True</property>
                         <property name="use_underline">True</property>
                       </object>
                       <packing>
@@ -302,8 +302,8 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">True</property>
                                 <property name="related_action">stop_outputs</property>
+                                <property name="use_action_appearance">True</property>
                                 <property name="use_underline">True</property>
                               </object>
                               <packing>
@@ -318,8 +318,8 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">True</property>
                                 <property name="related_action">start_outputs</property>
+                                <property name="use_action_appearance">True</property>
                                 <property name="use_underline">True</property>
                               </object>
                               <packing>
@@ -520,8 +520,8 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
-                                <property name="use_action_appearance">True</property>
                                 <property name="related_action">y_auto</property>
+                                <property name="use_action_appearance">True</property>
                                 <property name="use_underline">True</property>
                                 <property name="active">True</property>
                                 <property name="draw_indicator">True</property>
@@ -650,8 +650,8 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">True</property>
                                 <property name="related_action">save_config</property>
+                                <property name="use_action_appearance">True</property>
                                 <property name="use_underline">True</property>
                               </object>
                               <packing>
@@ -666,8 +666,8 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">True</property>
                                 <property name="related_action">load_config</property>
+                                <property name="use_action_appearance">True</property>
                                 <property name="use_underline">True</property>
                               </object>
                               <packing>
@@ -689,6 +689,7 @@
                     </child>
                   </object>
                   <packing>
+                    <property name="expand">False</property>
                     <property name="padding">5</property>
                     <property name="position">2</property>
                   </packing>
