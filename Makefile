@@ -32,3 +32,11 @@ install : all
 clean :
 	rm -f ${PROGS} *.o *.pyc
 
+# For automatic header dependencies
+.deps/%.d : %
+	@mkdir -p .deps
+	@makedepend  ${INCLUDES} -f - $< 2>/dev/null | sed 's,\($*\.o\)[ :]*,\1 $@ : ,g' >$@
+
+SOURCES = $(wildcard *.cpp) $(wildcard *.c)
+-include $(addprefix .deps/,$(addsuffix .d,$(SOURCES)))
+
