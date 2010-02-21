@@ -2,7 +2,8 @@ PREFIX=/usr
 CXXFLAGS=-Wall -std=c++0x -ggdb -I/usr/include/libusb-1.0
 CC=g++
 
-PROGS=timetag_acquire bin_photons photon_generator dump_records dump_photons timetag_cut dump_bins
+PROGS=timetag_acquire bin_photons photon_generator dump_records dump_photons timetag_cut dump_bins \
+      strip_bins
 
 all : ${PROGS}
 
