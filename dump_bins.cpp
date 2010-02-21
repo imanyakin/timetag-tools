@@ -21,7 +21,7 @@
 
 #include <vector>
 #include <cstdio>
-#include <unistd.h>
+#include <iostream>
 #include "bin_format.h"
 
 /*
@@ -41,9 +41,9 @@
  */
 
 int main() {
-	while (true) {
+	while (!std::cin.eof() && !std::cin.fail()) {
 		bin_record rec;
-		read(0, &rec, sizeof(bin_record));
+                std::cin.read((char*) &rec, sizeof(bin_record));
 
 		printf("%d\t%11llu\t%u\t%u\n",
 				rec.chan_n,
