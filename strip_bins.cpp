@@ -22,9 +22,14 @@
 #include "bin_format.h"
 
 int main(int argc, char** argv) {
+	int chan = -1;
+	if (argc == 2)
+		chan = atoi(argv[1]);
+
         while (!std::cin.eof() && !std::cin.fail()) {
 		bin_record rec;
                 std::cin.read((char*) &rec, sizeof(bin_record));
+		if (rec.chan_n != chan) continue;
 
 		std::cout.write((char*) &rec.start_time, sizeof(uint64_t));
 		std::cout.write((char*) &rec.count, sizeof(unsigned int));
