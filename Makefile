@@ -21,7 +21,7 @@ install : all
 	cp timetag_acquire ${PREFIX}/bin/timetag_acquire
 	chmod ug+s ${PREFIX}/bin/timetag_acquire
 	cp ${PROGS} ${PREFIX}/bin
-	cp timetag_ui.py plot_bins hist_bins bin_photons_us ${PREFIX}/bin
+	cp timetag_ui.py plot_bins hist_bins bin_photons_us fret_eff ${PREFIX}/bin
 	cp ringbuffer.py capture_pipeline.py timetag_interface.py ${PREFIX}/lib/pymodules/python2.6
 	mkdir -p ${PREFIX}/share/timetag
 	cp timetag_ui.glade output_channel.glade ${PREFIX}/share/timetag
