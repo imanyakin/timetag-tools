@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# vim: set fileencoding=utf-8
 
 # timetag-tools - Tools for UMass FPGA timetagger
 # 

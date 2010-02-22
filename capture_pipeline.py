@@ -1,3 +1,5 @@
+# vim: set fileencoding=utf-8
+
 # timetag-tools - Tools for UMass FPGA timetagger
 # 
 # Copyright © 2010 Ben Gamari
