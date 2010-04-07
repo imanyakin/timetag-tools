@@ -3,7 +3,7 @@ CXXFLAGS=-Wall -std=c++0x -ggdb -I/usr/include/libusb-1.0
 CC=g++
 
 PROGS=timetag_acquire bin_photons photon_generator dump_records dump_photons \
-      timetag_cut dump_bins strip_bins
+      timetag_cut dump_bins strip_bins matlab-dump
 
 all : ${PROGS}
 
@@ -16,6 +16,7 @@ dump_photons : dump_photons.o record.o
 dump_records : dump_records.o record.o
 bin_photons : bin_photons.o record.o
 dump_bins : dump_bins.o record.o
+matlab-dump : matlab-dump.o record.o
 
 install : all
 	cp timetag_acquire ${PREFIX}/bin/timetag_acquire
