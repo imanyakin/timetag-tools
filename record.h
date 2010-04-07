@@ -60,6 +60,6 @@ public:
         std::vector<parsed_record> parse_records(unsigned int n);
 };
 
-unsigned int get_file_length();
+unsigned int get_file_length(const char* path);
 void write_record(int fd, record r);
 
