@@ -20,6 +20,7 @@
 
 
 #include "record.h"
+#include <sys/stat.h>
 
 record::type record::get_type() const {
         return (data & REC_TYPE_MASK) ? DELTA : STROBE;
@@ -47,6 +48,17 @@ std::bitset<4> record::get_channels() const {
 
 record_stream::record_stream(int fd) : time_offset(0), fd(fd) { }
 
+unsigned int get_file_length(const char* path) {
+        struct stat buf;
+        int res;
+
+        res = stat(path, &buf);
+        if (res)
+                throw std::runtime_error("Error in stat()");
+        
+        return buf.st_size / RECORD_LENGTH;
+}
+
 record record_stream::get_record() {
         record_t data;
         int res = read(fd, &data, RECORD_LENGTH);
@@ -64,7 +76,7 @@ record record_stream::get_record() {
 #else
 #error Either LITTLE_ENDIAN or BIG_ENDIAN must be defined.
 #endif
-	
+        
         record rec(data);
         if (rec.get_wrap_flag())
                 time_offset += (1ULL<<TIME_BITS) - 1;
@@ -72,12 +84,33 @@ record record_stream::get_record() {
         return rec;
 }
 
-void write_record(int fd, record r) {
-	record_t data;
-	data = r.data;
-	data = htobe64(data << 16);
+std::vector<parsed_record> record_stream::parse_records(unsigned int n) {
+        std::vector<parsed_record> buf;
 
-	int res = write(fd, &data, RECORD_LENGTH);
+        for (unsigned int i=0; i<n; i++) {
+                record r = get_record();
+                parsed_record pr;
+
+                pr.time = r.get_time();
+                pr.type = r.get_type();
+                pr.wrap = r.get_wrap_flag();
+                pr.lost = r.get_lost_flag();
+
+                std::bitset<4> ch = r.get_channels();
+                for (unsigned int j=0; j<4; j++) 
+                        pr.channels[j] = ch[j];
+
+                buf.push_back(pr);
+        }
+        return buf;
+}
+
+void write_record(int fd, record r) {
+        record_t data;
+        data = r.data;
+        data = htobe64(data << 16);
+
+        int res = write(fd, &data, RECORD_LENGTH);
         if (res == 0)
                 throw end_stream();
         else if (res < RECORD_LENGTH)

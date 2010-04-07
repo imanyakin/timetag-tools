@@ -22,6 +22,8 @@
 #include <cstdint>
 #include <stdexcept>
 #include <bitset>
+#include <vector>
+#include <array>
 #include "record_format.h"
 
 struct end_stream : std::exception { };
@@ -40,6 +42,14 @@ struct record {
         std::bitset<4> get_channels() const;
 };
 
+struct parsed_record {
+        uint64_t time;
+        record::type type;
+        bool wrap;
+        bool lost;
+        std::array<bool,4> channels;
+};
+
 class record_stream {
         uint64_t time_offset;
         int fd;
@@ -47,7 +57,9 @@ class record_stream {
 public:
         record_stream(int fd);
         record get_record();
+        std::vector<parsed_record> parse_records(unsigned int n);
 };
 
+unsigned int get_file_length();
 void write_record(int fd, record r);
 
