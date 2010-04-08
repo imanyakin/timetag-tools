@@ -18,6 +18,12 @@ bin_photons : bin_photons.o record.o
 dump_bins : dump_bins.o record.o
 matlab-dump : matlab-dump.o record.o
 
+pytimetag.so : pytimetag.o record.o
+	g++ -shared ${CXXFLAGS} -lpython2.6 -lboost_python -o$@ $+
+pytimetag.o : pytimetag.cpp
+	g++ -c ${CXXFLAGS} -I/usr/include/python2.6 -o$@ $+
+
+
 install : all
 	cp timetag_acquire ${PREFIX}/bin/timetag_acquire
 	chmod ug+s ${PREFIX}/bin/timetag_acquire
@@ -30,7 +36,7 @@ install : all
 	git rev-parse HEAD > ${PREFIX}/share/timetag/timetag-tools-ver
 
 clean :
-	rm -f ${PROGS} *.o *.pyc
+	rm -f ${PROGS} *.o *.pyc pytimetag.so
 
 # For automatic header dependencies
 .deps/%.d : %
@@ -38,5 +44,5 @@ clean :
 	@makedepend  ${INCLUDES} -f - $< 2>/dev/null | sed 's,\($*\.o\)[ :]*,\1 $@ : ,g' >$@
 
 SOURCES = $(wildcard *.cpp) $(wildcard *.c)
--include $(addprefix .deps/,$(addsuffix .d,$(SOURCES)))
+#-include $(addprefix .deps/,$(addsuffix .d,$(SOURCES)))
 
