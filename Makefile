@@ -35,6 +35,10 @@ install : all
 	cp default.cfg ${PREFIX}/share/timetag
 	git rev-parse HEAD > ${PREFIX}/share/timetag/timetag-tools-ver
 
+install-pytimetag : pytimetag.so
+	cp pytimetag.so ${PREFIX}/lib/python2.6
+	cp timetag_matlab_export ${PREFIX}/bin
+
 clean :
 	rm -f ${PROGS} *.o *.pyc pytimetag.so
 
