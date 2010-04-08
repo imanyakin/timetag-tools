@@ -7,7 +7,7 @@ import scipy, scipy.io
 in_file = sys.argv[1]
 f = open(in_file, 'r')
 
-stream = pytimetag.Stream(f.fileno)
+stream = pytimetag.Stream(f.fileno())
 l = []
 while True:
         try:
