@@ -1,5 +1,5 @@
 PREFIX=/usr
-CXXFLAGS=-Wall -std=c++0x -ggdb -I/usr/include/libusb-1.0
+CXXFLAGS=-Wall -std=c++0x -ggdb -I/usr/include/libusb-1.0 -fPIC
 CC=g++
 
 PROGS=timetag_acquire bin_photons photon_generator dump_records dump_photons \
