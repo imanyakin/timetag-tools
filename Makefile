@@ -1,17 +1,16 @@
 PREFIX=/usr
 CXXFLAGS=-Wall -std=c++0x -ggdb -I/usr/include/libusb-1.0 -fPIC
-CC=g++
+CC=$(CXX)
 
 PROGS=timetag_acquire bin_photons photon_generator dump_records dump_photons \
       timetag_cut dump_bins strip_bins matlab-dump
 
 all : ${PROGS}
 
+timetag_acquire : LDLIBS = -lusb-1.0 -lboost_thread
 timetag_acquire : timetag_acquire.o timetagger.o
-	g++ -lusb-1.0 -lboost_thread -o$@ $+
-
+timetag_cut : LDLIBS = -lboost_program_options
 timetag_cut : timetag_cut.o record.o
-	g++ -lboost_program_options -o$@ $+
 dump_photons : dump_photons.o record.o
 dump_records : dump_records.o record.o
 bin_photons : bin_photons.o record.o
@@ -48,5 +47,5 @@ clean :
 	@makedepend  ${INCLUDES} -f - $< 2>/dev/null | sed 's,\($*\.o\)[ :]*,\1 $@ : ,g' >$@
 
 SOURCES = $(wildcard *.cpp) $(wildcard *.c)
-#-include $(addprefix .deps/,$(addsuffix .d,$(SOURCES)))
+-include $(addprefix .deps/,$(addsuffix .d,$(SOURCES)))
 
