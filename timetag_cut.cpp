@@ -34,7 +34,8 @@ int main(int argc, char** argv) {
 		("delta-on,d", po::value<unsigned int>(), "include only records with delta channel N active")
 		("start-time,t", po::value<uint64_t>(), "start at timestamp TIME")
 		("end-time,T", po::value<uint64_t>(), "end at timestamp TIME")
-		("skip-records,r", po::value<unsigned int>(), "skip N records");
+		("skip-records,r", po::value<unsigned int>(), "skip N records")
+                ("truncate-records,R", po::value::value<unsigned int>(), "truncate all records past N");
 
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -43,7 +44,7 @@ int main(int argc, char** argv) {
 	int strobe_on=-1, delta_on=-1;
 	std::bitset<4> delta_status;
 	uint64_t start_time = 0,  end_time = 1ULL << 63;
-	unsigned int skip_records = 0;
+	unsigned int skip_records = 0, truncate_records = 0;
 
 	if (vm.count("help")) {
 		std::cout << desc << "\n";
@@ -65,6 +66,8 @@ int main(int argc, char** argv) {
 	if (vm.count("skip-records"))
 		skip_records = vm["skip-records"].as<unsigned int>();
 
+        if (vm.count("truncate-records"))
+                truncate_records = vm["truncate-records"].as<unsigned int>();
 
 	record_stream stream(0);
 	unsigned int i=0;
@@ -81,6 +84,7 @@ int main(int argc, char** argv) {
 			if (r.get_time() > end_time) break;
 			if (r.get_time() < start_time) continue;
 			if (i <= skip_records) continue;
+                        if (i >= truncate_records) break;
 
 			std::bitset<4> chans = r.get_channels();
 			if (strobe_on != -1 && !chans[strobe_on]) continue;
