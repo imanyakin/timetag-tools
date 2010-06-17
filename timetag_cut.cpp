@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
 		("start-time,t", po::value<uint64_t>(), "start at timestamp TIME")
 		("end-time,T", po::value<uint64_t>(), "end at timestamp TIME")
 		("skip-records,r", po::value<unsigned int>(), "skip N records")
-                ("truncate-records,R", po::value::value<unsigned int>(), "truncate all records past N");
+                ("truncate-records,R", po::value<unsigned int>(), "truncate all records past N");
 
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);
