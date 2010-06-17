@@ -44,7 +44,7 @@ clean :
 # For automatic header dependencies
 .deps/%.d : %
 	@mkdir -p .deps
-	@makedepend  ${INCLUDES} -f - $< 2>/dev/null | sed 's,\($*\.o\)[ :]*,\1 $@ : ,g' >$@
+	@cpp ${INCLUDES} -std=c++0x -MM $< > $@
 
 SOURCES = $(wildcard *.cpp) $(wildcard *.c)
 -include $(addprefix .deps/,$(addsuffix .d,$(SOURCES)))
