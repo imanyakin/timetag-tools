@@ -23,16 +23,12 @@ pytimetag.o : pytimetag.cpp
 	g++ -c ${CXXFLAGS} -I/usr/include/python2.6 -o$@ $+
 
 
-install : all
-	cp timetag_acquire ${PREFIX}/bin/timetag_acquire
-	chmod ug+s ${PREFIX}/bin/timetag_acquire
+install : ${PROGS}
 	cp ${PROGS} ${PREFIX}/bin
-	cp timetag_ui.py plot_bins hist_bins bin_photons_us fret_eff ${PREFIX}/bin
-	cp ringbuffer.py capture_pipeline.py timetag_interface.py ${PREFIX}/lib/pymodules/python2.6
+	chmod ug+s ${PREFIX}/bin/timetag_acquire
 	mkdir -p ${PREFIX}/share/timetag
-	cp timetag_ui.glade output_channel.glade ${PREFIX}/share/timetag
-	cp default.cfg ${PREFIX}/share/timetag
 	git rev-parse HEAD > ${PREFIX}/share/timetag/timetag-tools-ver
+	make -Cui install
 
 install-pytimetag : pytimetag.so
 	cp pytimetag.so ${PREFIX}/lib/python2.6
@@ -40,6 +36,7 @@ install-pytimetag : pytimetag.so
 
 clean :
 	rm -f ${PROGS} *.o *.pyc pytimetag.so
+	make -Cui clean
 
 # For automatic header dependencies
 .deps/%.d : %
