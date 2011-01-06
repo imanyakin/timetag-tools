@@ -46,7 +46,7 @@
  */
 
 int main(int argc, char** argv) {
-        std::vector<std::ofstream*> ofs;
+        std::vector<std::ofstream*> ofs(4);
         record_stream stream(0);
 
         if (argc > 4) {
