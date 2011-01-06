@@ -46,7 +46,7 @@
  */
 
 int main(int argc, char** argv) {
-        std::vector<std::ofstream*> ofs(4);
+        std::vector<std::ofstream*> ofs(4, NULL);
         record_stream stream(0);
 
         if (argc > 4) {
@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
         }
 
         for (int i=0; i<argc; i++)
-                ofs[i] = new std::ofstream(argv[i]);
+                ofs[i] = new std::ofstream(argv[i+1]);
 
         while (true) {
 		try {
@@ -64,9 +64,12 @@ int main(int argc, char** argv) {
                         std::bitset<4> channels = r.get_channels();
                         uint64_t time = r.get_time();
                         for (int i=0; i<4; i++)
-                                if (channels[i]) ofs[i]->write((char*)&time, 8);
+                                if (channels[i] && ofs[i]) ofs[i]->write((char*)&time, 8);
 		} catch (end_stream e) { break; }
         }
+
+	for (int i=0; i<argc; i++)
+		delete ofs[i];
 
         return 0;
 }
