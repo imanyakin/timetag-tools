@@ -1,7 +1,0 @@
-#!/bin/bash
-
-BIN_US=$1
-CLOCK_MHZ=30
-BIN_CLOCKS=$(echo $BIN_US*$CLOCK_MHZ | bc)
-bin_photons $BIN_CLOCKS
-
