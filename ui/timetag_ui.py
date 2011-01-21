@@ -36,11 +36,10 @@ from matplotlib.backends.backend_gtk import FigureCanvasGTK as FigureCanvas
 
 from capture_pipeline import CapturePipeline, TestPipeline
 
-logging.basicConfig(level=logging.DEBUG)
-
 PULSESEQ_FREQ = 30e6
 TAGGER_FREQ = 30e6
 
+use_test_pipeline = False
 resource_prefix = '/usr/share/timetag'
 default_configs = [ os.path.expanduser('~/.timetag.cfg'),
 		    os.path.join(resource_prefix, 'default.cfg') ]
@@ -399,8 +398,11 @@ class MainWindow(object):
 				for p in params.items():
 					f.write("%s\t%s\n" % p)
 
-                self.pipeline = CapturePipeline(output_file=file, bin_time=self.bin_time, capture_clock=TAGGER_FREQ, npts=self.n_points)
-                #self.pipeline = TestPipeline(100)
+                if use_test_pipeline:
+                        self.pipeline = TestPipeline(100)
+                else:
+                        self.pipeline = CapturePipeline(output_file=file, bin_time=self.bin_time, capture_clock=TAGGER_FREQ, npts=self.n_points)
+
                 self.pipeline.start()
                 self.pipeline.tagger.reset_counter()
 
@@ -576,6 +578,18 @@ class MainWindow(object):
 		config.write(open(file,'w'))
 
 if __name__ == '__main__':
+        from optparse import OptionParser
+        
+        parser = OptionParser()
+        parser.add_option('-d', '--debug', dest='debug',
+                          help='Enable debugging output')
+        parser.add_option('-t', '--test', dest='test',
+                          help="Use test input pipeline instead of actual hardware")
+        opts, args = parser.parse_args()
+        use_test_pipeline = opts.test
+        if opts.debug:
+                logging.basicConfig(level=logging.DEBUG)
+
         gtk.gdk.threads_init()
         win = MainWindow()
         gtk.main()
