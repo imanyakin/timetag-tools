@@ -91,13 +91,6 @@ public:
 	void start_capture();
 	void stop_capture();
 	void reset_counter();
-
-	void pulseseq_start(std::tr1::array<bool, 4> units);
-	void pulseseq_stop(std::tr1::array<bool, 4> units);
-	void pulseseq_set_low_count(char seq_mask, uint32_t count);
-	void pulseseq_set_high_count(char seq_mask, uint32_t count);
-	void pulseseq_set_initial_count(char seq_mask, uint32_t count);
-	void pulseseq_set_initial_state(char seq_mask, bool state);
 };
 
 #endif

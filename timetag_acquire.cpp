@@ -85,34 +85,6 @@ static bool handle_command(timetagger& t, std::string line)
 		t.set_send_window(records);
 	} else if (cmd == "reset_counter") {
 		t.reset_counter();
-	} else if (cmd == "set_initial_state") {
-		int output = lexical_cast<int>(*tok); tok++;
-		int state = lexical_cast<int>(*tok);
-		t.pulseseq_set_initial_state(output, state != 0);
-	} else if (cmd == "set_initial_count") {
-		int output = lexical_cast<int>(*tok); tok++;
-		int count = lexical_cast<int>(*tok);
-		t.pulseseq_set_initial_count(output, count);
-	} else if (cmd == "set_high_count") {
-		int output = lexical_cast<int>(*tok); tok++;
-		int count = lexical_cast<int>(*tok);
-		t.pulseseq_set_high_count(output, count);
-	} else if (cmd == "set_low_count") {
-		int output = lexical_cast<int>(*tok); tok++;
-		int count = lexical_cast<int>(*tok);
-		t.pulseseq_set_low_count(output, count);
-	} else if (cmd == "start_outputs") {
-		std::tr1::array<bool,4> outputs;
-		for (int i=0; i<4; i++) {
-			outputs[i] = lexical_cast<int>(*tok); tok++;
-		}
-		t.pulseseq_start(outputs);
-	} else if (cmd == "stop_outputs") {
-		std::tr1::array<bool,4> outputs;
-		for (int i=0; i<4; i++) {
-			outputs[i] = lexical_cast<int>(*tok); tok++;
-		}
-		t.pulseseq_stop(outputs);
 	} else if (cmd == "quit" || cmd == "exit") {
 		return true;
 	} else
