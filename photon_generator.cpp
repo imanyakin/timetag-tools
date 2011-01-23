@@ -29,7 +29,7 @@
 
 using namespace std;
 
-#define CLOCK_RATE (150e6)
+#define CLOCK_RATE (30e6)
 #define DEVIATION 0.7
 
 /*
@@ -52,7 +52,7 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
-	const unsigned int period = 1.0 / atoi(argv[1]) * 1e9; // in nanoseconds
+	const unsigned int period = 1e9 / atoi(argv[1]); // in nanoseconds
 	count_t counter = 0;
 
 	setvbuf(stdout, NULL, _IONBF, NULL);
