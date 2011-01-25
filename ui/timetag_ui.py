@@ -230,17 +230,19 @@ class MainWindow(object):
 
                 file = None
                 if self.builder.get_object('file_output_enabled').props.active:
-                        file = self.builder.get_object('output_file').props.text
-
-			params = {
-				'start time': datetime.now(),
+			metadata = {
+				'start': datetime.now(),
 				'ui version': ui_version,
-				'tagger clock': TAGGER_FREQ,
+				'clockrate': TAGGER_FREQ,
+                                'instrument': 'FPGA time tagger',
+                                'sample': '',
+                                'channels': {
+                                        'strobe0': '',
+                                },
 			}
-			params_file = file.replace('.timetag', '') + ".params"
-			with open(params_file, 'w') as f:
-				for p in params.items():
-					f.write("%s\t%s\n" % p)
+                        file = self.builder.get_object('output_file').props.text
+			meta_file = file + ".meta"
+                        json.dump(metadata, open(meta_file, 'w'))
 
                 if use_test_pipeline:
                         self.pipeline = TestPipeline(100)
