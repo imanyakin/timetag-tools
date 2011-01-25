@@ -36,8 +36,6 @@ import timetag_interface
 
 logging.basicConfig(level=logging.DEBUG)
 
-bin_root = "/usr/bin"
-
 class CapturePipeline(object):
         """
         This represents a pipeline of processes to collect, record, and analyse
@@ -97,8 +95,8 @@ class CapturePipeline(object):
                 self.latest_timestamp = 0
 
         def start(self):
-                #cmd = [os.path.join(bin_root, 'photon_generator'), str(1000)]
-                cmd = [os.path.join(bin_root, 'timetag_acquire')]
+                #cmd = ['photon_generator', str(1000)]
+                cmd = ['timetag_acquire']
 
                 PIPE=subprocess.PIPE
                 self.source = subprocess.Popen(cmd, stdin=PIPE, stdout=PIPE)
