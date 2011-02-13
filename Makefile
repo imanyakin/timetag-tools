@@ -3,7 +3,7 @@ CXXFLAGS=-Wall -std=c++0x -ggdb -I/usr/include/libusb-1.0 -fPIC
 CC=$(CXX)
 
 PROGS=timetag_acquire photon_generator dump_records dump_photons \
-      timetag_cut extract_timestamps timetag_bin
+      timetag_cut timetag_extract timetag_bin
 
 all : ${PROGS}
 
@@ -14,7 +14,7 @@ timetag_cut : timetag_cut.o record.o
 timetag_bin : timetag_bin.o record.o
 dump_photons : dump_photons.o record.o
 dump_records : dump_records.o record.o
-extract_timestamps : extract_timestamps.o record.o
+timetag_extract : timetag_extract.o record.o
 
 pytimetag.so : pytimetag.o record.o
 	g++ -shared ${CXXFLAGS} -lpython2.6 -lboost_python -o$@ $+
