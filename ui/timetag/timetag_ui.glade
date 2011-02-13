@@ -8,46 +8,24 @@
   <object class="GtkToggleAction" id="pipeline_running">
     <property name="label">Running</property>
     <property name="stock_id">gtk-media-play</property>
-    <signal name="toggled" handler="pipeline_running_toggled_cb" swapped="no"/>
+    <signal name="toggled" handler="pipeline_running_toggled_cb"/>
   </object>
   <object class="GtkAdjustment" id="bin_time">
+    <property name="value">10</property>
     <property name="lower">1</property>
     <property name="upper">1000</property>
-    <property name="value">10</property>
     <property name="step_increment">5</property>
     <property name="page_increment">10</property>
-  </object>
-  <object class="GtkAction" id="load_config">
-    <property name="label">Load</property>
-    <property name="stock_id">gtk-open</property>
-    <signal name="activate" handler="load_config_activate_cb" swapped="no"/>
   </object>
   <object class="GtkToggleAction" id="readout_running">
     <property name="label">Stopped</property>
     <property name="sensitive">False</property>
-    <signal name="toggled" handler="readout_running_toggled_cb" swapped="no"/>
-  </object>
-  <object class="GtkAction" id="save_config">
-    <property name="label">Save</property>
-    <property name="stock_id">gtk-save</property>
-    <signal name="activate" handler="save_config_activate_cb" swapped="no"/>
+    <signal name="toggled" handler="readout_running_toggled_cb"/>
   </object>
   <object class="GtkAction" id="select_output_file">
     <property name="label">Select File</property>
     <property name="stock_id">gtk-save</property>
-    <signal name="activate" handler="select_output_file_activate_cb" swapped="no"/>
-  </object>
-  <object class="GtkAction" id="start_outputs">
-    <property name="label">Start All</property>
-    <property name="stock_id">gtk-media-play</property>
-    <property name="sensitive">False</property>
-    <signal name="activate" handler="start_outputs_activate_cb" swapped="no"/>
-  </object>
-  <object class="GtkAction" id="stop_outputs">
-    <property name="label">Stop All</property>
-    <property name="stock_id">gtk-stop</property>
-    <property name="sensitive">False</property>
-    <signal name="activate" handler="stop_outputs_activate_cb" swapped="no"/>
+    <signal name="activate" handler="select_output_file_activate_cb"/>
   </object>
   <object class="GtkListStore" id="latency_store">
     <columns>
@@ -67,7 +45,6 @@
     </data>
   </object>
   <object class="GtkWindow" id="main_window">
-    <property name="can_focus">False</property>
     <property name="title" translatable="yes">FPGA Time-Tagger</property>
     <property name="default_width">700</property>
     <property name="default_height">700</property>
@@ -75,22 +52,18 @@
     <child>
       <object class="GtkVBox" id="vbox1">
         <property name="visible">True</property>
-        <property name="can_focus">False</property>
         <child>
           <object class="GtkFrame" id="frame1">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
             <property name="label_xalign">0</property>
             <property name="shadow_type">none</property>
             <child>
               <object class="GtkAlignment" id="alignment2">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
                 <property name="left_padding">12</property>
                 <child>
                   <object class="GtkTable" id="table2">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
                     <property name="n_rows">2</property>
                     <property name="n_columns">5</property>
                     <child>
@@ -112,7 +85,6 @@
                     <child>
                       <object class="GtkLabel" id="label7">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
                         <property name="label" translatable="yes">Plotting bin length</property>
                       </object>
                       <packing>
@@ -122,7 +94,6 @@
                     <child>
                       <object class="GtkLabel" id="label8">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
                         <property name="label" translatable="yes">milliseconds</property>
                       </object>
                       <packing>
@@ -194,7 +165,6 @@
                     <child>
                       <object class="GtkAlignment" id="alignment9">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
                         <child>
                           <placeholder/>
                         </child>
@@ -212,7 +182,6 @@
             <child type="label">
               <object class="GtkLabel" id="label4">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
                 <property name="label" translatable="yes">&lt;b&gt;Capture Pipeline&lt;/b&gt;</property>
                 <property name="use_markup">True</property>
               </object>
@@ -220,30 +189,25 @@
           </object>
           <packing>
             <property name="expand">False</property>
-            <property name="fill">True</property>
             <property name="position">0</property>
           </packing>
         </child>
         <child>
           <object class="GtkFrame" id="frame3">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
             <property name="label_xalign">0</property>
             <property name="shadow_type">none</property>
             <child>
               <object class="GtkAlignment" id="alignment1">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
                 <property name="left_padding">12</property>
                 <child>
                   <object class="GtkTable" id="table4">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
                     <property name="n_columns">5</property>
                     <child>
                       <object class="GtkLabel" id="label10">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
                         <property name="label" translatable="yes">USB Latency</property>
                       </object>
                       <packing>
@@ -254,10 +218,9 @@
                       <object class="GtkComboBox" id="usb_latency">
                         <property name="visible">True</property>
                         <property name="sensitive">False</property>
-                        <property name="can_focus">False</property>
                         <property name="model">latency_store</property>
                         <property name="active">0</property>
-                        <signal name="changed" handler="usb_latency_changed_cb" swapped="no"/>
+                        <signal name="changed" handler="usb_latency_changed_cb"/>
                         <child>
                           <object class="GtkCellRendererText" id="cellrenderertext1"/>
                           <attributes>
@@ -274,7 +237,6 @@
                     <child>
                       <object class="GtkLabel" id="label11">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
                         <property name="label" translatable="yes">records</property>
                       </object>
                       <packing>
@@ -300,7 +262,6 @@
                     <child>
                       <object class="GtkAlignment" id="alignment8">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
                         <child>
                           <placeholder/>
                         </child>
@@ -317,7 +278,6 @@
             <child type="label">
               <object class="GtkLabel" id="label3">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
                 <property name="label" translatable="yes">&lt;b&gt;Data Readout&lt;/b&gt;</property>
                 <property name="use_markup">True</property>
               </object>
@@ -325,21 +285,18 @@
           </object>
           <packing>
             <property name="expand">False</property>
-            <property name="fill">True</property>
             <property name="position">1</property>
           </packing>
         </child>
         <child>
           <object class="GtkVBox" id="channel_stats">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
             <child>
               <placeholder/>
             </child>
           </object>
           <packing>
             <property name="expand">False</property>
-            <property name="fill">True</property>
             <property name="padding">8</property>
             <property name="position">2</property>
           </packing>
@@ -347,86 +304,19 @@
         <child>
           <object class="GtkHBox" id="plot_container">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
             <child>
               <placeholder/>
             </child>
           </object>
           <packing>
-            <property name="expand">True</property>
-            <property name="fill">True</property>
             <property name="position">3</property>
           </packing>
         </child>
         <child>
           <object class="GtkHBox" id="hbox3">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
             <child>
-              <object class="GtkFrame" id="frame5">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label_xalign">0</property>
-                <property name="shadow_type">none</property>
-                <child>
-                  <object class="GtkAlignment" id="alignment5">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="left_padding">12</property>
-                    <child>
-                      <object class="GtkHButtonBox" id="hbuttonbox1">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="spacing">12</property>
-                        <child>
-                          <object class="GtkButton" id="save_config_btn">
-                            <property name="label" translatable="yes">Save</property>
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="receives_default">True</property>
-                            <property name="related_action">save_config</property>
-                            <property name="use_underline">True</property>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">False</property>
-                            <property name="position">0</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkButton" id="load_config_btn">
-                            <property name="label" translatable="yes">Load</property>
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="receives_default">True</property>
-                            <property name="related_action">load_config</property>
-                            <property name="use_underline">True</property>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">False</property>
-                            <property name="position">1</property>
-                          </packing>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-                <child type="label">
-                  <object class="GtkLabel" id="label9">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="label" translatable="yes">&lt;b&gt;Configurations&lt;/b&gt;</property>
-                    <property name="use_markup">True</property>
-                  </object>
-                </child>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="padding">5</property>
-                <property name="position">0</property>
-              </packing>
+              <placeholder/>
             </child>
             <child>
               <placeholder/>
@@ -434,32 +324,27 @@
             <child>
               <object class="GtkFrame" id="frame4">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
                 <property name="label_xalign">0</property>
                 <property name="shadow_type">none</property>
                 <child>
                   <object class="GtkAlignment" id="alignment4">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
                     <property name="left_padding">12</property>
                     <child>
                       <object class="GtkVBox" id="vbox3">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
                         <child>
                           <object class="GtkRadioButton" id="show_rates">
                             <property name="label" translatable="yes">Rates</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
-                            <property name="use_action_appearance">False</property>
                             <property name="use_underline">True</property>
                             <property name="draw_indicator">True</property>
-                            <signal name="toggled" handler="indicator_mode_changed_cb" swapped="no"/>
+                            <signal name="toggled" handler="indicator_mode_changed_cb"/>
                           </object>
                           <packing>
                             <property name="expand">False</property>
-                            <property name="fill">True</property>
                             <property name="position">0</property>
                           </packing>
                         </child>
@@ -469,15 +354,13 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
-                            <property name="use_action_appearance">False</property>
                             <property name="use_underline">True</property>
                             <property name="draw_indicator">True</property>
                             <property name="group">show_rates</property>
-                            <signal name="toggled" handler="indicator_mode_changed_cb" swapped="no"/>
+                            <signal name="toggled" handler="indicator_mode_changed_cb"/>
                           </object>
                           <packing>
                             <property name="expand">False</property>
-                            <property name="fill">True</property>
                             <property name="position">1</property>
                           </packing>
                         </child>
@@ -488,7 +371,6 @@
                 <child type="label">
                   <object class="GtkLabel" id="label6">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
                     <property name="label" translatable="yes">&lt;b&gt;Numerical Display&lt;/b&gt;</property>
                     <property name="use_markup">True</property>
                   </object>
@@ -496,29 +378,24 @@
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">True</property>
                 <property name="position">2</property>
               </packing>
             </child>
             <child>
               <object class="GtkVBox" id="vbox4">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
                 <child>
                   <object class="GtkFrame" id="frame6">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
                     <property name="label_xalign">0</property>
                     <property name="shadow_type">none</property>
                     <child>
                       <object class="GtkAlignment" id="alignment6">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
                         <property name="left_padding">12</property>
                         <child>
                           <object class="GtkTable" id="table1">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
                             <property name="n_columns">3</property>
                             <child>
                               <object class="GtkSpinButton" id="spinbutton1">
@@ -537,7 +414,6 @@
                             <child>
                               <object class="GtkLabel" id="label14">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
                                 <property name="label" translatable="yes">sec.</property>
                               </object>
                               <packing>
@@ -549,7 +425,6 @@
                             <child>
                               <object class="GtkLabel" id="label13">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
                                 <property name="label" translatable="yes">Width </property>
                               </object>
                               <packing>
@@ -563,7 +438,6 @@
                     <child type="label">
                       <object class="GtkLabel" id="label5">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
                         <property name="label" translatable="yes">&lt;b&gt;X Axis&lt;/b&gt;</property>
                         <property name="use_markup">True</property>
                       </object>
@@ -571,7 +445,6 @@
                   </object>
                   <packing>
                     <property name="expand">False</property>
-                    <property name="fill">True</property>
                     <property name="padding">5</property>
                     <property name="position">0</property>
                   </packing>
@@ -579,18 +452,15 @@
                 <child>
                   <object class="GtkFrame" id="frame7">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
                     <property name="label_xalign">0</property>
                     <property name="shadow_type">none</property>
                     <child>
                       <object class="GtkAlignment" id="alignment7">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
                         <property name="left_padding">12</property>
                         <child>
                           <object class="GtkTable" id="table3">
                             <property name="visible">True</property>
-                            <property name="can_focus">False</property>
                             <property name="n_rows">3</property>
                             <property name="n_columns">3</property>
                             <child>
@@ -612,7 +482,6 @@
                             <child>
                               <object class="GtkLabel" id="label19">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
                                 <property name="label" translatable="yes">counts/bin</property>
                               </object>
                               <packing>
@@ -626,7 +495,6 @@
                             <child>
                               <object class="GtkLabel" id="label20">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
                                 <property name="label" translatable="yes">counts/bin</property>
                               </object>
                               <packing>
@@ -640,7 +508,6 @@
                             <child>
                               <object class="GtkLabel" id="label21">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
                                 <property name="label" translatable="yes">Upper</property>
                               </object>
                               <packing>
@@ -652,7 +519,6 @@
                             <child>
                               <object class="GtkLabel" id="label22">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
                                 <property name="label" translatable="yes">Lower</property>
                               </object>
                               <packing>
@@ -702,7 +568,6 @@
                     <child type="label">
                       <object class="GtkLabel" id="label1">
                         <property name="visible">True</property>
-                        <property name="can_focus">False</property>
                         <property name="label" translatable="yes">&lt;b&gt;Y Axis&lt;/b&gt;</property>
                         <property name="use_markup">True</property>
                       </object>
@@ -710,7 +575,6 @@
                   </object>
                   <packing>
                     <property name="expand">False</property>
-                    <property name="fill">True</property>
                     <property name="padding">5</property>
                     <property name="position">1</property>
                   </packing>
@@ -718,7 +582,6 @@
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">True</property>
                 <property name="position">3</property>
               </packing>
             </child>
@@ -733,29 +596,29 @@
     </child>
   </object>
   <object class="GtkAdjustment" id="x_width">
+    <property name="value">1</property>
     <property name="lower">0.01</property>
     <property name="upper">100</property>
-    <property name="value">1</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
-    <signal name="value-changed" handler="x_width_value_changed_cb" swapped="no"/>
+    <signal name="value_changed" handler="x_width_value_changed_cb"/>
   </object>
   <object class="GtkToggleAction" id="y_auto">
     <property name="label">Automatic</property>
     <property name="active">True</property>
-    <signal name="toggled" handler="y_bounds_changed_cb" swapped="no"/>
+    <signal name="toggled" handler="y_bounds_changed_cb"/>
   </object>
   <object class="GtkAdjustment" id="y_lower">
     <property name="upper">100</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
-    <signal name="value-changed" handler="y_bounds_changed_cb" swapped="no"/>
+    <signal name="value_changed" handler="y_bounds_changed_cb"/>
   </object>
   <object class="GtkAdjustment" id="y_upper">
-    <property name="upper">1000000000000</property>
     <property name="value">1000</property>
+    <property name="upper">1000000000000</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
-    <signal name="value-changed" handler="y_bounds_changed_cb" swapped="no"/>
+    <signal name="value_changed" handler="y_bounds_changed_cb"/>
   </object>
 </interface>

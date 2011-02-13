@@ -86,7 +86,7 @@ class CapturePipeline(object):
                 else:
                         self.tee = None
 
-                cmd = [os.path.join(bin_root, 'bin_photons'), str(self.bin_length)]
+                cmd = [os.path.join('timetag_bin'), str(self.bin_length)]
                 self.binner = subprocess.Popen(cmd, stdin=src, stdout=PIPE)
                 logging.info("Started process %s" % cmd)
 

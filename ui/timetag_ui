@@ -26,7 +26,8 @@ import logging
 from collections import defaultdict
 import time
 from datetime import datetime
-import os
+import os, sys
+import pkgutil
 
 import gobject, gtk
 import matplotlib
@@ -40,12 +41,6 @@ PULSESEQ_FREQ = 30e6
 TAGGER_FREQ = 30e6
 
 use_test_pipeline = False
-resource_prefix = '/usr/share/timetag'
-default_configs = [ os.path.expanduser('~/.timetag.cfg'),
-		    os.path.join(resource_prefix, 'default.cfg') ]
-
-with open(os.path.join(resource_prefix, 'timetag-tools-ver'), 'r') as f:
-        ui_version = f.readline().strip()
 
 class NumericalIndicators(object):
         def __init__(self, n_inputs, main_win):
@@ -173,7 +168,8 @@ class MainWindow(object):
                 self.pipeline = None
 
                 self.builder = gtk.Builder()
-                self.builder.add_from_file(os.path.join(resource_prefix, 'timetag_ui.glade'))
+                src = pkgutil.get_data('timetag', 'timetag_ui.glade')
+                self.builder.add_from_string(src)
                 self.builder.connect_signals(self)
 
                 def quit(unused):
@@ -189,10 +185,6 @@ class MainWindow(object):
 
                 self.plot = Plot(self)
                 self.builder.get_object('plot_container').pack_start(self.plot.canvas)
-		for f in default_configs:
-			if os.path.isfile(f):
-				self.load_config(f)
-				break
 
                 self.win.show_all()
 	
@@ -232,7 +224,6 @@ class MainWindow(object):
                 if self.builder.get_object('file_output_enabled').props.active:
 			metadata = {
 				'start': datetime.now(),
-				'ui version': ui_version,
 				'clockrate': TAGGER_FREQ,
                                 'instrument': 'FPGA time tagger',
                                 'sample': '',
@@ -305,7 +296,7 @@ class MainWindow(object):
                 state = action.props.active
                 for o in [ 'file_output_enabled', 'output_file', 'select_output_file', 'bin_time_spin' ]:
                         get_object(o).props.sensitive = not state
-                for o in [ 'readout_running', 'stop_outputs', 'start_outputs', 'usb_latency' ]:
+                for o in [ 'readout_running', 'usb_latency' ]:
                         get_object(o).props.sensitive = state
 
                 if state:
@@ -345,52 +336,6 @@ class MainWindow(object):
                         self.plot.y_bounds = None
                 else:
                         self.plot.y_bounds = (get_object('y_lower').props.value, get_object('y_upper').props.value)
-
-	def load_config_activate_cb(self, action):
-		filter = gtk.FileFilter()
-		filter.set_name("Configuration file")
-		filter.add_pattern("*.cfg")
-
-                fc = gtk.FileChooserDialog('Select configuration file', self.win, gtk.FILE_CHOOSER_ACTION_OPEN,
-                        (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,  gtk.STOCK_OK, gtk.RESPONSE_OK))
-		fc.add_filter(filter)
-                res = fc.run()
-                fc.hide()
-                if res == gtk.RESPONSE_OK:
-                        self.load_config(fc.get_filename())
-
-	def save_config_activate_cb(self, action):
-		filter = gtk.FileFilter()
-		filter.set_name("Configuration file")
-		filter.add_pattern("*.cfg")
-
-                fc = gtk.FileChooserDialog('Select configuration file', self.win, gtk.FILE_CHOOSER_ACTION_SAVE,
-                        (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,  gtk.STOCK_OK, gtk.RESPONSE_OK))
-                fc.props.do_overwrite_confirmation = True
-		fc.add_filter(filter)
-                res = fc.run()
-                fc.hide()
-                if res == gtk.RESPONSE_OK:
-                        self.save_config(fc.get_filename())
-		
-	def load_config(self, file):
-		from ConfigParser import ConfigParser
-		get_object = self.builder.get_object
-		config = ConfigParser()
-		config.read(file)
-
-		get_object('bin_time').props.value = config.getfloat('acquire', 'bin_time')
-		get_object('x_width').props.value = config.getfloat('acquire', 'plot_width')
-
-	def save_config(self, file):
-		from ConfigParser import ConfigParser
-		get_object = self.builder.get_object
-		config = ConfigParser()
-
-		config.add_section('acquire')
-		config.set('acquire', 'bin_time', get_object('bin_time').props.value)
-		config.set('acquire', 'plot_width', get_object('x_width').props.value)
-		config.write(open(file,'w'))
 
 if __name__ == '__main__':
         from optparse import OptionParser
