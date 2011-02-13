@@ -36,10 +36,19 @@
 #define REQ_TYPE_TO_IFACE	(0x1 << 0)
 #define REQ_TYPE_TO_ENDP	(0x2 << 0)
 
-#define REQ_TYPE_VENDOR 	(0x2 << 5)
+#define REQ_TYPE_VENDOR		(0x2 << 5)
 
-#define REQ_TYPE_HOST2DEV 	(0x0 << 7)
-#define REQ_TYPE_DEV2HOST 	(0x1 << 7)
+#define REQ_TYPE_HOST2DEV	(0x0 << 7)
+#define REQ_TYPE_DEV2HOST	(0x1 << 7)
+
+#define VERSION_REG		0x01
+#define CLOCKRATE_REG		0x02
+#define CAPCTL_REG		0x03
+#define   CAPCTL_CAPTURE_EN	  (1<<0)
+#define   CAPCTL_COUNT_EN	  (1<<1)
+#define   CAPCTL_RESET_CNT	  (1<<2)
+#define STROBE_REG		0x04
+#define DELTA_REG		0x05
 
 
 void timetagger::reset()
@@ -49,29 +58,39 @@ void timetagger::reset()
 	needs_flush = true;
 }
 
-void timetagger::send_simple_command(uint8_t mask, cmd_data data)
+uint8_t timetagger::read_reg(uint8_t reg)
 {
-	std::vector<uint8_t> buffer = {
-		0xAA,			// Magic number
-		(uint8_t) data.size(),	// Command length
-		mask			// Command mask
-	};
-	for (unsigned int i=0; i<data.size(); i++)
-		buffer.push_back(data[i]);
-
 	int ret, transferred;
-	if ( (ret = libusb_bulk_transfer(dev, CMD_ENDP, &buffer[0], buffer.size(), &transferred, TIMEOUT)) )
+	uint8_t buffer[] = { 0xAA, 0x00, reg, 0x00 };
+
+	if ( (ret = libusb_bulk_transfer(dev, CMD_ENDP, buffer, 4, &transferred, TIMEOUT)) )
 		fprintf(stderr, "Failed sending request: %d\n", ret);
 
-#if 0
-	if (ret = libusb_bulk_transfer(dev, REPLY_ENDP, buffer, 128, &transferred, TIMEOUT) )
+	if ( (ret = libusb_bulk_transfer(dev, REPLY_ENDP, buffer, 1, &transferred, TIMEOUT)) )
 		fprintf(stderr, "failed receiving reply: %d\n", ret);
 
-	if (transferred > 4)
-		fprintf(stderr, "Length: %d\n", ((int*) buffer)[0]);
-	else
+	if (transferred != 1)
 		fprintf(stderr, "No response\n");
-#endif
+
+	regs[reg] = buffer[0];
+	return buffer[0];
+}
+
+void timetagger::write_reg(uint8_t reg, uint8_t val)
+{
+	int ret, transferred;
+	uint8_t buffer[] = { 0xAA, 0x01, reg, val };
+
+	if ( (ret = libusb_bulk_transfer(dev, CMD_ENDP, buffer, 4, &transferred, TIMEOUT)) )
+		fprintf(stderr, "Failed sending request: %d\n", ret);
+
+	if ( (ret = libusb_bulk_transfer(dev, REPLY_ENDP, buffer, 1, &transferred, TIMEOUT)) )
+		fprintf(stderr, "failed receiving reply: %d\n", ret);
+
+	if (transferred != 1)
+		fprintf(stderr, "No response\n");
+
+	regs[reg] = buffer[0];
 }
 
 void timetagger::start_capture()
@@ -79,20 +98,18 @@ void timetagger::start_capture()
 	// Don't start capture until flush has finished
 	while (needs_flush)
 		sleep(1);
-	cmd_data data = { 0x1 };
-	send_simple_command(0x01, data);
+	write_reg(0x3, regs[0x3] | CAPCTL_CAPTURE_EN | CAPCTL_COUNT_EN);
 }
 
 void timetagger::stop_capture()
 {
-	cmd_data data = { 0x2 };
-	send_simple_command(0x01, data);
+	write_reg(0x3, regs[0x3] & ~CAPCTL_CAPTURE_EN);
 }
 
 void timetagger::reset_counter()
 {
-	cmd_data data = { 0x4 };
-	send_simple_command(0x01, data);
+	write_reg(0x3, (regs[0x3] | CAPCTL_RESET_CNT) & ~CAPCTL_COUNT_EN);
+	write_reg(0x3, regs[0x3] & ~CAPCTL_RESET_CNT);
 }
 
 void timetagger::set_send_window(unsigned int records)

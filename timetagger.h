@@ -30,6 +30,8 @@
 
 #include "record_format.h"
 
+#define TIMETAG_NREGS 6
+
 class timetagger {
 public:
 	struct data_cb_t {
@@ -54,13 +56,15 @@ private:
 	};
 
 private:
-	typedef std::vector<uint8_t> cmd_data;
 	libusb_device_handle* dev;
 	boost::shared_ptr<boost::thread> readout_thread;
 	bool needs_flush;
 	unsigned int send_window; // In records
 	
-	void send_simple_command(uint8_t mask, cmd_data data);
+	// Register cache
+	uint8_t regs[TIMETAG_NREGS];
+	uint8_t read_reg(uint8_t reg);
+	void write_reg(uint8_t reg, uint8_t val);
 	void flush_fx2_fifo();
 
 public:
@@ -74,6 +78,15 @@ public:
 		libusb_claim_interface(dev, 0);
 		// Set send window to maximum value
 		set_send_window(512/RECORD_LENGTH);
+
+		// Start things off with sane defaults
+		write_reg(0x3, 0x00);
+		write_reg(0x4, 0x0f);
+		write_reg(0x5, 0x0f);
+
+		// Update register cache
+		for (int i=0; i<TIMETAG_NREGS; i++)
+			read_reg(i);
 	}
 
 	~timetagger()
