@@ -2,7 +2,7 @@ PREFIX=/usr
 CXXFLAGS=-Wall -std=c++0x -ggdb -I/usr/include/libusb-1.0 -fPIC
 CC=$(CXX)
 
-PROGS=timetag_acquire photon_generator dump_records dump_photons \
+PROGS=timetag_acquire photon_generator dump_records \
       timetag_cut timetag_extract timetag_bin
 
 all : ${PROGS}
@@ -12,7 +12,6 @@ timetag_acquire : timetag_acquire.o timetagger.o
 timetag_cut : LDLIBS = -lboost_program_options
 timetag_cut : timetag_cut.o record.o
 timetag_bin : timetag_bin.o record.o
-dump_photons : dump_photons.o record.o
 dump_records : dump_records.o record.o
 timetag_extract : timetag_extract.o record.o
 
