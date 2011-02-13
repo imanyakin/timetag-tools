@@ -15,22 +15,12 @@ timetag_bin : timetag_bin.o record.o
 dump_records : dump_records.o record.o
 timetag_extract : timetag_extract.o record.o
 
-pytimetag.so : pytimetag.o record.o
-	g++ -shared ${CXXFLAGS} -lpython2.6 -lboost_python -o$@ $+
-pytimetag.o : pytimetag.cpp
-	g++ -c ${CXXFLAGS} -I/usr/include/python2.6 -o$@ $+
-
-
 install : ${PROGS}
 	cp ${PROGS} ${PREFIX}/bin
 	chmod ug+s ${PREFIX}/bin/timetag_acquire
 	mkdir -p ${PREFIX}/share/timetag
 	git rev-parse HEAD > ${PREFIX}/share/timetag/timetag-tools-ver
 	make -Cui install
-
-install-pytimetag : pytimetag.so
-	cp pytimetag.so ${PREFIX}/lib/python2.6
-	cp timetag_matlab_export ${PREFIX}/bin
 
 clean :
 	rm -f ${PROGS} *.o *.pyc pytimetag.so
