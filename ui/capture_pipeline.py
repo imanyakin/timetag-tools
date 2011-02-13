@@ -37,29 +37,6 @@ import timetag_interface
 logging.basicConfig(level=logging.DEBUG)
 
 class CapturePipeline(object):
-        """
-        This represents a pipeline of processes to collect, record, and analyse
-        timetagger data. The pipeline looks as follows,
-
-                         timetag
-                            |
-                           tee
-                           / \
-                          /   \
-                         /     \
-                      [file]   extract_timestamps
-                               /      |         \
-                              /       |          \
-                             /        |           \
-                    bin_photons   bin_photons   bin_photons  ...
-                            \         |           /
-                             \        |          /
-                              \       |         /
-                               \      |        /
-                                \     |       /
-                                 [timetag_ui]
-        """
-        
         class Channel(object):
                 def __init__(self, npts):
 			self.buffer_lock = threading.Lock()
@@ -109,36 +86,25 @@ class CapturePipeline(object):
                 else:
                         self.tee = None
 
-                fifo_name = lambda c: '/tmp/timetag-extract-ch%d' % c
-                cmd = ['extract_timestamps']
-                for c in range(4):
-                        os.mkfifo(fifo_name(c))
-                        cmd.append(fifo_name(c))
+                cmd = [os.path.join(bin_root, 'bin_photons'), str(self.bin_length)]
+                self.binner = subprocess.Popen(cmd, stdin=src, stdout=PIPE)
+                logging.info("Started process %s" % cmd)
 
-                self.extract = subprocess.Popen(cmd, stdin=src)
-                self.binners = [None]*4
-                for c in range(4):
-                        cmd = ['bin_photons', str(self.bin_length)]
-                        f = open(fifo_name(c), 'r')
-                        self.binners[c] = subprocess.Popen(cmd, stdin=f, stdout=PIPE)
-                        logging.info("Started process %s" % cmd)
-
-                        t = threading.Thread(name='Channel %d Listener' % c, target=self._listen, args=(c))
-                        t.daemon = True
-                        t.start()
-                        self.listeners[c] = t
+                self.listener = threading.Thread(name='Data Listener', target=self._listen)
+                self.listener.daemon = True
+                self.listener.start()
 
                 self.tagger = timetag_interface.Timetag(self.source.stdin)
 
-        def _listen(self, channel):
-                bin_fmt = 'QH'
+        def _listen(self):
+                bin_fmt = 'iQII'
                 bin_sz = struct.calcsize(bin_fmt)
-                c = self.channels[channel]
                 while True:
-                        data = self.binners[channel].stdout.read(bin_sz)
+                        data = self.binner.stdout.read(bin_sz)
                         if len(data) != bin_sz: break
                         self.last_bin_walltime = time()
-                        start_time, count = struct.unpack(bin_fmt, data)
+                        chan, start_time, count, lost = struct.unpack(bin_fmt, data)
+                        c = self.channels[chan]
                         start_time = 1.0*start_time / self.capture_clock
 			c.buffer_lock.acquire()
                         c.times.append(start_time)
@@ -150,8 +116,6 @@ class CapturePipeline(object):
 
         def stop(self):
                 logging.info("Capture pipeline shutdown")
-                for c in range(4):
-                        self.listeners[c].stop()
                 self.tagger = None
                 self.source.terminate()
 
