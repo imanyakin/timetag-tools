@@ -39,7 +39,7 @@ logging.basicConfig(level=logging.DEBUG)
 class CapturePipeline(object):
         class Channel(object):
                 def __init__(self, npts):
-			self.buffer_lock = threading.Lock()
+                        self.buffer_lock = threading.Lock()
                         self.times = RingBuffer(npts)
                         self.counts = RingBuffer(npts)
                         self.loss_count = 0
@@ -48,9 +48,8 @@ class CapturePipeline(object):
 
         def bins(self):
                 for n, chan in self.channels.items():
-			chan.buffer_lock.acquire()
-                        yield n, chan.times.get(), chan.counts.get()
-			chan.buffer_lock.release()
+                        with chan.buffer_lock:
+                                yield n, chan.times.get(), chan.counts.get()
 
         def stats(self):
                 for n, chan in self.channels.items():
@@ -60,7 +59,7 @@ class CapturePipeline(object):
                 """ Creates a new bin ringbuffer. """
                 logging.debug("Resizing capture ring-buffer to %d points" % npts)
                 self.channels = defaultdict(lambda: CapturePipeline.Channel(npts))
-		
+                
         def __init__(self, bin_time, npts, capture_clock, output_file=None):
                 """ Create a capture pipeline. The bin_time is given in
                     seconds. capture_clock given in Hz. """
@@ -94,11 +93,11 @@ class CapturePipeline(object):
                 self.listener.daemon = True
                 self.listener.start()
 
-		self.tagger_cmd('reset_counter')
+                self.tagger_cmd('reset_counter')
 
-	def _tagger_cmd(self, cmd):
-		logging.debug("Tagger command: %s" % cmd)
-		self.source.stdin.write(cmd)
+        def _tagger_cmd(self, cmd):
+                logging.debug("Tagger command: %s" % cmd)
+                self.source.stdin.write(cmd)
 
         def _listen(self):
                 bin_fmt = 'iQII'
@@ -110,10 +109,9 @@ class CapturePipeline(object):
                         chan, start_time, count, lost = struct.unpack(bin_fmt, data)
                         c = self.channels[chan]
                         start_time = 1.0*start_time / self.capture_clock
-			c.buffer_lock.acquire()
-                        c.times.append(start_time)
-                        c.counts.append(count)
-			c.buffer_lock.release()
+                        with c.buffer_lock:
+                                c.times.append(start_time)
+                                c.counts.append(count)
                         c.photon_count += count
                         c.loss_count += lost
                         self.latest_timestamp = c.latest_timestamp = start_time
@@ -125,14 +123,14 @@ class CapturePipeline(object):
         def __del__(self):
                 self.stop()
 
-	def stop_capture(self):
-		self.tagger_cmd('stop_capture\n')
+        def stop_capture(self):
+                self.tagger_cmd('stop_capture\n')
 
-	def start_capture(self):
-		self.tagger.cmd('start_capture\n')
+        def start_capture(self):
+                self.tagger.cmd('start_capture\n')
 
-	def set_send_window(self, window):
-		self.tagger.cmd('set_send_window %d\n' % window)
+        def set_send_window(self, window):
+                self.tagger.cmd('set_send_window %d\n' % window)
 
 class TestPipeline(object):
         def __init__(self, npts=10):
