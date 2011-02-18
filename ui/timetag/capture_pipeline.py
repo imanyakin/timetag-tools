@@ -47,6 +47,23 @@ class CapturePipeline(object):
                         self.latest_timestamp = 0
                         self.hist = defaultdict(lambda: 0)
 
+        def __init__(self, bin_time, npts, capture_clock, output_file=None):
+                """ Create a capture pipeline. The bin_time is given in
+                    seconds. capture_clock given in Hz. """
+                self.capture_clock = capture_clock
+                self.resize_buffer(npts)
+                self.bin_length = int(bin_time * self.capture_clock)
+                self.output_file = output_file
+                self.last_bin_walltime = time()
+                self.latest_timestamp = 0
+                self.hist_width = 10
+
+        def set_hist_width(self, width):
+                self.hist_width = width
+                # Reset histogram
+                for c in self.channels:
+                        self.hist = defaultdict(lambda: 0)
+
         def bins(self):
                 for n, chan in self.channels.items():
                         with chan.buffer_lock:
@@ -60,17 +77,6 @@ class CapturePipeline(object):
                 """ Creates a new bin ringbuffer. """
                 logging.debug("Resizing capture ring-buffer to %d points" % npts)
                 self.channels = defaultdict(lambda: CapturePipeline.Channel(npts))
-                
-        def __init__(self, bin_time, npts, capture_clock, output_file=None):
-                """ Create a capture pipeline. The bin_time is given in
-                    seconds. capture_clock given in Hz. """
-                self.capture_clock = capture_clock
-                self.resize_buffer(npts)
-                self.bin_length = int(bin_time * self.capture_clock)
-                self.output_file = output_file
-                self.last_bin_walltime = time()
-                self.latest_timestamp = 0
-                self.hist_width = 10 # Width of bin-count histogram
 
         def start(self):
                 #cmd = ['photon_generator', str(1000)]
@@ -115,7 +121,7 @@ class CapturePipeline(object):
                         with c.buffer_lock:
                                 c.times.append(start_time)
                                 c.counts.append(count)
-                                c.hist[count / self.hist_width * self.hist_width] += 1
+                                c.hist[int(count / self.hist_width) * self.hist_width] += 1
 
                         c.photon_count += count
                         c.loss_count += lost
@@ -139,17 +145,29 @@ class CapturePipeline(object):
 
 class TestPipeline(object):
         def __init__(self, npts=10):
-                self.times = RingBuffer(npts)
-                self.counts = []
-                self.counts.append(RingBuffer(npts))
-                self.counts.append(RingBuffer(npts))
-
+                self.resize_buffer(npts)
                 self.count_totals = [0,0]
                 self.latest_timestamp = self.t = 0
+                self.set_hist_width(10)
+
+        def set_hist_width(self, width):
+                self.hist_width = width
+                class Channel(object):
+                        def __init__(self):
+                                self.hist = defaultdict(lambda: 0)
+                self.channels = [Channel(), Channel()]
 
         def bins(self):
                 for i,c in enumerate(self.counts):
                         yield 0, self.times.get(), c.get()
+
+        def resize_buffer(self, npts):
+                """ Creates a new bin ringbuffer. """
+                logging.debug("Resizing capture ring-buffer to %d points" % npts)
+                self.times = RingBuffer(npts)
+                self.counts = []
+                self.counts.append(RingBuffer(npts))
+                self.counts.append(RingBuffer(npts))
 
         def stats(self):
                 for i,c in enumerate(self.counts):
@@ -162,12 +180,13 @@ class TestPipeline(object):
                 while self._running:
                         self.times.append(self.t)
                         for i,c in enumerate(self.counts):
-                                count = random.randint(0, 200)
+                                count = int(random.gauss(50, 10))
                                 self.counts[i].append(count)
                                 self.count_totals[i] += count
+                                self.channels[i].hist[int(count / self.hist_width) * self.hist_width] += 1
 
-                        self.t += 1.0/40
                         self.latest_timestamp = self.t
+                        self.t += 1.0/40
                         sleep(1.0/40)
 
         def stop(self):

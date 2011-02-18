@@ -8,6 +8,6 @@ setup(name = 'timetag_ui',
       version = '1.0',
       packages = ['timetag'],
       scripts = ['timetag_ui'],
-      package_data = {'timetag': ['timetag_ui.glade', 'default.cfg']},
+      package_data = {'timetag': ['main.glade', 'bin_series.glade', 'hist.glade', 'default.cfg']},
       license = 'GPLv3',
 )

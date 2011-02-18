@@ -27,13 +27,14 @@ class RingBuffer:
 	def __init__(self, length, fmt='f'):
 		self._cur = 0
 		self._size = int(length)
+                assert(self._size > 0)
 		self._data = array(fmt, [0] * int(length))
 
 	def append(self, x):
 		"""append an element at the end of the buffer"""
 		self._data[self._cur] = x
                 self._cur += 1
-		if self._cur == self._size:
+		if self._cur >= self._size:
 			self._cur = 0
 			self.__class__ = RingBuffer.RingBufferFull
 
