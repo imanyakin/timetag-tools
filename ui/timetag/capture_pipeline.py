@@ -45,6 +45,7 @@ class CapturePipeline(object):
                         self.loss_count = 0
                         self.photon_count = 0
                         self.latest_timestamp = 0
+                        self.hist = defaultdict(lambda: 0)
 
         def bins(self):
                 for n, chan in self.channels.items():
@@ -69,6 +70,7 @@ class CapturePipeline(object):
                 self.output_file = output_file
                 self.last_bin_walltime = time()
                 self.latest_timestamp = 0
+                self.hist_width = 10 # Width of bin-count histogram
 
         def start(self):
                 #cmd = ['photon_generator', str(1000)]
@@ -109,9 +111,12 @@ class CapturePipeline(object):
                         chan, start_time, count, lost = struct.unpack(bin_fmt, data)
                         c = self.channels[chan]
                         start_time = 1.0*start_time / self.capture_clock
+
                         with c.buffer_lock:
                                 c.times.append(start_time)
                                 c.counts.append(count)
+                                c.hist[count / self.hist_width * self.hist_width] += 1
+
                         c.photon_count += count
                         c.loss_count += lost
                         self.latest_timestamp = c.latest_timestamp = start_time
