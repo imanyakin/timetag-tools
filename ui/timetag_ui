@@ -35,12 +35,10 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_gtk import FigureCanvasGTK as FigureCanvas
 #from matplotlib.backends.backend_gtkagg import FigureCanvasGTKAgg as FigureCanvas
 
-from capture_pipeline import CapturePipeline, TestPipeline
+from timetag.capture_pipeline import CapturePipeline, TestPipeline
 
 PULSESEQ_FREQ = 30e6
 TAGGER_FREQ = 30e6
-
-use_test_pipeline = False
 
 class NumericalIndicators(object):
         def __init__(self, n_inputs, main_win):
@@ -341,9 +339,9 @@ if __name__ == '__main__':
         from optparse import OptionParser
         
         parser = OptionParser()
-        parser.add_option('-d', '--debug', dest='debug',
+        parser.add_option('-d', '--debug', action='store_true',
                           help='Enable debugging output')
-        parser.add_option('-t', '--test', dest='test',
+        parser.add_option('-t', '--test', action='store_true',
                           help="Use test input pipeline instead of actual hardware")
         opts, args = parser.parse_args()
         use_test_pipeline = opts.test

@@ -145,7 +145,7 @@ class TestPipeline(object):
                 self.counts.append(RingBuffer(npts))
 
                 self.count_totals = [0,0]
-                self.t = 0
+                self.latest_timestamp = self.t = 0
 
         def bins(self):
                 for i,c in enumerate(self.counts):
@@ -153,13 +153,10 @@ class TestPipeline(object):
 
         def stats(self):
                 for i,c in enumerate(self.counts):
-                        yield 0, self.count_totals[c], 0, self.t
+                        yield 0, self.count_totals[i], 0, self.t
 
         def start(self):
-                self._running = True
-                self.listener = threading.Thread(name='Test Data Listener', target=self.worker)
-                self.listener.daemon = True
-                self.listener.start()
+                pass
         
         def worker(self):
                 while self._running:
@@ -170,8 +167,25 @@ class TestPipeline(object):
                                 self.count_totals[i] += count
 
                         self.t += 1.0/40
+                        self.latest_timestamp = self.t
                         sleep(1.0/40)
 
         def stop(self):
                 self._running = False
 
+        def start_capture(self):
+                self._running = True
+                self.listener = threading.Thread(name='Test Data Generator', target=self.worker)
+                self.listener.daemon = True
+                self.listener.start()
+
+        def stop_capture(self):
+                logging.info('stop_capture')
+                self._running = False
+
+        def set_send_window(self, window):
+                logging.info('set_send_widow %d' % window)
+
+        def reset_counter(self):
+                self.t = 0
+                logging.info('reset_counter')
