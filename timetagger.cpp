@@ -58,30 +58,40 @@ void timetagger::reset()
 	needs_flush = true;
 }
 
-uint8_t timetagger::read_reg(uint8_t reg)
+uint32_t timetagger::read_reg(uint16_t reg)
 {
 	int ret, transferred;
-	uint8_t buffer[] = { 0xAA, 0x00, reg, 0x00 };
+	uint8_t buffer[] = { 0xAA, 0x00,
+		(uint8_t) (reg >> 0),
+		(uint8_t) (reg >> 8),
+		0, 0, 0, 0 };
 
-	if ( (ret = libusb_bulk_transfer(dev, CMD_ENDP, buffer, 4, &transferred, TIMEOUT)) )
+	if ( (ret = libusb_bulk_transfer(dev, CMD_ENDP, buffer, 8, &transferred, TIMEOUT)) )
 		fprintf(stderr, "Failed sending request: %d\n", ret);
 
-	if ( (ret = libusb_bulk_transfer(dev, REPLY_ENDP, buffer, 1, &transferred, TIMEOUT)) )
+	if ( (ret = libusb_bulk_transfer(dev, REPLY_ENDP, buffer, 4, &transferred, TIMEOUT)) )
 		fprintf(stderr, "failed receiving reply: %d\n", ret);
 
-	if (transferred != 1)
-		fprintf(stderr, "No response\n");
+	if (transferred != 4)
+		fprintf(stderr, "Invalid response\n");
 
-	regs[reg] = buffer[0];
-	return buffer[0];
+	regs[reg] = *((uint32_t*) buffer);
+	return regs[reg];
 }
 
-void timetagger::write_reg(uint8_t reg, uint8_t val)
+void timetagger::write_reg(uint16_t reg, uint32_t val)
 {
 	int ret, transferred;
-	uint8_t buffer[] = { 0xAA, 0x01, reg, val };
+	uint8_t buffer[] = { 0xAA, 0x00,
+		(uint8_t) (reg >> 0),
+		(uint8_t) (reg >> 8),
+		(uint8_t) (val >> 0),
+		(uint8_t) (val >> 8),
+		(uint8_t) (val >> 16),
+		(uint8_t) (val >> 24),
+	};
 
-	if ( (ret = libusb_bulk_transfer(dev, CMD_ENDP, buffer, 4, &transferred, TIMEOUT)) )
+	if ( (ret = libusb_bulk_transfer(dev, CMD_ENDP, buffer, 8, &transferred, TIMEOUT)) )
 		fprintf(stderr, "Failed sending request: %d\n", ret);
 
 	if ( (ret = libusb_bulk_transfer(dev, REPLY_ENDP, buffer, 1, &transferred, TIMEOUT)) )
@@ -110,6 +120,16 @@ void timetagger::reset_counter()
 {
 	write_reg(0x3, (regs[0x3] | CAPCTL_RESET_CNT) & ~CAPCTL_COUNT_EN);
 	write_reg(0x3, regs[0x3] & ~CAPCTL_RESET_CNT);
+}
+
+unsigned int timetagger::get_record_count()
+{
+	return read_reg(0x6);
+}
+
+unsigned int timetagger::get_lost_record_count()
+{
+	return read_reg(0x7);
 }
 
 void timetagger::set_send_window(unsigned int records)

@@ -85,6 +85,10 @@ static bool handle_command(timetagger& t, std::string line)
 		t.set_send_window(records);
 	} else if (cmd == "reset_counter") {
 		t.reset_counter();
+	} else if (cmd == "record_count") {
+		printf("%d\n", t.get_record_count());
+	} else if (cmd == "lost_record_count") {
+		printf("%d\n", t.get_lost_record_count());
 	} else if (cmd == "quit" || cmd == "exit") {
 		return true;
 	} else

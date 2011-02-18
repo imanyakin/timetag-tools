@@ -62,9 +62,9 @@ private:
 	unsigned int send_window; // In records
 	
 	// Register cache
-	uint8_t regs[TIMETAG_NREGS];
-	uint8_t read_reg(uint8_t reg);
-	void write_reg(uint8_t reg, uint8_t val);
+	uint32_t regs[TIMETAG_NREGS];
+	uint32_t read_reg(uint16_t reg);
+	void write_reg(uint16_t reg, uint32_t val);
 	void flush_fx2_fifo();
 
 public:
@@ -104,6 +104,9 @@ public:
 	void start_capture();
 	void stop_capture();
 	void reset_counter();
+
+	unsigned int get_record_count();
+	unsigned int get_lost_record_count();
 };
 
 #endif
