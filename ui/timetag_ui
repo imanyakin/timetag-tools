@@ -191,7 +191,7 @@ class MainWindow(object):
 	def usb_latency_changed_cb(self, combobox):
 		iter = combobox.get_active_iter()
 		latency = combobox.get_model().get_value(iter, 0)
-		self.pipeline.tagger.set_send_window(latency)
+		self.pipeline.set_send_window(latency)
 
 	def set_default_output_file(self):
 		file_n = 0
@@ -241,7 +241,7 @@ class MainWindow(object):
                         self.pipeline = CapturePipeline(output_file=file, bin_time=self.bin_time, capture_clock=TAGGER_FREQ, npts=self.n_points)
 
                 self.pipeline.start()
-                self.pipeline.tagger.reset_counter()
+                self.pipeline.reset_counter()
 
                 # Start update loop for plot
                 def update_plot():
@@ -306,12 +306,12 @@ class MainWindow(object):
                         self.stop_pipeline()
 
         def start_readout(self):
-                self.pipeline.tagger.reset()
-                self.pipeline.tagger.start_capture()
+                self.pipeline.reset_counter()
+                self.pipeline.start_capture()
                 self.plot.scroll = True
 
         def stop_readout(self):
-                self.pipeline.tagger.stop_capture()
+                self.pipeline.stop_capture()
                 self.plot.scroll = False
 
         def readout_running_toggled_cb(self, action):

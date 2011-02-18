@@ -94,7 +94,11 @@ class CapturePipeline(object):
                 self.listener.daemon = True
                 self.listener.start()
 
-                self.tagger = timetag_interface.Timetag(self.source.stdin)
+		self.tagger_cmd('reset_counter')
+
+	def _tagger_cmd(self, cmd):
+		logging.debug("Tagger command: %s" % cmd)
+		self.source.stdin.write(cmd)
 
         def _listen(self):
                 bin_fmt = 'iQII'
@@ -116,12 +120,19 @@ class CapturePipeline(object):
 
         def stop(self):
                 logging.info("Capture pipeline shutdown")
-                self.tagger = None
                 self.source.terminate()
 
         def __del__(self):
                 self.stop()
 
+	def stop_capture(self):
+		self.tagger_cmd('stop_capture\n')
+
+	def start_capture(self):
+		self.tagger.cmd('start_capture\n')
+
+	def set_send_window(self, window):
+		self.tagger.cmd('set_send_window %d\n' % window)
 
 class TestPipeline(object):
         def __init__(self, npts=10):
@@ -132,7 +143,6 @@ class TestPipeline(object):
 
                 self.count_totals = [0,0]
                 self.t = 0
-                self.tagger = timetag_interface.Timetag(sys.stderr)
 
         def bins(self):
                 for i,c in enumerate(self.counts):
