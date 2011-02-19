@@ -22,8 +22,8 @@ install : ${PROGS}
 	git rev-parse HEAD > ${PREFIX}/share/timetag/timetag-tools-ver
 
 clean :
-	rm -f ${PROGS} *.o *.pyc pytimetag.so
-	make -Cui clean
+	rm -f ${PROGS} *.o
+	python ui/setup.py clean
 
 # For automatic header dependencies
 .deps/%.d : %
