@@ -48,31 +48,31 @@
  */
 
 int main(int argc, char** argv) {
-        std::vector<std::ofstream*> ofs(4, NULL);
-        record_stream stream(0);
+	std::vector<std::ofstream*> ofs(4, NULL);
+	record_stream stream(0);
 
-        if (argc > 5) {
-                std::cerr << "Incorrect number of arguments\n";
-                return 1;
-        }
+	if (argc > 5) {
+		std::cerr << "Incorrect number of arguments\n";
+		return 1;
+	}
 
-        for (int i=0; i<argc; i++)
-                ofs[i] = new std::ofstream(argv[i+1]);
+	for (int i=0; i<argc; i++)
+		ofs[i] = new std::ofstream(argv[i+1]);
 
-        while (true) {
+	while (true) {
 		try {
 			record r = stream.get_record();
-                        if (r.get_type() == record::type::DELTA) continue;
-                        std::bitset<4> channels = r.get_channels();
-                        uint64_t time = r.get_time();
-                        for (int i=0; i<4; i++)
-                                if (channels[i] && ofs[i]) ofs[i]->write((char*)&time, 8);
+			if (r.get_type() == record::type::DELTA) continue;
+			std::bitset<4> channels = r.get_channels();
+			uint64_t time = r.get_time();
+			for (int i=0; i<4; i++)
+				if (channels[i] && ofs[i]) ofs[i]->write((char*)&time, 8);
 		} catch (end_stream e) { break; }
-        }
+	}
 
 	for (int i=0; i<argc; i++)
 		delete ofs[i];
 
-        return 0;
+	return 0;
 }
 
