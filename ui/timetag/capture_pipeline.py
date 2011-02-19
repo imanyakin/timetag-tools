@@ -101,7 +101,7 @@ class CapturePipeline(object):
                 self.listener.daemon = True
                 self.listener.start()
 
-                self.tagger_cmd('reset_counter')
+                self.reset_counter()
 
         def _tagger_cmd(self, cmd):
                 logging.debug("Tagger command: %s" % cmd)
@@ -134,14 +134,17 @@ class CapturePipeline(object):
         def __del__(self):
                 self.stop()
 
+        def reset_counter(self):
+                self._tagger_cmd('reset_counter\n')
+
         def stop_capture(self):
-                self.tagger_cmd('stop_capture\n')
+                self._tagger_cmd('stop_capture\n')
 
         def start_capture(self):
-                self.tagger.cmd('start_capture\n')
+                self._tagger_cmd('start_capture\n')
 
         def set_send_window(self, window):
-                self.tagger.cmd('set_send_window %d\n' % window)
+                self._tagger_cmd('set_send_window %d\n' % window)
 
 class TestPipeline(object):
         def __init__(self, npts=10):
