@@ -1,4 +1,4 @@
-# vim: set fileencoding=utf-8
+# vim: set fileencoding=utf-8 et :
 
 # timetag-tools - Tools for UMass FPGA timetagger
 # 
