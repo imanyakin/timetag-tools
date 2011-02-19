@@ -40,6 +40,7 @@
 // TODO: This shouldn't be global
 static unsigned int written = 0;
 
+FILE* ctl_fd = stderr;
 
 struct data_cb : timetagger::data_cb_t {
 	unsigned int& written;
@@ -64,7 +65,6 @@ struct data_cb : timetagger::data_cb_t {
 static bool handle_command(timetagger& t, std::string line)
 {
 	using boost::lexical_cast;
-	FILE* ctl_fd = stderr;
 	typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
 	boost::char_separator<char> sep("\t ");
 	tokenizer tokens(line, sep);
@@ -97,7 +97,7 @@ static bool handle_command(timetagger& t, std::string line)
 	} else if (cmd == "quit" || cmd == "exit") {
 		return true;
 	} else
-		std::cerr << "Invalid command\n";
+		fprintf(ctl_fd, "Invalid command\n");
 
 	return false;
 }
@@ -122,9 +122,19 @@ int main(int argc, char** argv)
 	libusb_context* ctx;
 	libusb_device_handle* dev;
 
+        // Use control fd if provided
+        if (argc > 1) {
+                ctl_fd = fdopen(atoi(argv[1]), "w");
+                if (!ctl_fd) {
+                        fprintf(stderr, "Error opening control fd: %s\n", strerror(errno));
+                        exit(1);
+                }
+        }
+
 	// Disable output buffering
 	setvbuf(stdout, NULL, _IONBF, NULL);
-       
+        setvbuf(ctl_fd, NULL, _IONBF, NULL);
+
 	// Try bumping up our priority
 	if (setpriority(PRIO_PROCESS, 0, -10))
 		fprintf(stderr, "Warning: Priority elevation failed.\n");
