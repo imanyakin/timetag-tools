@@ -388,12 +388,21 @@ class MainWindow(object):
 
                 gobject.timeout_add(int(1000.0/self.indicators_update_rate), update_indicators)
 
+                if self.builder.get_object('show_hist').props.active:
+                        self.hist_win = HistPlot(self)
+                if self.builder.get_object('show_bin_series').props.active:
+                        self.bin_series_win = BinSeriesPlot(self)
+
         def stop_pipeline(self):
                 self.stop_readout()
                 self.pipeline.stop()
                 self.pipeline = None
                 # As a precaution to prevent accidental overwriting of acquired data
                 self.builder.get_object('file_output_enabled').props.active = False
+                if self.bin_series_win:
+                        self.bin_series_win.close()
+                if self.hist_win:
+                        self.hist_win.close()
 
         def pipeline_running_toggled_cb(self, action):
                 get_object = self.builder.get_object
