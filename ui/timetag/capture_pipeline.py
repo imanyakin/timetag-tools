@@ -65,7 +65,7 @@ class CapturePipeline(object):
 
         @hist_width.setter
         def hist_width(self, width):
-                self.hist_width = width
+                self._hist_width = width
                 # Reset histogram
                 for c in self.channels:
                         self.hist = defaultdict(lambda: 0)

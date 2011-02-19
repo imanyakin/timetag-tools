@@ -277,7 +277,7 @@ class HistPlot(object):
                 self.figure.canvas.draw()
 
         def bin_width_value_changed_cb(self, adj):
-                self.pipeline.set_hist_width(adj.get_value())
+                self.pipeline.hist_width = adj.get_value()
 
 class MainWindow(object):
         def __init__(self, n_inputs=4):
