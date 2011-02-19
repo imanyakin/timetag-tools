@@ -20,7 +20,6 @@ install : ${PROGS}
 	chmod ug+s ${PREFIX}/bin/timetag_acquire
 	mkdir -p ${PREFIX}/share/timetag
 	git rev-parse HEAD > ${PREFIX}/share/timetag/timetag-tools-ver
-	make -Cui install
 
 clean :
 	rm -f ${PROGS} *.o *.pyc pytimetag.so
