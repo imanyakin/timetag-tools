@@ -50,13 +50,22 @@ class CapturePipeline(object):
                     seconds. capture_clock given in Hz. """
                 self.capture_clock = capture_clock
                 self.resize_buffer(npts)
-                self.bin_length = int(bin_time * self.capture_clock)
+                self._bin_time = bin_time
                 self.output_file = output_file
                 self.last_bin_walltime = time()
                 self.latest_timestamp = 0
-                self.hist_width = 10
+                self._hist_width = 10
 
-        def set_hist_width(self, width):
+        @property
+        def bin_time(self):
+                return self._bin_time
+
+        @property
+        def hist_width(self):
+                return self._hist_width
+
+        @hist_width.setter
+        def hist_width(self, width):
                 self.hist_width = width
                 # Reset histogram
                 for c in self.channels:
@@ -84,13 +93,13 @@ class CapturePipeline(object):
                 self.source = subprocess.Popen(cmd, stdin=PIPE, stdout=PIPE)
                 logging.info("Started process %s" % cmd)
                 src = self.source.stdout
-                
                 if self.output_file:
                         self.tee = subprocess.Popen(['tee', self.output_file], stdin=src, stdout=PIPE)
                         src = self.tee.stdout
                 else:
                         self.tee = None
 
+                self.bin_length = int(self.bin_time * self.clockrate)
                 cmd = [os.path.join('timetag_bin'), str(self.bin_length)]
                 self.binner = subprocess.Popen(cmd, stdin=src, stdout=PIPE)
                 logging.info("Started process %s" % cmd)
