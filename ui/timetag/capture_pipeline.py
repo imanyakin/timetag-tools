@@ -32,8 +32,6 @@ import threading
 from collections import defaultdict
 from ringbuffer import RingBuffer
 
-import timetag_interface
-
 logging.basicConfig(level=logging.DEBUG)
 
 class CapturePipeline(object):
