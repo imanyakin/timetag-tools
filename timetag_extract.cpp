@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
         std::vector<std::ofstream*> ofs(4, NULL);
         record_stream stream(0);
 
-        if (argc > 4) {
+        if (argc > 5) {
                 std::cerr << "Incorrect number of arguments\n";
                 return 1;
         }
