@@ -84,6 +84,8 @@ public:
 		set_send_window(512/RECORD_LENGTH);
 
 		// Start things off with sane defaults
+		write_reg(0x0, 0x00); // Possibly unjam register manager
+		flush_fx2_fifo();
 		write_reg(0x3, 0x00);
 		write_reg(0x4, 0x0f);
 		write_reg(0x5, 0x0f);
