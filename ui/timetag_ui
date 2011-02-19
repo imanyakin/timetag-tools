@@ -106,6 +106,7 @@ class BinSeriesPlot(object):
                 self.main_win = main_win
                 self.sync_timestamp = 0
                 self.sync_walltime = 0
+                self.builder.get_object('x_width').props.value = 1 # HACK: set default
                 self.figure = Figure()
                 self.axes = self.figure.add_subplot(111)
                 self.axes.get_xaxis().set_major_formatter(
@@ -204,7 +205,7 @@ class BinSeriesPlot(object):
         def x_width_value_changed_cb(self, *args):
                 if not self.pipeline: return
                 self.pipeline.resize_buffer(self.n_points)
-                self.series_plot.width = self.plot_width
+                self.width = self.plot_width
 
         def y_bounds_changed_cb(self, *args):
                 get_object = self.builder.get_object
@@ -214,10 +215,10 @@ class BinSeriesPlot(object):
                         get_object(o).props.sensitive = not auto
 
                 if auto:
-                        self.series_plot.y_bounds = None
+                        self.y_bounds = None
                 else:
-                        self.series_plot.y_bounds = (get_object('y_lower').props.value,
-                                                     get_object('y_upper').props.value)
+                        self.y_bounds = (get_object('y_lower').props.value,
+                                         get_object('y_upper').props.value)
 
 class HistPlot(object):
         def __init__(self, main_win):
