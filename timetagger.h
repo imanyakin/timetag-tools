@@ -98,6 +98,9 @@ public:
 	void reset();
 	void set_send_window(unsigned int records);
 
+	unsigned int get_version();
+	unsigned int get_clockrate();
+
 	void start_readout();
 	void stop_readout();
 

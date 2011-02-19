@@ -75,10 +75,10 @@ uint32_t timetagger::read_reg(uint16_t reg)
 		fprintf(stderr, "failed receiving reply: %d\n", ret);
 
 #ifdef DEBUG
-        fprintf(stderr, "read_reg %04x; reply: ", reg);
-        for (int i=0; i<transferred; i++)
-                fprintf(stderr, " %02x ", buffer[i]);
-        fprintf(stderr, "\n");
+	fprintf(stderr, "read_reg %04x; reply: ", reg);
+	for (int i=0; i<transferred; i++)
+		fprintf(stderr, " %02x ", buffer[i]);
+	fprintf(stderr, "\n");
 #endif
 
 	if (transferred != 4)
@@ -107,16 +107,26 @@ void timetagger::write_reg(uint16_t reg, uint32_t val)
 		fprintf(stderr, "failed receiving reply: %d\n", ret);
 
 #ifdef DEBUG
-        fprintf(stderr, "write_reg %04x = %08x; reply: ", reg, val);
-        for (int i=0; i<transferred; i++)
-                fprintf(stderr, " %02x ", buffer[i]);
-        fprintf(stderr, "\n");
+	fprintf(stderr, "write_reg %04x = %08x; reply: ", reg, val);
+	for (int i=0; i<transferred; i++)
+		fprintf(stderr, " %02x ", buffer[i]);
+	fprintf(stderr, "\n");
 #endif
 
 	if (transferred != 4)
 		fprintf(stderr, "Invalid response\n");
 
 	regs[reg] = *((uint32_t*) buffer);
+}
+
+unsigned int timetagger::get_version()
+{
+	return read_reg(0x01);
+}
+
+unsigned int timetagger::get_clockrate()
+{
+	return read_reg(0x02);
 }
 
 void timetagger::start_capture()

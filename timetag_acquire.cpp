@@ -64,6 +64,7 @@ struct data_cb : timetagger::data_cb_t {
 static bool handle_command(timetagger& t, std::string line)
 {
 	using boost::lexical_cast;
+	FILE* ctl_fd = stderr;
 	typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
 	boost::char_separator<char> sep("\t ");
 	tokenizer tokens(line, sep);
@@ -83,12 +84,16 @@ static bool handle_command(timetagger& t, std::string line)
 	} else if (cmd == "set_send_window") {
 		int records = lexical_cast<int>(*tok);
 		t.set_send_window(records);
+	} else if (cmd == "version") {
+		fprintf(ctl_fd, "%d\n", t.get_version());
+	} else if (cmd == "clockrate") {
+		fprintf(ctl_fd, "%d\n", t.get_clockrate());
 	} else if (cmd == "reset_counter") {
 		t.reset_counter();
 	} else if (cmd == "record_count") {
-		printf("%d\n", t.get_record_count());
+		fprintf(ctl_fd, "%d\n", t.get_record_count());
 	} else if (cmd == "lost_record_count") {
-		printf("%d\n", t.get_lost_record_count());
+		fprintf(ctl_fd, "%d\n", t.get_lost_record_count());
 	} else if (cmd == "quit" || cmd == "exit") {
 		return true;
 	} else
