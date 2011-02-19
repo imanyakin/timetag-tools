@@ -85,7 +85,7 @@ public:
 		write_reg(0x5, 0x0f);
 
 		// Update register cache
-		for (int i=0; i<TIMETAG_NREGS; i++)
+		for (int i=1; i<TIMETAG_NREGS; i++)
 			read_reg(i);
 	}
 

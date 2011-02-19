@@ -18,6 +18,8 @@
  * Author: Ben Gamari <bgamari@physics.umass.edu>
  */
 
+// Enable for protocol level dumps
+//#define DEBUG
 
 #include <cstdio>
 #include <cstring>
@@ -72,6 +74,13 @@ uint32_t timetagger::read_reg(uint16_t reg)
 	if ( (ret = libusb_bulk_transfer(dev, REPLY_ENDP, buffer, 4, &transferred, TIMEOUT)) )
 		fprintf(stderr, "failed receiving reply: %d\n", ret);
 
+#ifdef DEBUG
+        fprintf(stderr, "read_reg %04x; reply: ", reg);
+        for (int i=0; i<transferred; i++)
+                fprintf(stderr, " %02x ", buffer[i]);
+        fprintf(stderr, "\n");
+#endif
+
 	if (transferred != 4)
 		fprintf(stderr, "Invalid response\n");
 
@@ -82,7 +91,7 @@ uint32_t timetagger::read_reg(uint16_t reg)
 void timetagger::write_reg(uint16_t reg, uint32_t val)
 {
 	int ret, transferred;
-	uint8_t buffer[] = { 0xAA, 0x00,
+	uint8_t buffer[] = { 0xAA, 0x01,
 		(uint8_t) (reg >> 0),
 		(uint8_t) (reg >> 8),
 		(uint8_t) (val >> 0),
@@ -94,13 +103,20 @@ void timetagger::write_reg(uint16_t reg, uint32_t val)
 	if ( (ret = libusb_bulk_transfer(dev, CMD_ENDP, buffer, 8, &transferred, TIMEOUT)) )
 		fprintf(stderr, "Failed sending request: %d\n", ret);
 
-	if ( (ret = libusb_bulk_transfer(dev, REPLY_ENDP, buffer, 1, &transferred, TIMEOUT)) )
+	if ( (ret = libusb_bulk_transfer(dev, REPLY_ENDP, buffer, 4, &transferred, TIMEOUT)) )
 		fprintf(stderr, "failed receiving reply: %d\n", ret);
 
-	if (transferred != 1)
-		fprintf(stderr, "No response\n");
+#ifdef DEBUG
+        fprintf(stderr, "write_reg %04x = %08x; reply: ", reg, val);
+        for (int i=0; i<transferred; i++)
+                fprintf(stderr, " %02x ", buffer[i]);
+        fprintf(stderr, "\n");
+#endif
 
-	regs[reg] = buffer[0];
+	if (transferred != 4)
+		fprintf(stderr, "Invalid response\n");
+
+	regs[reg] = *((uint32_t*) buffer);
 }
 
 void timetagger::start_capture()
