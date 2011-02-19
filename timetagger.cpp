@@ -184,12 +184,19 @@ void timetagger::flush_fx2_fifo() {
 
 void timetagger::readout_handler::do_flush() {
 	int transferred = 0;
+        // Flush data FIFO
 	do {
-		uint8_t buffer[510];
+		uint8_t buffer[512];
 		usleep(5000); // Give plenty of time for FPGA to fill FIFOs
-		libusb_bulk_transfer(dev, DATA_ENDP, buffer, 510, &transferred, 10);
-		//fprintf(stderr, "Flushed %d bytes\n", transferred);
+		libusb_bulk_transfer(dev, DATA_ENDP, buffer, 512, &transferred, 10);
 	} while (transferred > 0);
+
+        // Flush command reply FIFO
+	do {
+		uint8_t buffer[512];
+                libusb_bulk_transfer(dev, REPLY_ENDP, buffer, 512, &transferred, 10);
+	} while (transferred > 0);
+
 	needs_flush = false;
 }
 
