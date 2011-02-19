@@ -62,38 +62,10 @@ void timetagger::reset()
 	needs_flush = true;
 }
 
-uint32_t timetagger::read_reg(uint16_t reg)
+uint32_t timetagger::reg_cmd(bool write, uint16_t reg, uint32_t val)
 {
 	int ret, transferred;
-	uint8_t buffer[] = { 0xAA, 0x00,
-		(uint8_t) (reg >> 0),
-		(uint8_t) (reg >> 8),
-		0, 0, 0, 0 };
-
-	if ( (ret = libusb_bulk_transfer(dev, CMD_ENDP, buffer, 8, &transferred, TIMEOUT)) )
-		fprintf(stderr, "Failed sending request: %d\n", ret);
-
-	if ( (ret = libusb_bulk_transfer(dev, REPLY_ENDP, buffer, 4, &transferred, TIMEOUT)) )
-		fprintf(stderr, "failed receiving reply: %d\n", ret);
-
-#ifdef DEBUG
-	fprintf(stderr, "read_reg %04x; reply: ", reg);
-	for (int i=0; i<transferred; i++)
-		fprintf(stderr, " %02x ", buffer[i]);
-	fprintf(stderr, "\n");
-#endif
-
-	if (transferred != 4)
-		fprintf(stderr, "Invalid response\n");
-
-	regs[reg] = *((uint32_t*) buffer);
-	return regs[reg];
-}
-
-void timetagger::write_reg(uint16_t reg, uint32_t val)
-{
-	int ret, transferred;
-	uint8_t buffer[] = { 0xAA, 0x01,
+	uint8_t buffer[] = { 0xAA, (uint8_t) write,
 		(uint8_t) (reg >> 0),
 		(uint8_t) (reg >> 8),
 		(uint8_t) (val >> 0),
@@ -102,23 +74,41 @@ void timetagger::write_reg(uint16_t reg, uint32_t val)
 		(uint8_t) (val >> 24),
 	};
 
-	if ( (ret = libusb_bulk_transfer(dev, CMD_ENDP, buffer, 8, &transferred, TIMEOUT)) )
-		fprintf(stderr, "Failed sending request: %d\n", ret);
+	if ( (ret = libusb_bulk_transfer(dev, CMD_ENDP, buffer, 8, &transferred, TIMEOUT)) ) {
+		fprintf(stderr, "Failed to send request: %d\n", ret);
+		throw std::runtime_error("Failed to send request");
+	}
 
-	if ( (ret = libusb_bulk_transfer(dev, REPLY_ENDP, buffer, 4, &transferred, TIMEOUT)) )
-		fprintf(stderr, "failed receiving reply: %d\n", ret);
+	if ( (ret = libusb_bulk_transfer(dev, REPLY_ENDP, buffer, 4, &transferred, TIMEOUT)) ) {
+		fprintf(stderr, "Failed to receive reply: %d\n", ret);
+		throw std::runtime_error("Failed to receive reply");
+	}
 
 #ifdef DEBUG
-	fprintf(stderr, "write_reg %04x = %08x; reply: ", reg, val);
+	fprintf(stderr, "%s reg %04x = %08x; reply: ",
+			write ? "write" : "read", reg, val);
 	for (int i=0; i<transferred; i++)
 		fprintf(stderr, " %02x ", buffer[i]);
 	fprintf(stderr, "\n");
 #endif
 
-	if (transferred != 4)
-		fprintf(stderr, "Invalid response\n");
+	if (transferred != 4) {
+		fprintf(stderr, "Invalid reply (length=%d)\n", transferred);
+		throw std::runtime_error("Invalid reply");
+	}
 
 	regs[reg] = *((uint32_t*) buffer);
+	return regs[reg];
+}
+
+uint32_t timetagger::read_reg(uint16_t reg)
+{
+	return reg_cmd(false, reg, 0x0);
+}
+
+void timetagger::write_reg(uint16_t reg, uint32_t val)
+{
+	reg_cmd(true, reg, val);
 }
 
 unsigned int timetagger::get_version()

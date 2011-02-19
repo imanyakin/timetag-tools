@@ -65,6 +65,8 @@ private:
 	
 	// Register cache
 	uint32_t regs[TIMETAG_NREGS];
+
+	uint32_t reg_cmd(bool write, uint16_t reg, uint32_t val);
 	uint32_t read_reg(uint16_t reg);
 	void write_reg(uint16_t reg, uint32_t val);
 	void flush_fx2_fifo();
