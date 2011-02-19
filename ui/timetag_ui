@@ -268,7 +268,7 @@ class HistPlot(object):
                 self.axes.cla()
                 hist_width = self.pipeline.hist_width
 
-                for chan,color in zip(self.pipeline.channels, colors):
+                for chan,color in zip(self.pipeline.channels.values(), colors):
                         h = chan.hist
                         if len(h) == 0: continue
                         self.axes.bar(h.keys(), h.values(), hist_width, alpha=0.5, color=color)
