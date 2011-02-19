@@ -45,10 +45,9 @@ class CapturePipeline(object):
                         self.latest_timestamp = 0
                         self.hist = defaultdict(lambda: 0)
 
-        def __init__(self, bin_time, npts, capture_clock, output_file=None):
+        def __init__(self, bin_time, npts, output_file=None):
                 """ Create a capture pipeline. The bin_time is given in
-                    seconds. capture_clock given in Hz. """
-                self.capture_clock = capture_clock
+                    seconds. """
                 self.resize_buffer(npts)
                 self._bin_time = bin_time
                 self.output_file = output_file
@@ -86,12 +85,22 @@ class CapturePipeline(object):
                 self.channels = defaultdict(lambda: CapturePipeline.Channel(npts))
 
         def start(self):
-                #cmd = ['photon_generator', str(1000)]
-                cmd = ['timetag_acquire']
-
                 PIPE=subprocess.PIPE
+                reply_rd, reply_wr = os.pipe()
+                self.source_reply = os.fdopen(reply_rd)
+                cmd = ['timetag_acquire', str(reply_wr)]
                 self.source = subprocess.Popen(cmd, stdin=PIPE, stdout=PIPE)
                 logging.info("Started process %s" % cmd)
+                self.source_reply.readline() # Read version line
+
+                self._tagger_cmd('clockrate\n')
+                self.clockrate = int(self.source_reply.readline())
+                logging.info('Tagger clockrate: %f MHz' % (self.clockrate / 1e6))
+
+                self._tagger_cmd('version\n')
+                self.hw_version = self.source_reply.readline()
+                logging.info('Tagger HW version: %s' % self.hw_version)
+
                 src = self.source.stdout
                 if self.output_file:
                         self.tee = subprocess.Popen(['tee', self.output_file], stdin=src, stdout=PIPE)
@@ -108,10 +117,15 @@ class CapturePipeline(object):
                 self.listener.daemon = True
                 self.listener.start()
 
-                self.reset_counter()
-
         def _tagger_cmd(self, cmd):
-                logging.debug("Tagger command: %s" % cmd)
+                if self.source.poll() is not None:
+                        logging.error('Tagger subprocess died (exit code %d)' %
+                                        self.source.returncode)
+
+                logging.debug("Tagger command: %s" % cmd.strip())
+                l = self.source_reply.readline().strip()
+                if l != 'ready':
+                        raise RuntimeError('Invalid status message: %s' % l)
                 self.source.stdin.write(cmd)
 
         def _listen(self):
@@ -123,7 +137,7 @@ class CapturePipeline(object):
                         self.last_bin_walltime = time()
                         chan, start_time, count, lost = struct.unpack(bin_fmt, data)
                         c = self.channels[chan]
-                        start_time = 1.0*start_time / self.capture_clock
+                        start_time = 1.0*start_time / self.clockrate
 
                         with c.buffer_lock:
                                 c.times.append(start_time)
@@ -136,7 +150,8 @@ class CapturePipeline(object):
 
         def stop(self):
                 logging.info("Capture pipeline shutdown")
-                self.source.terminate()
+                self._tagger_cmd('quit\n')
+                self.source.wait()
 
         def __del__(self):
                 self.stop()
@@ -159,6 +174,7 @@ class TestPipeline(object):
                 self.count_totals = [0,0]
                 self.latest_timestamp = self.t = 0
                 self.set_hist_width(10)
+                self.clockrate = 30e6
 
         def set_hist_width(self, width):
                 self.hist_width = width

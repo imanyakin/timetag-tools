@@ -38,9 +38,6 @@ from matplotlib.backends.backend_gtkcairo import FigureCanvasGTKCairo as FigureC
 
 from timetag.capture_pipeline import CapturePipeline, TestPipeline
 
-PULSESEQ_FREQ = 30e6
-TAGGER_FREQ = 30e6
-
 class NumericalIndicators(object):
         def __init__(self, n_inputs, main_win):
                 self.main_win = main_win
@@ -346,34 +343,38 @@ class MainWindow(object):
                         self.builder.get_object('output_file').props.text = fc.get_filename()
 
         def start_pipeline(self):
+                output_enabled = self.builder.get_object('file_output_enabled').props.active
                 if self.pipeline:
                         raise "Tried to start a capture pipeline while one is already running"
 
-                file = None
-                if self.builder.get_object('file_output_enabled').props.active:
+                outfile = None
+                if output_enabled:
+                        outfile = self.builder.get_object('output_file').props.text
+
+                if use_test_pipeline:
+                        self.pipeline = TestPipeline(100)
+                else:
+                        self.pipeline = CapturePipeline(output_file=outfile,
+                                                        bin_time=self.bin_time,
+                                                        npts=10)
+
+                self.pipeline.start()
+                self.pipeline.reset_counter()
+
+                if output_enabled:
+                        import json
                         metadata = {
-                                'start': datetime.now(),
-                                'clockrate': TAGGER_FREQ,
+                                'start': datetime.now().isoformat(),
+                                'clockrate': self.pipeline.clockrate,
                                 'instrument': 'FPGA time tagger',
                                 'sample': '',
                                 'channels': {
                                         'strobe0': '',
                                 },
                         }
-                        file = self.builder.get_object('output_file').props.text
-                        meta_file = file + ".meta"
+                        meta_file = outfile + ".meta"
                         json.dump(metadata, open(meta_file, 'w'))
 
-                if use_test_pipeline:
-                        self.pipeline = TestPipeline(100)
-                else:
-                        self.pipeline = CapturePipeline(output_file=file,
-                                                        bin_time=self.bin_time,
-                                                        capture_clock=TAGGER_FREQ,
-                                                        npts=10)
-
-                self.pipeline.start()
-                self.pipeline.reset_counter()
 
                 # Start indicators update loop
                 def update_indicators():
