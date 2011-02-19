@@ -112,6 +112,7 @@ static void read_loop(timetagger& t)
 	bool stop = false;
 	while (!std::cin.eof() && !stop) {
 		std::string line;
+		fprintf(ctl_fd, "ready\n");
 		std::getline(std::cin, line);
 		stop = handle_command(t, line);
 	}
@@ -140,6 +141,8 @@ int main(int argc, char** argv)
 	// Try bumping up our priority
 	if (setpriority(PRIO_PROCESS, 0, -10))
 		fprintf(stderr, "Warning: Priority elevation failed.\n");
+
+	fprintf(ctl_fd, "timetag_acquire\n");
 
 	libusb_init(&ctx);
 	dev = libusb_open_device_with_vid_pid(ctx, VENDOR_ID, PRODUCT_ID);
