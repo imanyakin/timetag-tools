@@ -20,24 +20,21 @@
  * Author: Ben Gamari <bgamari@physics.umass.edu>
  */
 
-
 #include <cstdio>
 #include <cstdlib>
 #include <cstdint>
-#include <vector>
-#include <iostream>
-#include <fstream>
-#include <endian.h>
+#include <boost/format.hpp>
 
 #include "record.h"
 
+using std::string;
+
 /*
- *
  * Outputs binary timestamps from timetag data stream
  * Usage:
- *   extract_timestamps [chan1] [chan2] [chan3] [chan4]
+ *   timetag_extract [input-file]
  *
- *   Where chan* are output filenames for the respective channel timestamps
+ *   Generates timestamp files for all non-empty channels
  *
  * Input:
  *   A binary photon stream
@@ -47,31 +44,69 @@
  *
  */
 
-int main(int argc, char** argv) {
-	std::vector<std::ofstream*> ofs(4, NULL);
-	record_stream stream(0);
+string root;
+std::array<FILE*, 4> strobe_out, delta_out;
+std::bitset<4> delta_states;
+bool first_delta;
 
-	if (argc > 5) {
-		std::cerr << "Incorrect number of arguments\n";
-		return 1;
+void process_record(record& r) {
+	std::bitset<4> channels = r.get_channels();
+	uint64_t time = r.get_time();
+	if (r.get_type() == record::type::STROBE) {
+		for (int i=0; i<4; i++) {
+			if (!channels[i]) continue;
+			if (strobe_out[i] == NULL) {
+				string name = str(boost::format("%s.strobe%d.times") % root % i);
+				strobe_out[i] = fopen(name.c_str(), "w");
+			}
+			fwrite((char*)&time, 8, 1, strobe_out[i]);
+		}
+	} else {
+		if (first_delta) {
+			for (int i=0; i<4; i++) {
+				delta_states = channels;
+			}
+			first_delta = false;
+			return;
+		}
+		for (int i=0; i<4; i++) {
+			bool new_state = channels[i];
+			if (new_state == delta_states[i]) continue;
+			if (delta_out[i] == NULL) {
+				string name = (boost::format("%s.strobe%d.times") % root % i).str();
+				strobe_out[i] = fopen(name.c_str(), "w");
+			}
+			fwrite((char*)&time, 8, 1, strobe_out[i]);
+			fwrite((char*)&new_state, 8, 1, strobe_out[i]);
+		}
+	}
+}
+
+int main(int argc, char** argv) {
+	if (argc != 2) {
+		fprintf(stderr, "Usage: %s [input file]\n", argv[0]);
+		exit(0);
 	}
 
-	for (int i=0; i<argc; i++)
-		ofs[i] = new std::ofstream(argv[i+1]);
+	string name = string(argv[1]);
+	root = name.substr(0, name.find_last_of("."));
+	FILE* infd = fopen(argv[1], "r");
+	record_stream stream(fileno(infd));
 
+	first_delta = true;
 	while (true) {
 		try {
 			record r = stream.get_record();
-			if (r.get_type() == record::type::DELTA) continue;
-			std::bitset<4> channels = r.get_channels();
-			uint64_t time = r.get_time();
-			for (int i=0; i<4; i++)
-				if (channels[i] && ofs[i]) ofs[i]->write((char*)&time, 8);
+			process_record(r);
 		} catch (end_stream e) { break; }
 	}
 
-	for (int i=0; i<argc; i++)
-		delete ofs[i];
+	for (int i=0; i<4; i++) {
+		if (strobe_out[i])
+			fclose(strobe_out[i]);
+		if (delta_out[i])
+			fclose(delta_out[i]);
+	}
 
 	return 0;
 }
