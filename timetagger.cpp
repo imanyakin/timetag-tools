@@ -21,7 +21,7 @@
  */
 
 // Enable for protocol level dumps
-#define DEBUG
+//#define DEBUG
 
 #include <cstdio>
 #include <cstring>
