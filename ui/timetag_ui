@@ -373,7 +373,7 @@ class MainWindow(object):
                                 },
                         }
                         meta_file = outfile + ".meta"
-                        json.dump(metadata, open(meta_file, 'w'))
+                        json.dump(metadata, open(meta_file, 'w'), indent=2)
 
 
                 # Start indicators update loop
