@@ -23,7 +23,7 @@
 
 
 import logging
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 import time
 from datetime import datetime
 import os, sys
@@ -38,21 +38,24 @@ from matplotlib.backends.backend_gtkcairo import FigureCanvasGTKCairo as FigureC
 
 from timetag.capture_pipeline import CapturePipeline, TestPipeline
 
+StrobeConfig = namedtuple('StrobeConfig', 'enabled color label')
+DeltaConfig = namedtuple('DeltaConfig', 'enabled label')
 class NumericalIndicators(object):
-        def __init__(self, n_inputs, main_win):
+        def __init__(self, main_win):
                 self.main_win = main_win
                 self.rate_mode = True
                 self.last_stats = defaultdict(lambda: (0, 0, 0))
 
-                self.inputs = []
-                table = gtk.Table(n_inputs, 3)
-                for c in range(n_inputs):
+                self.inputs = {}
+                table = gtk.Table(len(main_win.strobe_config), 3)
+                for c,config in enumerate(main_win.strobe_config):
+                        if not config.enabled: continue
                         label, photons, lost = gtk.Label(), gtk.Label(), gtk.Label()
-                        label.set_markup('<span size="large">Channel %d</span>' % c)
+                        label.set_markup('<span foreground="%s" size="large">%s</span>' % (config.color.to_string(), config.label))
                         table.attach(label, 0,1, c,c+1)
                         table.attach(photons, 1,2, c,c+1)
                         table.attach(lost, 2,3, c,c+1)
-                        self.inputs.append((photons, lost))
+                        self.inputs[c] = (photons, lost)
 
                 self.widget = table
 
@@ -64,6 +67,7 @@ class NumericalIndicators(object):
 
         def _update_rate_indicators(self):
                 for n, photon_count, lost_count, timestamp in self.main_win.pipeline.stats():
+                        if n not in self.inputs: continue
                         last_photon_count, last_lost_count, last_timestamp = self.last_stats[n]
                         if last_timestamp != timestamp:
                                 photon_rate = (photon_count - last_photon_count) / (timestamp - last_timestamp)
@@ -78,6 +82,7 @@ class NumericalIndicators(object):
 
         def _update_total_indicators(self):
                 for n, photon_count, lost_count, timestamp in self.main_win.pipeline.stats():
+                        if n not in self.inputs: continue
                         markup = "<span color='darkgreen' size='xx-large'>%1.3e</span> <span size='large'>photons</span>" % photon_count
                         self.inputs[n][0].set_markup(markup)
                         markup = "<span color='darkred' size='xx-large'>%d</span> <span size='large'>loss events</span>" % lost_count
@@ -86,6 +91,8 @@ class NumericalIndicators(object):
 
 class BinSeriesPlot(object):
         def __init__(self, main_win):
+                self.colors = [ (1./0xffff*c.color.red, 1./0xffff*c.color.green, 1./0xffff*c.color.red)
+                                for c in main_win.strobe_config ]
                 self.plot_update_rate = 20 # in Hertz
                 self.builder = gtk.Builder()
                 src = pkgutil.get_data('timetag', 'bin_series.glade')
@@ -152,8 +159,9 @@ class BinSeriesPlot(object):
                         return False
 
                 for n,times,counts in self.pipeline.bins():
+                        if not self.main_win.strobe_config[n].enabled: continue
                         if not self.lines.has_key(n):
-                                self.lines[n], = self.axes.plot(times, counts)
+                                self.lines[n], = self.axes.plot(times, counts, color=self.colors[n])
                         else:
                                 self.lines[n].set_data(times, counts)
 
@@ -219,6 +227,8 @@ class BinSeriesPlot(object):
 
 class HistPlot(object):
         def __init__(self, main_win):
+                self.colors = [ (1./0xffff*c.color.red, 1./0xffff*c.color.green, 1./0xffff*c.color.red)
+                                for c in main_win.strobe_config ]
                 self.builder = gtk.Builder()
                 src = pkgutil.get_data('timetag', 'hist.glade')
                 self.builder.add_from_string(src)
@@ -261,17 +271,16 @@ class HistPlot(object):
                 return self.main_win.pipeline
 
         def update(self):
-                colors = ['r', 'b', 'g', 'y']
                 if not self.pipeline:
                         return False
 
                 self.axes.cla()
                 hist_width = self.pipeline.hist_width
 
-                for chan,color in zip(self.pipeline.channels.values(), colors):
+                for c,chan in self.pipeline.channels.items():
                         h = chan.hist
                         if len(h) == 0: continue
-                        self.axes.bar(h.keys(), h.values(), hist_width, alpha=0.5, color=color)
+                        self.axes.bar(h.keys(), h.values(), hist_width, alpha=0.5, color=self.colors[c])
 
                 self.axes.relim()
                 self.figure.canvas.draw()
@@ -279,10 +288,86 @@ class HistPlot(object):
         def bin_width_value_changed_cb(self, adj):
                 self.pipeline.hist_width = adj.get_value()
 
+def run_channel_editor(parent, strobe_config, delta_config):
+        win = gtk.Dialog('Channel Editor', parent,
+                        gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                        (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,
+                         gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
+        vbox = gtk.VBox()
+        win.get_content_area().pack_start(vbox)
+
+        # Strobe channels
+        strobes = []
+        table = gtk.Table(rows=4, columns=4)
+        for config,i in zip(strobe_config, range(4)):
+                a = gtk.Label()
+                a.set_markup('<i>Strobe %d</i>' % i)
+                table.attach(a, 0, 1, i, i+1)
+
+                e = gtk.CheckButton('Enabled')
+                e.set_active(config.enabled)
+                table.attach(e, 1, 2, i, i+1)
+
+                c = gtk.ColorButton(config.color)
+                table.attach(c, 2, 3, i, i+1)
+
+                l = gtk.Entry()
+                l.set_text(config.label)
+                table.attach(l, 3, 4, i, i+1)
+
+                strobes.append((e,c,l))
+
+        frame = gtk.Frame('Strobe')
+        frame.add(table)
+        vbox.pack_end(frame)
+
+        # Delta channels
+        deltas = []
+        table = gtk.Table(rows=4, columns=4)
+        for config,i in zip(delta_config, range(4)):
+                a = gtk.Label()
+                a.set_markup('<i>Delta %d</i>' % (i+1))
+                table.attach(a, 0, 1, i, i+1)
+
+                e = gtk.CheckButton('Enabled')
+                e.set_active(config.enabled)
+                table.attach(e, 1, 2, i, i+1)
+
+                l = gtk.Entry()
+                l.set_text(config.label)
+                table.attach(l, 3, 4, i, i+1)
+
+                deltas.append((e,l))
+
+        frame = gtk.Frame('Strobe')
+        frame.add(table)
+        vbox.pack_end(frame)
+        win.show_all()
+        if win.run() == gtk.RESPONSE_REJECT:
+                win.hide()
+                return None
+
+        win.hide()
+        return ([ StrobeConfig(e.get_active(), c.get_color(), l.get_text()) for e,c,l in strobes ],
+                [ DeltaConfig(e.get_active(), l.get_text()) for e,l in deltas ])
+        
 class MainWindow(object):
         def __init__(self, n_inputs=4):
                 self.indicators_update_rate = 5 # in Hertz
                 self.pipeline = None
+                color_parse = gtk.gdk.color_parse
+                strobe_config = [
+                                StrobeConfig(True, color_parse('#A80505'), 'Strobe 1'),
+                                StrobeConfig(True, color_parse('#006619'), 'Strobe 2'),
+                                StrobeConfig(False, color_parse('#0142D5'), 'Strobe 3'),
+                                StrobeConfig(False, color_parse('#922FFF'), 'Strobe 4')
+                                ]
+                delta_config = [
+                                DeltaConfig(False, 'Delta 1'),
+                                DeltaConfig(False, 'Delta 2'),
+                                DeltaConfig(False, 'Delta 3'),
+                                DeltaConfig(False, 'Delta 4')
+                                ]
 
                 self.builder = gtk.Builder()
                 src = pkgutil.get_data('timetag', 'main.glade')
@@ -298,12 +383,33 @@ class MainWindow(object):
                 self.win.connect('destroy', quit)
 
                 self.set_default_output_file()
-                self.indicators = NumericalIndicators(n_inputs, self)
                 self.bin_series_win = None
                 self.hist_win = None
-                get_obj('channel_stats').pack_start(self.indicators.widget)
+                self.indicators = None
+                self.strobe_config = strobe_config # NumericalIndicators created here
+                self.delta_config = delta_config
                 get_obj('bin_time').value = 10 # HACK: set default
+
                 self.win.show_all()
+
+        def edit_channels_activate_cb(self, action):
+                res = run_channel_editor(self.win, self.strobe_config, self.delta_config)
+                if not res: return
+                self.strobe_config, self.delta_config = res
+
+        @property
+        def strobe_config(self):
+                return self._strobe_config
+
+        @strobe_config.setter
+        def strobe_config(self, config):
+                self._strobe_config = config
+                stats = self.builder.get_object('channel_stats')
+                if self.indicators:
+                        stats.remove(self.indicators.widget)
+                self.indicators = NumericalIndicators(self)
+                stats.pack_start(self.indicators.widget)
+                self.indicators.widget.show_all()
 
         @property
         def bin_time(self):
@@ -343,13 +449,14 @@ class MainWindow(object):
                         self.builder.get_object('output_file').props.text = fc.get_filename()
 
         def start_pipeline(self):
-                output_enabled = self.builder.get_object('file_output_enabled').props.active
+                get_obj = self.builder.get_object
+                output_enabled = get_obj('file_output_enabled').props.active
                 if self.pipeline:
                         raise "Tried to start a capture pipeline while one is already running"
 
                 outfile = None
                 if output_enabled:
-                        outfile = self.builder.get_object('output_file').props.text
+                        outfile = get_obj('output_file').props.text
 
                 if use_test_pipeline:
                         self.pipeline = TestPipeline(100)
@@ -363,11 +470,12 @@ class MainWindow(object):
 
                 if output_enabled:
                         import json
+                        description = get_obj('description').props.text
                         metadata = {
                                 'start': datetime.now().isoformat(),
                                 'clockrate': self.pipeline.clockrate,
                                 'instrument': 'FPGA time tagger',
-                                'sample': '',
+                                'description': description,
                                 'channels': {
                                         'strobe0': '',
                                 },
@@ -407,7 +515,8 @@ class MainWindow(object):
         def pipeline_running_toggled_cb(self, action):
                 get_object = self.builder.get_object
                 state = action.props.active
-                for o in [ 'file_output_enabled', 'output_file', 'bin_time_spin' ]:
+                for o in [ 'file_output_enabled', 'output_file', 'bin_time_spin', 
+                                'description', 'edit_channels' ]:
                         get_object(o).props.sensitive = not state
                 for o in [ 'readout_running', 'usb_latency', 'show_hist', 'show_bin_series' ]:
                         get_object(o).props.sensitive = state
