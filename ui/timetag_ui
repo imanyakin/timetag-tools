@@ -471,14 +471,19 @@ class MainWindow(object):
                 if output_enabled:
                         import json
                         description = get_obj('description').props.text
+                        channels = {}
+                        for i in range(4):
+                                if self.strobe_config[i].enabled:
+                                        channels['strobe%d' % i] = self.strobe_config[i].label
+                                if self.delta_config[i].enabled:
+                                        channels['delta%d' % i] = self.delta_config[i].label
+
                         metadata = {
                                 'start': datetime.now().isoformat(),
                                 'clockrate': self.pipeline.clockrate,
                                 'instrument': 'FPGA time tagger',
                                 'description': description,
-                                'channels': {
-                                        'strobe0': '',
-                                },
+                                'channels': channels,
                         }
                         meta_file = outfile + ".meta"
                         json.dump(metadata, open(meta_file, 'w'), indent=2)
