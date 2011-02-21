@@ -51,7 +51,7 @@ class NumericalIndicators(object):
                 for c,config in enumerate(main_win.strobe_config):
                         if not config.enabled: continue
                         label, photons, lost = gtk.Label(), gtk.Label(), gtk.Label()
-                        label.set_markup('<span foreground="%s" size="large">%s</span>' % (config.color.to_string(), config.label))
+                        label.set_markup('<span foreground="%s" size="large">%s</span>' % (config.color, config.label))
                         table.attach(label, 0,1, c,c+1)
                         table.attach(photons, 1,2, c,c+1)
                         table.attach(lost, 2,3, c,c+1)
@@ -91,8 +91,11 @@ class NumericalIndicators(object):
 
 class BinSeriesPlot(object):
         def __init__(self, main_win):
-                self.colors = [ (1./0xffff*c.color.red, 1./0xffff*c.color.green, 1./0xffff*c.color.red)
-                                for c in main_win.strobe_config ]
+                def fix_color(c):
+                        c = gtk.gdk.color_parse(c.color)
+                        return (1./0xffff*c.red, 1./0xffff*c.green, 1./0xffff*c.red)
+                self.colors = [ fix_color(c) for c in main_win.strobe_config ]
+
                 self.plot_update_rate = 20 # in Hertz
                 self.builder = gtk.Builder()
                 src = pkgutil.get_data('timetag', 'bin_series.glade')
@@ -227,8 +230,11 @@ class BinSeriesPlot(object):
 
 class HistPlot(object):
         def __init__(self, main_win):
-                self.colors = [ (1./0xffff*c.color.red, 1./0xffff*c.color.green, 1./0xffff*c.color.red)
-                                for c in main_win.strobe_config ]
+                def fix_color(c):
+                        c = gtk.gdk.color_parse(c.color)
+                        return (1./0xffff*c.red, 1./0xffff*c.green, 1./0xffff*c.red)
+                self.colors = [ fix_color(c) for c in main_win.strobe_config ]
+
                 self.builder = gtk.Builder()
                 src = pkgutil.get_data('timetag', 'hist.glade')
                 self.builder.add_from_string(src)
@@ -308,7 +314,7 @@ def run_channel_editor(parent, strobe_config, delta_config):
                 e.set_active(config.enabled)
                 table.attach(e, 1, 2, i, i+1)
 
-                c = gtk.ColorButton(config.color)
+                c = gtk.ColorButton(gtk.gdk.color_parse(config.color))
                 table.attach(c, 2, 3, i, i+1)
 
                 l = gtk.Entry()
@@ -348,19 +354,18 @@ def run_channel_editor(parent, strobe_config, delta_config):
                 return None
 
         win.hide()
-        return ([ StrobeConfig(e.get_active(), c.get_color(), l.get_text()) for e,c,l in strobes ],
+        return ([ StrobeConfig(e.get_active(), c.get_color().to_string(), l.get_text()) for e,c,l in strobes ],
                 [ DeltaConfig(e.get_active(), l.get_text()) for e,l in deltas ])
         
 class MainWindow(object):
         def __init__(self, n_inputs=4):
                 self.indicators_update_rate = 5 # in Hertz
                 self.pipeline = None
-                color_parse = gtk.gdk.color_parse
                 strobe_config = [
-                                StrobeConfig(True, color_parse('#A80505'), 'Strobe 1'),
-                                StrobeConfig(True, color_parse('#006619'), 'Strobe 2'),
-                                StrobeConfig(False, color_parse('#0142D5'), 'Strobe 3'),
-                                StrobeConfig(False, color_parse('#922FFF'), 'Strobe 4')
+                                StrobeConfig(True, '#A80505', 'Strobe 1'),
+                                StrobeConfig(True, '#006619', 'Strobe 2'),
+                                StrobeConfig(False, '#0142D5', 'Strobe 3'),
+                                StrobeConfig(False, '#922FFF', 'Strobe 4')
                                 ]
                 delta_config = [
                                 DeltaConfig(False, 'Delta 1'),
