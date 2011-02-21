@@ -40,6 +40,19 @@ from timetag.capture_pipeline import CapturePipeline, TestPipeline
 
 StrobeConfig = namedtuple('StrobeConfig', 'enabled color label')
 DeltaConfig = namedtuple('DeltaConfig', 'enabled label')
+def_strobe_config = [
+                StrobeConfig(True, '#A80505', 'Strobe 1'),
+                StrobeConfig(True, '#006619', 'Strobe 2'),
+                StrobeConfig(False, '#0142D5', 'Strobe 3'),
+                StrobeConfig(False, '#922FFF', 'Strobe 4')
+                ]
+def_delta_config = [
+                DeltaConfig(False, 'Delta 1'),
+                DeltaConfig(False, 'Delta 2'),
+                DeltaConfig(False, 'Delta 3'),
+                DeltaConfig(False, 'Delta 4')
+                ]
+
 class NumericalIndicators(object):
         def __init__(self, main_win):
                 self.main_win = main_win
@@ -361,18 +374,6 @@ class MainWindow(object):
         def __init__(self, n_inputs=4):
                 self.indicators_update_rate = 5 # in Hertz
                 self.pipeline = None
-                strobe_config = [
-                                StrobeConfig(True, '#A80505', 'Strobe 1'),
-                                StrobeConfig(True, '#006619', 'Strobe 2'),
-                                StrobeConfig(False, '#0142D5', 'Strobe 3'),
-                                StrobeConfig(False, '#922FFF', 'Strobe 4')
-                                ]
-                delta_config = [
-                                DeltaConfig(False, 'Delta 1'),
-                                DeltaConfig(False, 'Delta 2'),
-                                DeltaConfig(False, 'Delta 3'),
-                                DeltaConfig(False, 'Delta 4')
-                                ]
 
                 self.builder = gtk.Builder()
                 src = pkgutil.get_data('timetag', 'main.glade')
@@ -391,16 +392,46 @@ class MainWindow(object):
                 self.bin_series_win = None
                 self.hist_win = None
                 self.indicators = None
-                self.strobe_config = strobe_config # NumericalIndicators created here
-                self.delta_config = delta_config
-                get_obj('bin_time').value = 10 # HACK: set default
+                self.load_rc()
 
                 self.win.show_all()
+
+        def load_rc(self):
+                import json
+                get_obj = self.builder.get_object
+                rc = {}
+                f = os.path.expanduser('~/.timetagrc')
+                if os.path.isfile(f):
+                        try:
+                                rc = json.load(open(f))
+                        except Exception as e:
+                                print 'Warning: Failed to load RC: %s' % e
+                                pass
+
+                get_obj('bin_time').value = rc.get('bin_time', 10)
+                self.strobe_config = def_strobe_config
+                if 'strobe_config' in rc:
+                        self.strobe_config = [ StrobeConfig(*a) for a in rc['strobe_config'] ]
+                self.delta_config = def_delta_config
+                if 'delta_config' in rc:
+                        self.delta_config = [ DeltaConfig(*a) for a in rc['delta_config'] ]
+
+        def save_rc(self):
+                import json
+                get_obj = self.builder.get_object
+                rc = {
+                        'bin_time': get_obj('bin_time').value,
+                        'strobe_config': self.strobe_config,
+                        'delta_config': self.delta_config,
+                }
+                f = os.path.expanduser('~/.timetagrc')
+                json.dump(rc, open(f, 'w'), indent=2)
 
         def edit_channels_activate_cb(self, action):
                 res = run_channel_editor(self.win, self.strobe_config, self.delta_config)
                 if not res: return
                 self.strobe_config, self.delta_config = res
+                self.save_rc()
 
         @property
         def strobe_config(self):
