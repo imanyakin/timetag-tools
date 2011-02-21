@@ -470,7 +470,7 @@ class MainWindow(object):
 
                 if output_enabled:
                         import json
-                        description = get_obj('description').props.text
+                        description = get_obj('description').get_buffer().props.text
                         channels = {}
                         for i in range(4):
                                 if self.strobe_config[i].enabled:
@@ -482,6 +482,7 @@ class MainWindow(object):
                                 'start': datetime.now().isoformat(),
                                 'clockrate': self.pipeline.clockrate,
                                 'instrument': 'FPGA time tagger',
+                                'hardware version': self.pipeline.hw_version,
                                 'description': description,
                                 'channels': channels,
                         }
