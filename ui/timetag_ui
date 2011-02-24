@@ -109,7 +109,7 @@ class BinSeriesPlot(object):
                         return (1./0xffff*c.red, 1./0xffff*c.green, 1./0xffff*c.red)
                 self.colors = [ fix_color(c) for c in main_win.strobe_config ]
 
-                self.plot_update_rate = 20 # in Hertz
+                self.plot_update_rate = 8 # in Hertz
                 self.builder = gtk.Builder()
                 src = pkgutil.get_data('timetag', 'bin_series.glade')
                 self.builder.add_from_string(src)
@@ -120,13 +120,13 @@ class BinSeriesPlot(object):
                 self.win.connect('destroy', closed)
 
                 self.scroll = False
-                self.width = 1
+                self.width = 10 # seconds
                 self.y_bounds = None
 
                 self.main_win = main_win
                 self.sync_timestamp = 0
                 self.sync_walltime = 0
-                self.builder.get_object('x_width').props.value = 1 # HACK: set default
+                self.builder.get_object('x_width').props.value = 10 # HACK: set default
                 self.figure = Figure()
                 self.axes = self.figure.add_subplot(111)
                 self.axes.get_xaxis().set_major_formatter(
