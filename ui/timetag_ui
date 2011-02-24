@@ -32,9 +32,9 @@ import pkgutil
 import gobject, gtk
 import matplotlib
 from matplotlib.figure import Figure
-#from matplotlib.backends.backend_gtk import FigureCanvasGTK as FigureCanvas
-#from matplotlib.backends.backend_gtkagg import FigureCanvasGTKAgg as FigureCanvas
-from matplotlib.backends.backend_gtkcairo import FigureCanvasGTKCairo as FigureCanvas
+from matplotlib.backends.backend_gtk import FigureCanvasGTK
+from matplotlib.backends.backend_gtkagg import FigureCanvasGTKAgg
+from matplotlib.backends.backend_gtkcairo import FigureCanvasGTKCairo
 
 from timetag.capture_pipeline import CapturePipeline, TestPipeline
 
@@ -103,6 +103,8 @@ class NumericalIndicators(object):
 
 
 class BinSeriesPlot(object):
+        FigureCanvas = FigureCanvasGTK
+
         def __init__(self, main_win):
                 def fix_color(c):
                         c = gtk.gdk.color_parse(c.color)
@@ -134,7 +136,7 @@ class BinSeriesPlot(object):
                 self.axes.set_xlabel('Time (s)')
                 self.axes.set_ylabel('Counts per bin')
                 self.lines = {}
-                canvas = FigureCanvas(self.figure)
+                canvas = self.__class__.FigureCanvas(self.figure)
                 self.builder.get_object('plot_container').pack_start(canvas)
                 self.win.show_all()
 
@@ -242,6 +244,7 @@ class BinSeriesPlot(object):
                                          get_object('y_upper').props.value)
 
 class HistPlot(object):
+        FigureCanvas = FigureCanvasGTKCairo
         def __init__(self, main_win):
                 def fix_color(c):
                         c = gtk.gdk.color_parse(c.color)
@@ -263,7 +266,7 @@ class HistPlot(object):
                 self.axes.get_xaxis().set_major_formatter(
                                 matplotlib.ticker.ScalarFormatter(useOffset=False))
                 self.axes.set_xlabel('Counts per bin')
-                canvas = FigureCanvas(self.figure)
+                canvas = self.__class__.FigureCanvas(self.figure)
                 self.builder.get_object('plot_container').pack_start(canvas)
                 self.builder.get_object('bin_width').value = 10 # HACK: set default
                 self.win.show_all()
