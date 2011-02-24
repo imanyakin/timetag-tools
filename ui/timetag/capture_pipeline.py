@@ -101,6 +101,9 @@ class CapturePipeline(object):
                 self.hw_version = self.source_reply.readline()
                 logging.info('Tagger HW version: %s' % self.hw_version)
 
+                self.stop_capture()
+                self.reset_counter()
+
                 src = self.source.stdout
                 if self.output_file:
                         self.tee = subprocess.Popen(['tee', self.output_file], stdin=src, stdout=PIPE)

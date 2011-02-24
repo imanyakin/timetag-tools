@@ -505,7 +505,6 @@ class MainWindow(object):
                                                         npts=10)
 
                 self.pipeline.start()
-                self.pipeline.reset_counter()
 
                 if output_enabled:
                         import json

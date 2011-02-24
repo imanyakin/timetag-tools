@@ -51,6 +51,7 @@
           <object class="GtkExpander" id="expander1">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
+            <property name="expanded">True</property>
             <child>
               <object class="GtkVBox" id="vbox2">
                 <property name="visible">True</property>
@@ -123,9 +124,6 @@
                   <packing>
                     <property name="position">1</property>
                   </packing>
-                </child>
-                <child>
-                  <placeholder/>
                 </child>
               </object>
             </child>
