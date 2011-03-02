@@ -207,8 +207,8 @@ class BinSeriesPlot(object):
                         ymin, ymax = self.y_bounds
                         self.axes.set_ylim(ymin, ymax)
                 else:
-                        self.axes.autoscale_view(scalex=False, scaley=True, tight=False)
                         self.axes.set_ylim(ymin=0)
+                        self.axes.autoscale_view(scalex=False, scaley=True, tight=False)
 
                 self.figure.canvas.draw()
                 self.frame_cnt += 1
