@@ -152,9 +152,14 @@ class CapturePipeline(object):
                         self.latest_timestamp = c.latest_timestamp = start_time
 
         def stop(self):
+                if self.source.poll() is not None: return
                 logging.info("Capture pipeline shutdown")
                 self._tagger_cmd('quit\n')
-                self.source.wait()
+                for i in range(20):
+                        if self.source.poll() is not None: return
+                        sleep(0.1)
+
+                logging.error('Failed to shutdown timetag_acquire')
 
         def __del__(self):
                 self.stop()
