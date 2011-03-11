@@ -210,8 +210,7 @@ void timetagger::readout_handler::operator()()
 				fprintf(stderr, "Warning: Received partial record.");
 			cb(buffer, transferred);
 		} else if (res == LIBUSB_ERROR_TIMEOUT) {
-			// Ignore timeouts, we just need to fall through to the
-			// needs_flush check every once in a while
+			// Ignore timeouts so we can check needs_flush
 		} else
 			fprintf(stderr, "Transfer failed: %d\n", res);
 
