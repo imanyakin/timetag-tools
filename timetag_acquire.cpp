@@ -135,8 +135,8 @@ int main(int argc, char** argv)
         }
 
 	// Disable output buffering
-	setvbuf(stdout, NULL, _IONBF, NULL);
-        setvbuf(ctl_fd, NULL, _IONBF, NULL);
+	setvbuf(stdout, NULL, _IONBF, 0);
+	setvbuf(ctl_fd, NULL, _IONBF, 0);
 
 	// Try bumping up our priority
 	if (setpriority(PRIO_PROCESS, 0, -10))
