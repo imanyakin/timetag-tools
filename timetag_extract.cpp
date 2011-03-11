@@ -40,12 +40,15 @@ using std::string;
  *   A binary photon stream
  *
  * Output:
- *   uint64 binary timestamp data
+ *   strobe channels: uint64 binary timestamp data
+ *   delta channels: Binary records consisting of a uint64 timestamp followed
+ *                   by a 1 byte long state
  *
  */
 
 string root;
 std::array<FILE*, 4> strobe_out, delta_out;
+uint64_t first_delta_time;
 std::bitset<4> delta_states;
 bool first_delta;
 
@@ -56,28 +59,34 @@ void process_record(record& r) {
 		for (int i=0; i<4; i++) {
 			if (!channels[i]) continue;
 			if (strobe_out[i] == NULL) {
-				string name = str(boost::format("%s.strobe%d.times") % root % i);
+				string name = str(boost::format("%s.strobe%d.times")
+						% root % (i+1));
 				strobe_out[i] = fopen(name.c_str(), "w");
 			}
 			fwrite((char*)&time, 8, 1, strobe_out[i]);
 		}
 	} else {
 		if (first_delta) {
-			for (int i=0; i<4; i++) {
+			first_delta_time = time;
+			for (int i=0; i<4; i++)
 				delta_states = channels;
-			}
 			first_delta = false;
 			return;
 		}
 		for (int i=0; i<4; i++) {
 			bool new_state = channels[i];
-			if (new_state == delta_states[i]) continue;
+			bool old_state = delta_states[i];
+			if (new_state == old_state) continue;
 			if (delta_out[i] == NULL) {
-				string name = (boost::format("%s.strobe%d.times") % root % i).str();
-				strobe_out[i] = fopen(name.c_str(), "w");
+				string name = (boost::format("%s.delta%d.times")
+						% root % (i+1)).str();
+				delta_out[i] = fopen(name.c_str(), "w");
+				fwrite((char*)&first_delta_time, 8, 1, delta_out[i]);
+				fwrite((char*)&old_state, 1, 1, delta_out[i]);
 			}
-			fwrite((char*)&time, 8, 1, strobe_out[i]);
-			fwrite((char*)&new_state, 8, 1, strobe_out[i]);
+			fwrite((char*)&time, 8, 1, delta_out[i]);
+			fwrite((char*)&new_state, 1, 1, delta_out[i]);
+			delta_states[i] = new_state;
 		}
 	}
 }
