@@ -86,6 +86,14 @@ static bool handle_command(timetagger& t, std::string line)
 	} else if (cmd == "set_send_window") {
 		int records = lexical_cast<int>(*tok);
 		t.set_send_window(records);
+	} else if (cmd == "set_strobe") {
+		int channel = lexical_cast<int>(*tok); tok++;
+		bool enabled = lexical_cast<bool>(*tok);
+		t.set_strobe_channel(channel, enabled);
+	} else if (cmd == "set_delta") {
+		int channel = lexical_cast<int>(*tok); tok++;
+		bool enabled = lexical_cast<bool>(*tok);
+		t.set_delta_channel(channel, enabled);
 	} else if (cmd == "version") {
 		fprintf(ctl_fd, "%d\n", t.get_version());
 	} else if (cmd == "clockrate") {

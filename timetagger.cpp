@@ -111,6 +111,22 @@ void timetagger::write_reg(uint16_t reg, uint32_t val)
 	reg_cmd(true, reg, val);
 }
 
+void timetagger::set_strobe_channel(int channel, bool enabled)
+{
+	if (enabled)
+		write_reg(0x4, regs[0x4] | (1 << channel));
+	else
+		write_reg(0x4, regs[0x4] & ~(1 << channel));
+}
+
+void timetagger::set_delta_channel(int channel, bool enabled)
+{
+	if (enabled)
+		write_reg(0x5, regs[0x4] | (1 << channel));
+	else
+		write_reg(0x5, regs[0x4] & ~(1 << channel));
+}
+
 unsigned int timetagger::get_version()
 {
 	return read_reg(0x01);

@@ -107,6 +107,9 @@ public:
 	unsigned int get_version();
 	unsigned int get_clockrate();
 
+	void set_strobe_channel(int channel, bool enabled);
+	void set_delta_channel(int channel, bool enabled);
+
 	void start_readout();
 	void stop_readout();
 
