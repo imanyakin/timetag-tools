@@ -24,6 +24,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <cstdio>
+#include <cstring>
 #include <libusb.h>
 
 #include <sys/time.h>
