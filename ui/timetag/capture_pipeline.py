@@ -33,6 +33,7 @@ from collections import defaultdict
 from ringbuffer import RingBuffer
 
 logging.basicConfig(level=logging.DEBUG)
+control_sock = '/tmp/timetag.sock'
 
 class CapturePipeline(object):
         class Channel(object):
@@ -86,19 +87,20 @@ class CapturePipeline(object):
 
         def start(self):
                 PIPE=subprocess.PIPE
-                reply_rd, reply_wr = os.pipe()
-                self.source_reply = os.fdopen(reply_rd)
-                cmd = ['timetag_acquire', str(reply_wr)]
+                cmd = ['timetag_acquire', control_sock]
                 self.source = subprocess.Popen(cmd, stdin=PIPE, stdout=PIPE)
                 logging.info("Started process %s" % cmd)
-                self.source_reply.readline() # Read version line
+                self.control_sock = socket.socket(AF_UNIX, SOCK_STREAM, 0)
+                self.control_sock.connect(control_sock)
+                self.control = self.control_sock.makefile()
+                self.control.readline() # Read version line
 
                 self._tagger_cmd('clockrate\n')
-                self.clockrate = int(self.source_reply.readline())
+                self.clockrate = int(self.control.readline())
                 logging.info('Tagger clockrate: %f MHz' % (self.clockrate / 1e6))
 
                 self._tagger_cmd('version\n')
-                self.hw_version = self.source_reply.readline()
+                self.hw_version = self.control.readline()
                 logging.info('Tagger HW version: %s' % self.hw_version)
 
                 self.stop_capture()
@@ -126,7 +128,7 @@ class CapturePipeline(object):
                                         self.source.returncode)
 
                 logging.debug("Tagger command: %s" % cmd.strip())
-                l = self.source_reply.readline().strip()
+                l = self.control.readline().strip()
                 if l != 'ready':
                         raise RuntimeError('Invalid status message: %s' % l)
                 self.source.stdin.write(cmd)
