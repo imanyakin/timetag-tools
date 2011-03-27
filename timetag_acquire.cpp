@@ -39,6 +39,9 @@
 
 #include <boost/tokenizer.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/thread.hpp>
+#include <boost/iostreams/stream.hpp>
+#include <boost/iostreams/device/file_descriptor.hpp>
 
 #include "timetagger.h"
 #include "record_format.h"
@@ -46,6 +49,8 @@
 #define VENDOR_ID 0x04b4
 #define PRODUCT_ID 0x1004
 
+namespace io = boost::iostreams;
+typedef io::stream<io::file_descriptor> fdstream;
 
 // TODO: This shouldn't be global
 static unsigned int written = 0;
@@ -118,7 +123,9 @@ static bool handle_command(timetagger& t, std::string line, std::ostream& ctrl_o
 	return false;
 }
 
-static void read_loop(timetagger& t, std::istream& ctrl_in, std::ostream& ctrl_out)
+template<typename InputStream, typename OutputStream>
+static void read_loop(timetagger& t, boost::mutex& mutex,
+		InputStream& ctrl_in, OutputStream& ctrl_out)
 {
 	ctrl_out << "timetag_acquire\n";
 
@@ -127,6 +134,7 @@ static void read_loop(timetagger& t, std::istream& ctrl_in, std::ostream& ctrl_o
 		std::string line;
 		ctrl_out << "ready\n";
 		std::getline(std::cin, line);
+		boost::mutex::scoped_lock lock(mutex);
 		stop = handle_command(t, line, ctrl_out);
 	}
 }
@@ -152,15 +160,15 @@ int main(int argc, char** argv)
 	}
 
 	data_cb cb(written);
+	boost::mutex dev_mutex;
 	timetagger t(dev, cb);
 	t.reset();
 	t.start_readout();
 
 #ifdef WITH_DOMAIN_SOCKET
-	int socket_fd;
         if (argc > 1) {
 		char* ctrl_sock_name = argv[1];
-                socket_fd = socket(PF_UNIX, SOCK_STREAM, 0);
+                int socket_fd = socket(PF_UNIX, SOCK_STREAM, 0);
                 if (socket_fd < 0) {
                         fprintf(stderr, "Error opening control fd: %s\n", strerror(errno));
 			return 1;
@@ -170,8 +178,8 @@ int main(int argc, char** argv)
 		struct sockaddr_un address;
 		size_t address_len;
 		address.sun_family = AF_UNIX;
-		address_length = sizeof(address.sun_family) +
-			sprintf(address.sun_path, ctrl_sock_name);
+		address_len = sizeof(address.sun_family) +
+			sprintf(address.sun_path, "%s", ctrl_sock_name);
 
 		if (bind(socket_fd, (struct sockaddr*) &address, address_len) != 0) {
 			fprintf(stderr, "Error binding socket: %s\n", strerror(errno));
@@ -183,14 +191,16 @@ int main(int argc, char** argv)
 			return 1;
 		}
 	
+		fprintf(stderr, "Listening on socket\n");
 		int conn_fd;
+		std::vector<boost::thread*> threads;
 		while ((conn_fd = accept(socket_fd,
 					(struct sockaddr*) &address,
-					&address_length)) > -1)
+					(socklen_t*) &address_len)) > -1)
 		{
-			std::ifstream ctrl_in(socket_fd);
-			std::ofstream ctrl_out(socket_fd);
-			read_loop(t, ctrl_in, ctrl_out);
+			auto fds = io::file_descriptor(socket_fd, io::close_handle);
+			io::stream<io::file_descriptor> ctrl(fds);
+			threads.push_back(new boost::thread([&](){ read_loop(t, dev_mutex, ctrl, ctrl);} ));
 		}
 		t.stop_readout();
 		libusb_close(dev);
@@ -198,8 +208,7 @@ int main(int argc, char** argv)
         }
 #endif
 
-	setvbuf(stderr, NULL, _IONBF, 0);
-	read_loop(t, std::cin, std::cerr);
+	read_loop(t, dev_mutex, std::cin, std::cerr);
 	t.stop_readout();
 	libusb_close(dev);
 	return 0;

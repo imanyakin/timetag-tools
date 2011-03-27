@@ -1,5 +1,5 @@
 PREFIX=/usr
-CXXFLAGS=-Wall -std=c++0x -ggdb -I/usr/include/libusb-1.0 -fPIC
+CXXFLAGS=-Wall -std=gnu++0x -ggdb -I/usr/include/libusb-1.0 -fPIC $(EXTRA_FLAGS)
 CC=$(CXX)
 
 PROGS=timetag_acquire photon_generator timetag_dump \
@@ -7,7 +7,8 @@ PROGS=timetag_acquire photon_generator timetag_dump \
 
 all : ${PROGS}
 
-timetag_acquire : LDLIBS = -lusb-1.0 -lboost_thread -DWITH_DOMAIN_SOCKET
+timetag_acquire : LDLIBS = -lusb-1.0 -lboost_thread -lboost_iostreams
+timetag_acquire : EXTRA_FLAGS = -DWITH_DOMAIN_SOCKET
 timetag_acquire : timetag_acquire.o timetagger.o
 timetag_cut : LDLIBS = -lboost_program_options
 timetag_cut : timetag_cut.o record.o
