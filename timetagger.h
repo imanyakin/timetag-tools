@@ -32,7 +32,7 @@
 
 #include "record_format.h"
 
-#define TIMETAG_NREGS 6
+#define TIMETAG_NREGS 0x50
 
 class timetagger {
 public:
@@ -95,6 +95,12 @@ public:
 
 	unsigned int get_record_count();
 	unsigned int get_lost_record_count();
+
+	void set_global_sequencer_operate(bool operate);
+	void reset_sequencer();
+	void set_seqchannel_operate(int seq, bool operate);
+	void config_seqchannel(int seq, bool initial_state, int initial_count,
+			int low_count, int high_count);
 };
 
 #endif

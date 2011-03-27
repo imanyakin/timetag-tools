@@ -192,6 +192,42 @@ unsigned int timetagger::get_lost_record_count()
 	return read_reg(0x7);
 }
 
+void timetagger::set_global_sequencer_operate(bool operate)
+{
+	if (operate)
+		write_reg(0x20, regs[0x20] | 0x1);
+	else
+		write_reg(0x20, regs[0x20] & ~0x1);
+}
+
+void timetagger::reset_sequencer()
+{
+	write_reg(0x20, 0x2);
+	write_reg(0x20, 0);
+}
+
+void timetagger::set_seqchannel_operate(int seq, bool operate)
+{
+	int base_reg = 0x28 + 4*seq;
+	if (operate)
+		write_reg(base_reg, regs[base_reg] | 0x1);
+	else
+		write_reg(base_reg, regs[base_reg] & ~0x1);
+}
+
+void timetagger::config_seqchannel(int seq, bool initial_state, int initial_count,
+		int low_count, int high_count)
+{
+	int base_reg = 0x28 + 4*seq;
+	if (initial_state)
+		write_reg(base_reg, regs[base_reg] | 0x02); 
+	else
+		write_reg(base_reg, regs[base_reg] & ~0x02); 
+	write_reg(base_reg+1, initial_count);
+	write_reg(base_reg+2, low_count);
+	write_reg(base_reg+3, high_count);
+}
+
 void timetagger::set_send_window(unsigned int records)
 {
 	unsigned int bytes = RECORD_LENGTH*records;
