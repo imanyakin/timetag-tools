@@ -37,8 +37,9 @@
 #include <sys/types.h>
 #endif
 
-#include <boost/tokenizer.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/format.hpp>
 #include <boost/thread.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/file_descriptor.hpp>
@@ -78,48 +79,102 @@ struct data_cb : timetagger::data_cb_t {
 static bool handle_command(timetagger& t, std::string line, std::ostream& ctrl_out)
 {
 	using boost::lexical_cast;
-	typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
-	boost::char_separator<char> sep("\t ");
-	tokenizer tokens(line, sep);
-	if (tokens.begin() == tokens.end())
+	std::vector<std::string> tokens;
+	boost::split(tokens, line, boost::is_any_of("\t "));
+	if (tokens.size() == 0) {
+		ctrl_out << "error: no command\n";
 		return false;
+	}
 
-	auto tok = tokens.begin();
-	std::string cmd = *tok;
-	tok++;
+	struct command {
+		std::string name;
+		unsigned int n_args;
+		boost::function<void ()> f;
+		const char* description;
+		const char* args;
+	};
+	std::vector<command> commands = {
+		{"start_capture", 0,
+			[&]() { t.start_capture(); },
+			"Start the timetagging engine"
+		},
+		{"stop_capture", 0,
+			[&]() { t.stop_capture(); },
+			"Stop the timetagging engine"
+		},
+		{"reset", 0,
+			[&]() { t.reset(); },
+			"Perform hardware reset"
+		},
+		{"set_send_window", 1,
+			[&]() {
+				int records = lexical_cast<int>(tokens[1]);
+				t.set_send_window(records);
+			},
+			"Set the USB send window size",
+			"SIZE"
+		},
+		{"set_strobe", 2,
+			[&]() {
+				int channel = lexical_cast<int>(tokens[1]);
+				bool enabled = lexical_cast<bool>(tokens[2]);
+				t.set_strobe_channel(channel, enabled);
+			},
+			"Enable/disable a strobe channel",
+			"CHAN ENABLED"
+		},
+		{"set_delta", 2,
+			[&]() {
+				int channel = lexical_cast<int>(tokens[1]);
+				bool enabled = lexical_cast<bool>(tokens[2]);
+				t.set_delta_channel(channel, enabled);
+			},
+			"Enable/disable a strobe channel",
+			"CHAN ENABLED"
+		},
+		{"version", 0,
+			[&]() { ctrl_out << t.get_version() << "\n"; },
+			"Display hardware version"
+		},
+		{"clockrate", 0,
+			[&]() { ctrl_out << t.get_clockrate() << "\n"; },
+			"Display hardware acquisition clockrate"
+		},
+		{"reset_counter", 0,
+			[&]() { t.reset_counter(); },
+			"Reset timetag counter"
+		},
+		{"record_count", 0,
+			[&]() { ctrl_out << t.get_record_count() << "\n"; },
+			"Display current record count"
+		},
+		{"lost_record_count", 0,
+			[&]() { ctrl_out << t.get_lost_record_count() << "\n"; },
+			"Display current lost record count"
+		},
+	};
 
-	if (cmd == "start_capture") {
-		t.start_capture();
-	} else if (cmd == "stop_capture") {
-		t.stop_capture();
-	} else if (cmd == "reset") {
-		t.reset();
-	} else if (cmd == "set_send_window") {
-		int records = lexical_cast<int>(*tok);
-		t.set_send_window(records);
-	} else if (cmd == "set_strobe") {
-		int channel = lexical_cast<int>(*tok); tok++;
-		bool enabled = lexical_cast<bool>(*tok);
-		t.set_strobe_channel(channel, enabled);
-	} else if (cmd == "set_delta") {
-		int channel = lexical_cast<int>(*tok); tok++;
-		bool enabled = lexical_cast<bool>(*tok);
-		t.set_delta_channel(channel, enabled);
-	} else if (cmd == "version") {
-		ctrl_out << t.get_version() << "\n";
-	} else if (cmd == "clockrate") {
-		ctrl_out << t.get_clockrate() << "\n";
-	} else if (cmd == "reset_counter") {
-		t.reset_counter();
-	} else if (cmd == "record_count") {
-		ctrl_out << t.get_record_count() << "\n";
-	} else if (cmd == "lost_record_count") {
-		ctrl_out << t.get_lost_record_count() << "\n";
-	} else if (cmd == "quit" || cmd == "exit") {
+	std::string cmd = tokens[0];
+	if (cmd == "quit")
 		return true;
-	} else
-		ctrl_out << "error: invalid command\n";
+	if (cmd == "help") {
+		for (auto c=commands.begin(); c != commands.end(); c++)
+			ctrl_out << boost::format("%-10s\t%s\n     %s\n") % c->name % c->args % c->description;
+		ctrl_out << "\n";
+		return false;
+	}
+	for (auto c=commands.begin(); c != commands.end(); c++) {
+		if (c->name == cmd) {
+			if (tokens.size() != c->n_args+1) {
+				ctrl_out << boost::format("error: invalid command (expects %d arguments)\n") % c->n_args;
+				return false;
+			}
+			c->f();
+			return false;
+		}
+	}
 
+	ctrl_out << "error: unknown command\n";
 	return false;
 }
 
