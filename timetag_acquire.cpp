@@ -152,6 +152,40 @@ static bool handle_command(timetagger& t, std::string line, std::ostream& ctrl_o
 			[&]() { ctrl_out << t.get_lost_record_count() << "\n"; },
 			"Display current lost record count"
 		},
+		{"start_seq", 0,
+			[&]() { t.set_global_sequencer_operate(true); },
+			"Start sequencer"
+		},
+		{"stop_seq", 0,
+			[&]() { t.set_global_sequencer_operate(false); },
+			"Stop sequencer"
+		},
+		{"reset_seq", 0,
+			[&]() { t.reset_sequencer(); },
+			"Return sequencer outputs to initial states"
+		},
+		{"seqchan_operate", 2,
+			[&]() {
+				int channel = lexical_cast<int>(tokens[1]);
+				bool enabled = lexical_cast<bool>(tokens[2]);
+				t.set_seqchannel_operate(channel, enabled);
+			},
+			"Enable/disable sequencer channel",
+			"CHAN ENABLED"
+		},
+		{"seqchan_config", 5,
+			[&]() {
+				int channel = lexical_cast<int>(tokens[1]);
+				bool initial_state = lexical_cast<bool>(tokens[2]);
+				int initial_count = lexical_cast<int>(tokens[3]);
+				int low_count = lexical_cast<int>(tokens[4]);
+				int high_count = lexical_cast<int>(tokens[5]);
+				t.config_seqchannel(channel, initial_state,
+						initial_count, low_count, high_count);
+			},
+			"Configure sequencer channel",
+			"CHAN INITIAL_STATE INITIAL_COUNT LOW_COUNT HIGH_COUNT"
+		},
 	};
 
 	std::string cmd = tokens[0];
