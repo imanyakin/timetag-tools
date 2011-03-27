@@ -74,32 +74,8 @@ private:
 public:
 	data_cb_t& data_cb;
 
-	timetagger(libusb_device_handle* dev, data_cb_t& data_cb) :
-		dev(dev),
-		needs_flush(false),
-		data_cb(data_cb)
-	{
-		libusb_claim_interface(dev, 0);
-		// Set send window to maximum value
-		set_send_window(512/RECORD_LENGTH);
-
-		// Start things off with sane defaults
-		write_reg(0x0, 0x00); // Possibly unjam register manager
-		flush_fx2_fifo();
-		write_reg(0x3, 0x00);
-		write_reg(0x4, 0x0f);
-		write_reg(0x5, 0x0f);
-
-		// Update register cache
-		for (int i=1; i<TIMETAG_NREGS; i++)
-			read_reg(i);
-	}
-
-	~timetagger()
-	{
-		stop_readout();
-		libusb_release_interface(dev, 0);
-	}
+	timetagger(libusb_device_handle* dev, data_cb_t& data_cb);
+	~timetagger();
 	
 	void reset();
 	void set_send_window(unsigned int records);
