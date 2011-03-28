@@ -206,6 +206,11 @@ void timetagger::reset_sequencer()
 	write_reg(0x20, 0);
 }
 
+unsigned int timetagger::get_seq_clockrate()
+{
+	return read_reg(0x21);
+}
+
 void timetagger::set_seqchannel_operate(int seq, bool operate)
 {
 	int base_reg = 0x28 + 4*seq;

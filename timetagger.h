@@ -93,6 +93,7 @@ public:
 	void stop_capture();
 	void reset_counter();
 
+	unsigned int get_seq_clockrate();
 	unsigned int get_record_count();
 	unsigned int get_lost_record_count();
 
