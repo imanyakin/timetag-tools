@@ -137,7 +137,7 @@ static bool handle_command(timetagger& t, std::string line, std::ostream& ctrl_o
 			"Display hardware version"
 		},
 		{"clockrate", 0,
-			[&]() { ctrl_out << t.get_clockrate() << "\n"; },
+			[&]() { ctrl_out << "= " << t.get_clockrate() << "\n"; },
 			"Display hardware acquisition clockrate"
 		},
 		{"reset_counter", 0,
@@ -145,15 +145,15 @@ static bool handle_command(timetagger& t, std::string line, std::ostream& ctrl_o
 			"Reset timetag counter"
 		},
 		{"record_count", 0,
-			[&]() { ctrl_out << t.get_record_count() << "\n"; },
+			[&]() { ctrl_out << "= " << t.get_record_count() << "\n"; },
 			"Display current record count"
 		},
 		{"lost_record_count", 0,
-			[&]() { ctrl_out << t.get_lost_record_count() << "\n"; },
+			[&]() { ctrl_out << "= " << t.get_lost_record_count() << "\n"; },
 			"Display current lost record count"
 		},
 		{"seq_clockrate", 0,
-			[&]() { ctrl_out << t.get_seq_clockrate() << "\n"; },
+			[&]() { ctrl_out << "= " << t.get_seq_clockrate() << "\n"; },
 			"Display sequencer clockrate"
 		},
 		{"start_seq", 0,
@@ -220,8 +220,6 @@ template<typename InputStream, typename OutputStream>
 static void read_loop(timetagger& t, boost::mutex& mutex,
 		InputStream& ctrl_in, OutputStream& ctrl_out)
 {
-	ctrl_out << "timetag_acquire\n";
-
 	bool stop = false;
 	while (!ctrl_in.eof() && !stop) {
 		std::string line;
