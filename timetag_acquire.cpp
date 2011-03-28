@@ -35,6 +35,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #endif
 
 #include <boost/algorithm/string.hpp>
