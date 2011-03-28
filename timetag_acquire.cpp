@@ -277,6 +277,11 @@ int main(int argc, char** argv)
 			return 1;
 		}
 
+		if (chmod(address.sun_path, 0666) != 0) {
+			fprintf(stderr, "Error chmodding socket: %s\n", strerror(errno));
+			return 1;
+		}
+
 		if (listen(socket_fd, 5) != 0) {
 			fprintf(stderr, "Error listening on socket: %s\n", strerror(errno));
 			return 1;
@@ -291,7 +296,7 @@ int main(int argc, char** argv)
 		{
 			auto fds = io::file_descriptor(socket_fd, io::close_handle);
 			io::stream<io::file_descriptor> ctrl(fds);
-			threads.push_back(new boost::thread([&](){ read_loop(t, dev_mutex, ctrl, ctrl);} ));
+			threads.push_back(new boost::thread([&](){ read_loop(t, dev_mutex, ctrl, ctrl); }));
 		}
 		t.stop_readout();
 		libusb_close(dev);
