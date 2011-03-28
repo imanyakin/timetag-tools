@@ -93,14 +93,13 @@ class CapturePipeline(object):
                 self.control_sock = socket.socket(AF_UNIX, SOCK_STREAM, 0)
                 self.control_sock.connect(control_sock)
                 self.control = self.control_sock.makefile()
-                self.control.readline() # Read version line
+                l = self.control.readline() # Read "ready"
+                if l != "ready":
+                        raise RuntimeError('Invalid status message: %s' % l)
 
-                self._tagger_cmd('clockrate\n')
-                self.clockrate = int(self.control.readline())
+                self.clockrate = int(self._tagger_cmd('clockrate\n'))
                 logging.info('Tagger clockrate: %f MHz' % (self.clockrate / 1e6))
-
-                self._tagger_cmd('version\n')
-                self.hw_version = self.control.readline()
+                self.hw_version = self._tagger_cmd('version\n')
                 logging.info('Tagger HW version: %s' % self.hw_version)
 
                 self.stop_capture()
@@ -128,10 +127,15 @@ class CapturePipeline(object):
                                         self.source.returncode)
 
                 logging.debug("Tagger command: %s" % cmd.strip())
+                self.source.stdin.write(cmd)
                 l = self.control.readline().strip()
+                result = None
+                if l.startswith('= '):
+                        result = l[2:]
+                        l = self.control.readline().strip()
                 if l != 'ready':
                         raise RuntimeError('Invalid status message: %s' % l)
-                self.source.stdin.write(cmd)
+                return result
 
         def _listen(self):
                 bin_fmt = 'iQII'
