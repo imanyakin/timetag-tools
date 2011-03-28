@@ -152,6 +152,10 @@ static bool handle_command(timetagger& t, std::string line, std::ostream& ctrl_o
 			[&]() { ctrl_out << t.get_lost_record_count() << "\n"; },
 			"Display current lost record count"
 		},
+		{"seq_clockrate", 0,
+			[&]() { ctrl_out << t.get_seq_clockrate() << "\n"; },
+			"Display sequencer clockrate"
+		},
 		{"start_seq", 0,
 			[&]() { t.set_global_sequencer_operate(true); },
 			"Start sequencer"
