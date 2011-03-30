@@ -40,19 +40,13 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/format.hpp>
 #include <boost/thread.hpp>
-#include <boost/iostreams/stream.hpp>
-#include <boost/iostreams/device/file_descriptor.hpp>
 
 #include "timetagger.h"
 #include "record_format.h"
 
 #define VENDOR_ID 0x04b4
 #define PRODUCT_ID 0x1004
-
-namespace io = boost::iostreams;
-typedef io::stream<io::file_descriptor> fdstream;
 
 // TODO: This shouldn't be global
 static unsigned int written = 0;
@@ -77,13 +71,13 @@ struct data_cb : timetagger::data_cb_t {
 /*
  * Return whether to stop
  */
-static bool handle_command(timetagger& t, std::string line, std::ostream& ctrl_out)
+static bool handle_command(timetagger& t, std::string line, FILE* ctrl_out)
 {
 	using boost::lexical_cast;
 	std::vector<std::string> tokens;
 	boost::split(tokens, line, boost::is_any_of("\t "));
 	if (tokens.size() == 0) {
-		ctrl_out << "error: no command\n";
+		fprintf(ctrl_out, "error: no command\n");
 		return false;
 	}
 
@@ -91,8 +85,8 @@ static bool handle_command(timetagger& t, std::string line, std::ostream& ctrl_o
 		std::string name;
 		unsigned int n_args;
 		boost::function<void ()> f;
-		const char* description;
-		const char* args;
+		std::string description;
+		std::string args;
 	};
 	std::vector<command> commands = {
 		{"start_capture", 0,
@@ -134,11 +128,11 @@ static bool handle_command(timetagger& t, std::string line, std::ostream& ctrl_o
 			"CHAN ENABLED"
 		},
 		{"version", 0,
-			[&]() { ctrl_out << t.get_version() << "\n"; },
+			[&]() { fprintf(ctrl_out, "= %d\n", t.get_version()); },
 			"Display hardware version"
 		},
 		{"clockrate", 0,
-			[&]() { ctrl_out << "= " << t.get_clockrate() << "\n"; },
+			[&]() { fprintf(ctrl_out, "= %d\n", t.get_clockrate()); },
 			"Display hardware acquisition clockrate"
 		},
 		{"reset_counter", 0,
@@ -146,15 +140,15 @@ static bool handle_command(timetagger& t, std::string line, std::ostream& ctrl_o
 			"Reset timetag counter"
 		},
 		{"record_count", 0,
-			[&]() { ctrl_out << "= " << t.get_record_count() << "\n"; },
+			[&]() { fprintf(ctrl_out, "= %d\n", t.get_record_count()); },
 			"Display current record count"
 		},
 		{"lost_record_count", 0,
-			[&]() { ctrl_out << "= " << t.get_lost_record_count() << "\n"; },
+			[&]() { fprintf(ctrl_out, "= %d\n", t.get_lost_record_count()); },
 			"Display current lost record count"
 		},
 		{"seq_clockrate", 0,
-			[&]() { ctrl_out << "= " << t.get_seq_clockrate() << "\n"; },
+			[&]() { fprintf(ctrl_out, "= %d\n", t.get_seq_clockrate()); },
 			"Display sequencer clockrate"
 		},
 		{"start_seq", 0,
@@ -198,14 +192,15 @@ static bool handle_command(timetagger& t, std::string line, std::ostream& ctrl_o
 		return true;
 	if (cmd == "help") {
 		for (auto c=commands.begin(); c != commands.end(); c++)
-			ctrl_out << boost::format("%-10s\t%s\n     %s\n") % c->name % c->args % c->description;
-		ctrl_out << "\n";
+			fprintf(ctrl_out, "= %-10s\t%s\n     %s\n",
+					c->name.c_str(), c->args.c_str(), c->description.c_str());
+		fprintf(ctrl_out, "= \n");
 		return false;
 	}
 	for (auto c=commands.begin(); c != commands.end(); c++) {
 		if (c->name == cmd) {
 			if (tokens.size() != c->n_args+1) {
-				ctrl_out << boost::format("error: invalid command (expects %d arguments)\n") % c->n_args;
+				fprintf(ctrl_out, "error: invalid command (expects %d arguments)\n", c->n_args);
 				return false;
 			}
 			c->f();
@@ -213,22 +208,28 @@ static bool handle_command(timetagger& t, std::string line, std::ostream& ctrl_o
 		}
 	}
 
-	ctrl_out << "error: unknown command\n";
+	fprintf(ctrl_out, "error: unknown command\n");
 	return false;
 }
 
-template<typename InputStream, typename OutputStream>
 static void read_loop(timetagger& t, boost::mutex& mutex,
-		InputStream& ctrl_in, OutputStream& ctrl_out)
+		FILE* ctrl_in, FILE* ctrl_out)
 {
+	char* buf = new char[255];
 	bool stop = false;
-	while (!ctrl_in.eof() && !stop) {
-		std::string line;
-		ctrl_out << "ready\n";
-		std::getline(std::cin, line);
+	while (!ferror(ctrl_in) && !stop) {
+		size_t n = 255;
+		fprintf(ctrl_out, "ready\n");
+		if (getline(&buf, &n, ctrl_in) == -1) break;
 		boost::mutex::scoped_lock lock(mutex);
+		std::string line(buf);
+		line = line.substr(0, line.length()-1);
 		stop = handle_command(t, line, ctrl_out);
 	}
+	delete [] buf;
+	fclose(ctrl_out);
+	if (ctrl_out != ctrl_in)
+		fclose(ctrl_in);
 }
 
 int main(int argc, char** argv)
@@ -295,17 +296,19 @@ int main(int argc, char** argv)
 					(struct sockaddr*) &address,
 					(socklen_t*) &address_len)) > -1)
 		{
-			auto fds = io::file_descriptor(socket_fd, io::close_handle);
-			io::stream<io::file_descriptor> ctrl(fds);
-			threads.push_back(new boost::thread([&](){ read_loop(t, dev_mutex, ctrl, ctrl); }));
+			FILE* conn = fdopen(conn_fd, "r+");
+			threads.push_back(new boost::thread([&](){ read_loop(t, dev_mutex, conn, conn); }));
 		}
+		fprintf(stderr, "Cleaning up...\n");
+		for (auto thrd=threads.begin(); thrd != threads.end(); thrd++)
+			(*thrd)->join();
 		t.stop_readout();
 		libusb_close(dev);
 		return 0;
         }
 #endif
 
-	read_loop(t, dev_mutex, std::cin, std::cerr);
+	read_loop(t, dev_mutex, stdin, stderr);
 	t.stop_readout();
 	libusb_close(dev);
 	return 0;
