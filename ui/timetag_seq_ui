@@ -60,7 +60,7 @@ class SeqWindow(object):
                 bbox.pack_start(btn)
 
                 btn = gtk.Button('Reset')
-                btn.connect('activate', self.reset_cb)
+                btn.connect('clicked', self.reset_cb)
                 bbox.pack_start(btn)
 
                 w = gtk.Label()
