@@ -213,7 +213,7 @@ unsigned int timetagger::get_seq_clockrate()
 
 void timetagger::set_seqchannel_operate(int seq, bool operate)
 {
-	int base_reg = 0x28 + 4*seq;
+	int base_reg = 0x28 + 0x8*seq;
 	if (operate)
 		write_reg(base_reg, regs[base_reg] | 0x1);
 	else
@@ -223,7 +223,7 @@ void timetagger::set_seqchannel_operate(int seq, bool operate)
 void timetagger::config_seqchannel(int seq, bool initial_state, int initial_count,
 		int low_count, int high_count)
 {
-	int base_reg = 0x28 + 4*seq;
+	int base_reg = 0x28 + 0x8*seq;
 	if (initial_state)
 		write_reg(base_reg, regs[base_reg] | 0x02); 
 	else
