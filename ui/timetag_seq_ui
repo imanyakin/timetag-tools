@@ -1,0 +1,154 @@
+#!/usr/bin/python
+
+import gtk
+import socket
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+
+class SeqWindow(object):
+        def operate_toggled_cb(self, button):
+                if button.props.active:
+                        button.props.label = 'Running'
+                        self._tagger_cmd('start_seq\n')
+                        logging.info('Now running')
+                else:
+                        button.props.label = 'Stopped'
+                        self._tagger_cmd('stop_seq\n')
+                        logging.info('Now stopped')
+
+        def reset_cb(self, button):
+                logging.info('Reset')
+                self._tagger_cmd('reset_seq\n')
+
+        def enabled_changed_cb(self, button, chan):
+                active = button.props.active
+                logging.info('%s channel %d' % ('Enable' if active else 'Disable', chan))
+                button.props.label = 'Enabled' if active else 'Disabled'
+                self._tagger_cmd('seqchan_operate %d %d\n' % (chan, active))
+
+
+        def reconfig_channel(self, chan):
+                state,initial_adj,low_adj,high_adj = self.controls[chan]
+                params = {
+                        'chan': chan,
+                        'state': state.props.active,
+                        'initial': initial_adj.props.value * 1e-6 * self.freq,
+                        'low': low_adj.props.value  * 1e-6 * self.freq,
+                        'high': high_adj.props.value * 1e-6 * self.freq,
+                }
+                cmd = 'seqchan_config %(chan)d %(state)d %(initial)d %(low)d %(high)d' % params
+                logging.info(cmd)
+                self._tagger_cmd(cmd + '\n')
+
+        def _build_window(self):
+                self.window = gtk.Window()
+                def quit(unused):
+                        gtk.main_quit()
+                self.window.connect('destroy', quit)
+
+                vbox = gtk.VBox()
+                self.window.add(vbox)
+                table = gtk.Table(rows=5, columns=7)
+                vbox.pack_end(table)
+
+                bbox = gtk.HButtonBox()
+                vbox.pack_start(bbox)
+
+                btn = gtk.ToggleButton('Stopped')
+                btn.connect('toggled', self.operate_toggled_cb)
+                bbox.pack_start(btn)
+
+                btn = gtk.Button('Reset')
+                btn.connect('activate', self.reset_cb)
+                bbox.pack_start(btn)
+
+                w = gtk.Label()
+                w.set_markup('<b>Enabled</b>')
+                table.attach(w, 1, 2, 0, 1)
+
+                w = gtk.Label()
+                w.set_markup('<b>Initial</b>')
+                table.attach(w, 2, 4, 0, 1)
+
+                w = gtk.Label()
+                w.set_markup('<b>Low</b>')
+                table.attach(w, 4, 5, 0, 1)
+
+                w = gtk.Label()
+                w.set_markup('<b>High</b>')
+                table.attach(w, 5, 6, 0, 1)
+
+                self.controls = []
+                for c in range(4):
+                        col = 0
+                        w = gtk.Label()
+                        w.set_markup('<i>Delta %d</i>' % c)
+                        table.attach(w, col, col+1, c+1, c+2)
+                        col += 1
+
+                        state = gtk.ToggleButton('Disabled')
+                        state.connect('toggled', self.enabled_changed_cb, c)
+                        table.attach(state, col, col+1, c+1, c+2)
+                        col += 1
+
+                        state = gtk.ToggleButton('State')
+                        state.connect('toggled', lambda w,ch: self.reconfig_channel(ch), c)
+                        table.attach(state, col, col+1, c+1, c+2)
+                        col += 1
+
+                        initial_adj = gtk.Adjustment(value=200, lower=0, upper=1e9, step_incr=100)
+                        initial_adj.connect('value-changed', lambda w,ch: self.reconfig_channel(ch), c)
+                        w = gtk.SpinButton(initial_adj)
+                        table.attach(w, col, col+1, c+1, c+2)
+                        col += 1
+
+                        low_adj = gtk.Adjustment(value=200, lower=0, upper=1e9, step_incr=100)
+                        low_adj.connect('value-changed', lambda w,ch: self.reconfig_channel(ch), c)
+                        w = gtk.SpinButton(low_adj)
+                        table.attach(w, col, col+1, c+1, c+2)
+                        col += 1
+
+                        high_adj = gtk.Adjustment(value=200, lower=0, upper=1e9, step_incr=100)
+                        high_adj.connect('value-changed', lambda w,ch: self.reconfig_channel(ch), c)
+                        w = gtk.SpinButton(high_adj)
+                        table.attach(w, col, col+1, c+1, c+2)
+                        col += 1
+
+                        self.controls.append((state, initial_adj, low_adj, high_adj))
+                        
+                self.window.show_all()
+
+        def __init__(self, socket):
+                self.socket = socket               
+                self.control = self.socket.makefile('rw', 0)
+                l = self.control.readline() # Read "ready"
+                if l.strip() != "ready":
+                        raise RuntimeError('Invalid status message: %s' % l)
+
+                print(self._tagger_cmd('seq_clockrate\n'))
+                self.freq = int(self._tagger_cmd('seq_clockrate\n'))
+                self._build_window()
+
+        def _tagger_cmd(self, cmd):
+                logging.debug("Tagger command: %s" % cmd.strip())
+                self.control.write(cmd)
+                result = None
+                while True:
+                        l = self.control.readline().strip()
+                        logging.debug('read: ' + l)
+                        if l.startswith('= '):
+                                result = l[2:]
+                                l = self.control.readline().strip()
+                        if l == 'ready':
+                                break
+                        else:
+                                raise RuntimeError('Invalid status message: %s' % l)
+                return result
+
+
+sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM, 0)
+sock.connect('/tmp/timetag.sock')
+win = SeqWindow(sock)
+gtk.main()
+
