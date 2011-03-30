@@ -32,8 +32,7 @@
 #define DATA_ENDP	0x86
 #define REPLY_ENDP	0x88
 
-#define TIMEOUT 100
-#define DATA_TIMEOUT 5000
+#define TIMEOUT 500
 
 
 #define REQ_TYPE_TO_DEV		(0x0 << 0)
@@ -100,6 +99,10 @@ uint32_t timetagger::reg_cmd(bool write, uint16_t reg, uint32_t val)
 		(uint8_t) (val >> 24),
 	};
 
+#ifdef DEBUG
+	fprintf(stderr, "%s reg %04x = %08x; ", write ? "write" : "read", reg, val);
+#endif
+
 	if ( (ret = libusb_bulk_transfer(dev, CMD_ENDP, buffer, 8, &transferred, TIMEOUT)) ) {
 		fprintf(stderr, "Failed to send request: %d\n", ret);
 		throw std::runtime_error("Failed to send request");
@@ -111,8 +114,7 @@ uint32_t timetagger::reg_cmd(bool write, uint16_t reg, uint32_t val)
 	}
 
 #ifdef DEBUG
-	fprintf(stderr, "%s reg %04x = %08x; reply: ",
-			write ? "write" : "read", reg, val);
+	fprintf(stderr, "reply: ");
 	for (int i=0; i<transferred; i++)
 		fprintf(stderr, " %02x ", buffer[i]);
 	fprintf(stderr, "\n");
