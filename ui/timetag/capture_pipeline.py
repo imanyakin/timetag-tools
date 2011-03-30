@@ -20,7 +20,7 @@
 # Author: Ben Gamari <bgamari@physics.umass.edu>
 # 
 
-
+import socket
 import subprocess
 import logging
 import sys
@@ -88,13 +88,19 @@ class CapturePipeline(object):
         def start(self):
                 PIPE=subprocess.PIPE
                 cmd = ['timetag_acquire', control_sock]
-                self.source = subprocess.Popen(cmd, stdin=PIPE, stdout=PIPE)
+                self.source = subprocess.Popen(cmd, stdout=PIPE)
                 logging.info("Started process %s" % cmd)
-                self.control_sock = socket.socket(AF_UNIX, SOCK_STREAM, 0)
-                self.control_sock.connect(control_sock)
-                self.control = self.control_sock.makefile()
+                self.control_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM, 0)
+                for i in range(10):
+                        sleep(0.05)
+                        try: self.control_sock.connect(control_sock)
+                        except: pass
+                        else: break
+
+                sleep(0.5)
+                self.control = self.control_sock.makefile('rw', 0)
                 l = self.control.readline() # Read "ready"
-                if l != "ready":
+                if l.strip() != "ready":
                         raise RuntimeError('Invalid status message: %s' % l)
 
                 self.clockrate = int(self._tagger_cmd('clockrate\n'))
@@ -127,14 +133,17 @@ class CapturePipeline(object):
                                         self.source.returncode)
 
                 logging.debug("Tagger command: %s" % cmd.strip())
-                self.source.stdin.write(cmd)
-                l = self.control.readline().strip()
+                self.control.write(cmd)
                 result = None
-                if l.startswith('= '):
-                        result = l[2:]
+                while True:
                         l = self.control.readline().strip()
-                if l != 'ready':
-                        raise RuntimeError('Invalid status message: %s' % l)
+                        if l.startswith('= '):
+                                result = l[2:]
+                                l = self.control.readline().strip()
+                        if l == 'ready':
+                                break
+                        else:
+                                raise RuntimeError('Invalid status message: %s' % l)
                 return result
 
         def _listen(self):
@@ -160,15 +169,14 @@ class CapturePipeline(object):
         def stop(self):
                 if self.source.poll() is not None: return
                 logging.info("Capture pipeline shutdown")
-                self._tagger_cmd('quit\n')
-                for i in range(20):
+                self.control.write('quit\n')
+                self.control.close()
+                for i in range(40):
                         if self.source.poll() is not None: return
-                        sleep(0.1)
+                        sleep(0.05)
 
                 logging.error('Failed to shutdown timetag_acquire')
-
-        def __del__(self):
-                self.stop()
+                self.source.terminate()
 
         def reset_counter(self):
                 self._tagger_cmd('reset_counter\n')
