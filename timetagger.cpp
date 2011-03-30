@@ -205,7 +205,7 @@ void timetagger::set_global_sequencer_operate(bool operate)
 void timetagger::reset_sequencer()
 {
 	write_reg(0x20, 0x2);
-	write_reg(0x20, 0);
+	write_reg(0x20, 0x0);
 }
 
 unsigned int timetagger::get_seq_clockrate()
