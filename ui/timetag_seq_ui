@@ -30,12 +30,13 @@ class SeqWindow(object):
 
         def reconfig_channel(self, chan):
                 state,initial_adj,low_adj,high_adj = self.controls[chan]
+                time_mult = self.get_time_multiplier()
                 params = {
                         'chan': chan,
                         'state': state.props.active,
-                        'initial': initial_adj.props.value * 1e-6 * self.freq,
-                        'low': low_adj.props.value  * 1e-6 * self.freq,
-                        'high': high_adj.props.value * 1e-6 * self.freq,
+                        'initial': initial_adj.props.value * time_mult * self.freq,
+                        'low': low_adj.props.value  * time_mult * self.freq,
+                        'high': high_adj.props.value * time_mult * self.freq,
                 }
                 cmd = 'seqchan_config %(chan)d %(state)d %(initial)d %(low)d %(high)d' % params
                 logging.info(cmd)
@@ -43,14 +44,13 @@ class SeqWindow(object):
 
         def _build_window(self):
                 self.window = gtk.Window()
+                self.window.set_title('Timetagger Sequencer Configuration')
                 def quit(unused):
                         gtk.main_quit()
                 self.window.connect('destroy', quit)
 
                 vbox = gtk.VBox()
                 self.window.add(vbox)
-                table = gtk.Table(rows=5, columns=7)
-                vbox.pack_end(table)
 
                 bbox = gtk.HButtonBox()
                 vbox.pack_start(bbox)
@@ -62,6 +62,28 @@ class SeqWindow(object):
                 btn = gtk.Button('Reset')
                 btn.connect('clicked', self.reset_cb)
                 bbox.pack_start(btn)
+
+                hbox = gtk.HBox()
+                vbox.pack_start(hbox)
+                hbox.pack_start(gtk.Label('Time Units'))
+                combo = gtk.combo_box_new_text()
+                hbox.pack_start(combo)
+                combo.append_text('microseconds')
+                combo.append_text('milliseconds')
+                combo.append_text('seconds')
+                combo.append_text('minutes')
+                combo.set_active(0)
+                def get_time_multiplier():
+                        text = combo.get_active_text()
+                        if text == 'microseconds': return 1e-6
+                        elif text == 'milliseconds': return 1e-3
+                        elif text == 'seconds': return 1
+                        elif text == 'minutes': return 60
+                        else: raise 'invalid time unit'
+                self.get_time_multiplier = get_time_multiplier
+
+                table = gtk.Table(rows=5, columns=7)
+                vbox.pack_end(table)
 
                 w = gtk.Label()
                 w.set_markup('<b>Enabled</b>')
