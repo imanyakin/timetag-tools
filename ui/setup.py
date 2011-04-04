@@ -7,7 +7,7 @@ setup(name = 'timetag_ui',
       description = 'User interface for acquiring data with FPGA timetagger',
       version = '1.0',
       packages = ['timetag'],
-      scripts = ['timetag_ui'],
+      scripts = ['timetag_ui', 'timetag_seq_ui'],
       package_data = {'timetag': ['main.glade', 'bin_series.glade', 'hist.glade', 'default.cfg']},
       license = 'GPLv3',
 )
