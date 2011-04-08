@@ -103,9 +103,9 @@ class CapturePipeline(object):
                 if l.strip() != "ready":
                         raise RuntimeError('Invalid status message: %s' % l)
 
-                self.clockrate = int(self._tagger_cmd('clockrate\n'))
+                self.clockrate = int(self._tagger_cmd('clockrate?\n'))
                 logging.info('Tagger clockrate: %f MHz' % (self.clockrate / 1e6))
-                self.hw_version = self._tagger_cmd('version\n')
+                self.hw_version = self._tagger_cmd('version?\n')
                 logging.info('Tagger HW version: %s' % self.hw_version)
 
                 self.stop_capture()
