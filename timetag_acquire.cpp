@@ -56,6 +56,7 @@ struct output_fd {
 	int fd;
 	std::string name;
 	bool needs_close;
+	unsigned int lost_records;
 };
 static std::list<output_fd> output_fds;
 
@@ -71,16 +72,57 @@ struct data_cb : timetagger::data_cb_t {
 		if (written < 8*RECORD_LENGTH)
 			skip += 8*RECORD_LENGTH;
 
-		for (auto fd=output_fds.begin(); fd != output_fds.end(); fd++)
-			write(fd->fd, buffer+skip, length-skip);
+		for (auto fd=output_fds.begin(); fd != output_fds.end(); fd++) {
+			int ret = write(fd->fd, buffer+skip, length-skip);
+			if (ret < 0 && errno == EAGAIN)
+				fd->lost_records += (length-skip) / RECORD_LENGTH;
+		}
 		written += length;
 	}
 };
 
+static int recv_fd(int socket)
+{
+	struct msghdr message;
+	struct iovec iov[1];
+	char cmsgbuf[CMSG_SPACE(sizeof(int))];
+	char buffer[255];
+
+	iov[0].iov_base = buffer;
+	iov[0].iov_len = sizeof(buffer);
+
+	message.msg_iov = iov;
+	message.msg_iovlen = 1;
+
+	message.msg_name = NULL;
+	message.msg_namelen = 0;
+	message.msg_control = cmsgbuf;
+	message.msg_controllen = CMSG_SPACE(sizeof(int));
+	message.msg_flags = 0;
+
+	if (recvmsg(socket, &message, 0) < 0) {
+		fprintf(stderr, "Failed to receive fd: %s\n", strerror(errno));
+		return -1;
+	}
+
+	for (struct cmsghdr* cmsg = CMSG_FIRSTHDR(&message);
+			cmsg != NULL;
+			cmsg = CMSG_NXTHDR(&message, cmsg))
+	{
+		if ((cmsg->cmsg_level == SOL_SOCKET) &&
+				(cmsg->cmsg_type == SCM_RIGHTS))
+		{
+			return ((int*)CMSG_DATA(cmsg))[0];
+		}
+	}
+
+	return -1;
+}
+
 /*
  * Return whether to stop
  */
-static bool handle_command(timetagger& t, std::string line, FILE* ctrl_out)
+static bool handle_command(timetagger& t, std::string line, FILE* ctrl_out, int sock_fd=-1)
 {
 	using boost::lexical_cast;
 	std::vector<std::string> tokens;
@@ -101,23 +143,32 @@ static bool handle_command(timetagger& t, std::string line, FILE* ctrl_out)
 		{"add_output", 1,
 			[&]() {
 				std::string name = tokens[1];
-				int fd = open(name.c_str(), O_WRONLY);
+				if (sock_fd == -1) {
+					fprintf(ctrl_out, "error: Command only support in socket mode\n");
+					return;
+				}
+				int fd = recv_fd(sock_fd);
+				if (fd < 0) {
+					fprintf(ctrl_out, "error: Error receiving fd (%s)\n",
+							strerror(errno));
+					return;
+				}
+				// Make sure a stalled fd doesn't cause us to lose samples
+				fcntl(fd, F_SETFL, O_NONBLOCK);
 				output_fd a = { fd, name, true };
 				output_fds.push_back(a);
 			},
-			"Add an output",
-			"FILENAME"
+			"Add an output (expects to be sent an fd over domain socket)",
+			"NAME"
 		},
 		{"remove_output", 1,
 			[&]() {
 				std::string name = tokens[1];
 				for (auto fd=output_fds.begin(); fd != output_fds.end(); fd++) {
-					if (fd->name == name) {
-						if (fd->needs_close)
-							close(fd->fd);
-						output_fds.erase(fd);
-					}
+					if (fd->name == name && fd->needs_close)
+						close(fd->fd);
 				}
+				output_fds.remove_if([&](const output_fd& fd){ return fd.name == name; });
 			},
 			"Remove an output",
 			"FILENAME"
@@ -125,7 +176,8 @@ static bool handle_command(timetagger& t, std::string line, FILE* ctrl_out)
 		{"list_outputs", 0,
 			[&]() {
 				for (auto fd=output_fds.begin(); fd != output_fds.end(); fd++)
-					fprintf(ctrl_out, "= %s\n", fd->name.c_str());
+					fprintf(ctrl_out, "= %15s\t%d\t%d\n",
+							fd->name.c_str(), fd->fd, fd->lost_records);
 			},
 			"List outputs"
 		},
@@ -317,7 +369,7 @@ static bool handle_command(timetagger& t, std::string line, FILE* ctrl_out)
 }
 
 static void read_loop(timetagger& t, boost::mutex& mutex,
-		FILE* ctrl_in, FILE* ctrl_out)
+		FILE* ctrl_in, FILE* ctrl_out, int sock_fd=-1)
 {
 	char* buf = new char[255];
 	bool stop = false;
@@ -328,7 +380,7 @@ static void read_loop(timetagger& t, boost::mutex& mutex,
 		boost::mutex::scoped_lock lock(mutex);
 		std::string line(buf);
 		line = line.substr(0, line.length()-1);
-		stop = handle_command(t, line, ctrl_out);
+		stop = handle_command(t, line, ctrl_out, sock_fd);
 	}
 	delete [] buf;
 	fclose(ctrl_out);
@@ -401,7 +453,7 @@ int main(int argc, char** argv)
 					(socklen_t*) &address_len)) > -1)
 		{
 			FILE* conn = fdopen(conn_fd, "r+");
-			threads.push_back(new boost::thread([&](){ read_loop(t, dev_mutex, conn, conn); }));
+			threads.push_back(new boost::thread([&](){ read_loop(t, dev_mutex, conn, conn, conn_fd); }));
 		}
 		fprintf(stderr, "Cleaning up...\n");
 		for (auto thrd=threads.begin(); thrd != threads.end(); thrd++)
