@@ -21,6 +21,7 @@
 # 
 
 import socket
+import passfd
 import subprocess
 import logging
 import sys
@@ -33,7 +34,6 @@ from collections import defaultdict
 from ringbuffer import RingBuffer
 
 logging.basicConfig(level=logging.DEBUG)
-control_sock = '/tmp/timetag.sock'
 
 class CapturePipeline(object):
         class Channel(object):
@@ -46,19 +46,37 @@ class CapturePipeline(object):
                         self.latest_timestamp = 0
                         self.hist = defaultdict(lambda: 0)
 
-        def __init__(self, bin_time, npts, output_file=None):
+        def __init__(self, control_sock='/tmp/timetag.sock'):
                 """ Create a capture pipeline. The bin_time is given in
                     seconds. """
-                self.resize_buffer(npts)
-                self._bin_time = bin_time
-                self.output_file = output_file
+                self.resize_buffer(10)
                 self.last_bin_walltime = time()
                 self.latest_timestamp = 0
+                self.loss_count = 0
                 self._hist_width = 10
+                self._binner = None
+                self._out_file = None
 
-        @property
-        def bin_time(self):
-                return self._bin_time
+                self._control_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM, 0)
+                for i in range(10):
+                        sleep(0.05)
+                        try: self._control_sock.connect(control_sock)
+                        except: pass
+                        else: break
+
+                sleep(0.5)
+                self._control = self._control_sock.makefile('rw', 0)
+                l = self._control.readline() # Read "ready"
+                if l.strip() != "ready":
+                        raise RuntimeError('Invalid status message: %s' % l)
+
+                self.clockrate = int(self._tagger_cmd('clockrate?\n'))
+                logging.info('Tagger clockrate: %f MHz' % (self.clockrate / 1e6))
+                self.hw_version = self._tagger_cmd('version?\n')
+                logging.info('Tagger HW version: %s' % self.hw_version)
+
+                self.stop_capture()
+                self.reset_counter()
 
         @property
         def hist_width(self):
@@ -78,79 +96,84 @@ class CapturePipeline(object):
 
         def stats(self):
                 for n, chan in self.channels.items():
-                        yield n, chan.photon_count, chan.loss_count, chan.latest_timestamp
+                        yield n, chan.photon_count, chan.latest_timestamp
 
         def resize_buffer(self, npts):
                 """ Creates a new bin ringbuffer. """
                 logging.debug("Resizing capture ring-buffer to %d points" % npts)
                 self.channels = defaultdict(lambda: CapturePipeline.Channel(npts))
 
-        def start(self):
-                PIPE=subprocess.PIPE
-                cmd = ['timetag_acquire', control_sock]
-                self.source = subprocess.Popen(cmd, stdout=PIPE)
+        def start_output_file(self, filename):
+                assert not self._out_file
+                self._out_file = open(filename, 'w')
+                self._control.write('add_output file\n')
+                sleep(0.01) # HACK: Otherwise the packet gets lost
+                print passfd.sendfd(self._control_sock, self._out_file)
+                self._read_reply()
+
+        def stop_output_file(self):
+                if not self._out_file:
+                        logging.warning('Tried to stop output file when one has not been started')
+                        return
+                self._tagger_cmd('remove_output file\n')
+                self._out_file = None
+
+        def start_binner(self, bin_time):
+                if self._binner:
+                        logging.warning('Tried to start binner when one is already running')
+                        return
+                bin_length = int(bin_time * 1e-3 * self.clockrate)
+                cmd = [os.path.join('timetag_bin'), str(bin_length)]
+                self._binner = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                self._control.write('add_output binner\n')
+                self._control.flush()
+                sleep(0.01) # HACK: Otherwise the packet gets lost
+                print passfd.sendfd(self._control_sock, self._binner.stdin)
+                self._read_reply()
                 logging.info("Started process %s" % cmd)
-                self.control_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM, 0)
-                for i in range(10):
-                        sleep(0.05)
-                        try: self.control_sock.connect(control_sock)
-                        except: pass
-                        else: break
-
-                sleep(0.5)
-                self.control = self.control_sock.makefile('rw', 0)
-                l = self.control.readline() # Read "ready"
-                if l.strip() != "ready":
-                        raise RuntimeError('Invalid status message: %s' % l)
-
-                self.clockrate = int(self._tagger_cmd('clockrate?\n'))
-                logging.info('Tagger clockrate: %f MHz' % (self.clockrate / 1e6))
-                self.hw_version = self._tagger_cmd('version?\n')
-                logging.info('Tagger HW version: %s' % self.hw_version)
-
-                self.stop_capture()
-                self.reset_counter()
-
-                src = self.source.stdout
-                if self.output_file:
-                        self.tee = subprocess.Popen(['tee', self.output_file], stdin=src, stdout=PIPE)
-                        src = self.tee.stdout
-                else:
-                        self.tee = None
-
-                self.bin_length = int(self.bin_time * self.clockrate)
-                cmd = [os.path.join('timetag_bin'), str(self.bin_length)]
-                self.binner = subprocess.Popen(cmd, stdin=src, stdout=PIPE)
-                logging.info("Started process %s" % cmd)
+                self.resize_buffer(1000) # FIXME
 
                 self.listener = threading.Thread(name='Data Listener', target=self._listen)
                 self.listener.daemon = True
                 self.listener.start()
 
-        def _tagger_cmd(self, cmd):
-                if self.source.poll() is not None:
-                        logging.error('Tagger subprocess died (exit code %d)' %
-                                        self.source.returncode)
+        def stop_binner(self):
+                if not self._binner:
+                        logging.warning('Tried to stop binner when one is not running')
+                        return
+                self._tagger_cmd('remove_output binner\n')
+                self._binner.terminate()
+                self._binner = None
+                self.listener.join()
 
+        def _tagger_cmd(self, cmd):
                 logging.debug("Tagger command: %s" % cmd.strip())
-                self.control.write(cmd)
+                self._control.write(cmd)
+                return self._read_reply(cmd)
+
+        def _read_reply(self, cmd=''):
                 result = None
                 while True:
-                        l = self.control.readline().strip()
+                        l = self._control.readline().strip()
                         if l.startswith('= '):
                                 result = l[2:]
-                                l = self.control.readline().strip()
+                                l = self._control.readline().strip()
                         if l == 'ready':
                                 break
+                        if l.startswith('error'):
+                                logging.error('Timetagger error while handling command: %s' % cmd)
+                                logging.error('Error: %s' % l)
+                                raise RuntimeError
                         else:
-                                raise RuntimeError('Invalid status message: %s' % l)
+                                logging.error('Invalid status message: %s' % l)
+                                raise RuntimeError
                 return result
 
         def _listen(self):
                 bin_fmt = 'iQII'
                 bin_sz = struct.calcsize(bin_fmt)
                 while True:
-                        data = self.binner.stdout.read(bin_sz)
+                        data = self._binner.stdout.read(bin_sz)
                         if len(data) != bin_sz: break
                         self.last_bin_walltime = time()
                         chan, start_time, count, lost = struct.unpack(bin_fmt, data)
@@ -163,20 +186,13 @@ class CapturePipeline(object):
                                 c.hist[int(count / self.hist_width) * self.hist_width] += 1
 
                         c.photon_count += count
-                        c.loss_count += lost
+                        self.loss_count += lost #FIXME: overcounting
                         self.latest_timestamp = c.latest_timestamp = start_time
 
         def stop(self):
-                if self.source.poll() is not None: return
                 logging.info("Capture pipeline shutdown")
-                self.control.write('quit\n')
-                self.control.close()
-                for i in range(40):
-                        if self.source.poll() is not None: return
-                        sleep(0.05)
-
-                logging.error('Failed to shutdown timetag_acquire')
-                self.source.terminate()
+                self._control.write('quit\n')
+                self._control.close()
 
         def reset_counter(self):
                 self._tagger_cmd('reset_counter\n')
