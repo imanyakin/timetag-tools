@@ -29,13 +29,14 @@
 
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #ifdef WITH_DOMAIN_SOCKET
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/un.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #endif
 
 #include <boost/algorithm/string.hpp>
@@ -51,6 +52,13 @@
 // TODO: This shouldn't be global
 static unsigned int written = 0;
 
+struct output_fd {
+	int fd;
+	std::string name;
+	bool needs_close;
+};
+static std::list<output_fd> output_fds;
+
 struct data_cb : timetagger::data_cb_t {
 	unsigned int& written;
 	data_cb(unsigned int& written) : written(written) { }
@@ -63,7 +71,8 @@ struct data_cb : timetagger::data_cb_t {
 		if (written < 8*RECORD_LENGTH)
 			skip += 8*RECORD_LENGTH;
 
-		write(1, buffer+skip, length-skip);
+		for (auto fd=output_fds.begin(); fd != output_fds.end(); fd++)
+			write(fd->fd, buffer+skip, length-skip);
 		written += length;
 	}
 };
@@ -89,6 +98,37 @@ static bool handle_command(timetagger& t, std::string line, FILE* ctrl_out)
 		std::string args;
 	};
 	std::vector<command> commands = {
+		{"add_output", 1,
+			[&]() {
+				std::string name = tokens[1];
+				int fd = open(name.c_str(), O_WRONLY);
+				output_fd a = { fd, name, true };
+				output_fds.push_back(a);
+			},
+			"Add an output",
+			"FILENAME"
+		},
+		{"remove_output", 1,
+			[&]() {
+				std::string name = tokens[1];
+				for (auto fd=output_fds.begin(); fd != output_fds.end(); fd++) {
+					if (fd->name == name) {
+						if (fd->needs_close)
+							close(fd->fd);
+						output_fds.erase(fd);
+					}
+				}
+			},
+			"Remove an output",
+			"FILENAME"
+		},
+		{"list_outputs", 0,
+			[&]() {
+				for (auto fd=output_fds.begin(); fd != output_fds.end(); fd++)
+					fprintf(ctrl_out, "= %s\n", fd->name.c_str());
+			},
+			"List outputs"
+		},
 		{"start_capture", 0,
 			[&]() { t.start_capture(); },
 			"Start the timetagging engine"
@@ -372,6 +412,8 @@ int main(int argc, char** argv)
         }
 #endif
 
+	output_fd a = { 1, "stdout", false };
+	output_fds.push_back(a);
 	read_loop(t, dev_mutex, stdin, stderr);
 	t.stop_readout();
 	libusb_close(dev);
