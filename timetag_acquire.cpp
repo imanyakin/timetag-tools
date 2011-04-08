@@ -109,29 +109,45 @@ static bool handle_command(timetagger& t, std::string line, FILE* ctrl_out)
 			"Set the USB send window size",
 			"SIZE"
 		},
-		{"set_strobe", 2,
+		{"strobe_operate", 2,
 			[&]() {
 				int channel = lexical_cast<int>(tokens[1]);
 				bool enabled = lexical_cast<bool>(tokens[2]);
-				t.set_strobe_channel(channel, enabled);
+				t.set_strobe_operate(channel, enabled);
 			},
 			"Enable/disable a strobe channel",
 			"CHAN ENABLED"
 		},
-		{"set_delta", 2,
+		{"strobe_operate?", 1,
+			[&]() {
+				int channel = lexical_cast<int>(tokens[1]);
+				fprintf(ctrl_out, "= %d\n", t.get_strobe_operate(channel));
+			},
+			"Display operational state of strobe channel",
+			"CHAN"
+		},
+		{"delta_operate", 2,
 			[&]() {
 				int channel = lexical_cast<int>(tokens[1]);
 				bool enabled = lexical_cast<bool>(tokens[2]);
-				t.set_delta_channel(channel, enabled);
+				t.set_delta_operate(channel, enabled);
 			},
 			"Enable/disable a strobe channel",
 			"CHAN ENABLED"
 		},
-		{"version", 0,
+		{"delta_operate?", 1,
+			[&]() {
+				int channel = lexical_cast<int>(tokens[1]);
+				fprintf(ctrl_out, "= %d\n", t.get_delta_operate(channel));
+			},
+			"Display operational state of delta channel",
+			"CHAN"
+		},
+		{"version?", 0,
 			[&]() { fprintf(ctrl_out, "= %d\n", t.get_version()); },
 			"Display hardware version"
 		},
-		{"clockrate", 0,
+		{"clockrate?", 0,
 			[&]() { fprintf(ctrl_out, "= %d\n", t.get_clockrate()); },
 			"Display hardware acquisition clockrate"
 		},
@@ -139,15 +155,15 @@ static bool handle_command(timetagger& t, std::string line, FILE* ctrl_out)
 			[&]() { t.reset_counter(); },
 			"Reset timetag counter"
 		},
-		{"record_count", 0,
+		{"record_count?", 0,
 			[&]() { fprintf(ctrl_out, "= %d\n", t.get_record_count()); },
 			"Display current record count"
 		},
-		{"lost_record_count", 0,
+		{"lost_record_count?", 0,
 			[&]() { fprintf(ctrl_out, "= %d\n", t.get_lost_record_count()); },
 			"Display current lost record count"
 		},
-		{"seq_clockrate", 0,
+		{"seq_clockrate?", 0,
 			[&]() { fprintf(ctrl_out, "= %d\n", t.get_seq_clockrate()); },
 			"Display sequencer clockrate"
 		},
@@ -167,10 +183,18 @@ static bool handle_command(timetagger& t, std::string line, FILE* ctrl_out)
 			[&]() {
 				int channel = lexical_cast<int>(tokens[1]);
 				bool enabled = lexical_cast<bool>(tokens[2]);
-				t.set_seqchannel_operate(channel, enabled);
+				t.set_seqchan_operate(channel, enabled);
 			},
 			"Enable/disable sequencer channel",
 			"CHAN ENABLED"
+		},
+		{"seqchan_operate?", 1,
+			[&]() {
+				int channel = lexical_cast<int>(tokens[1]);
+				fprintf(ctrl_out, "= %d\n", t.get_seqchan_operate(channel));
+			},
+			"Get operational state of sequencer channel",
+			"CHAN"
 		},
 		{"seqchan_config", 5,
 			[&]() {
@@ -179,11 +203,45 @@ static bool handle_command(timetagger& t, std::string line, FILE* ctrl_out)
 				int initial_count = lexical_cast<int>(tokens[3]);
 				int low_count = lexical_cast<int>(tokens[4]);
 				int high_count = lexical_cast<int>(tokens[5]);
-				t.config_seqchannel(channel, initial_state,
-						initial_count, low_count, high_count);
+				t.set_seqchan_initial_state(channel, initial_state);
+				t.set_seqchan_initial_count(channel, initial_count);
+				t.set_seqchan_low_count(channel, low_count);
+				t.set_seqchan_high_count(channel, high_count);
 			},
 			"Configure sequencer channel",
 			"CHAN INITIAL_STATE INITIAL_COUNT LOW_COUNT HIGH_COUNT"
+		},
+		{"seqchan_initial_state?", 1,
+			[&]() {
+				int channel = lexical_cast<int>(tokens[1]);
+				fprintf(ctrl_out, "= %d\n", t.get_seqchan_initial_state(channel));
+			},
+			"Get initial state of sequencer channel",
+			"CHAN"
+		},
+		{"seqchan_initial_count?", 1,
+			[&]() {
+				int channel = lexical_cast<int>(tokens[1]);
+				fprintf(ctrl_out, "= %d\n", t.get_seqchan_initial_count(channel));
+			},
+			"Get initial count of sequencer channel",
+			"CHAN"
+		},
+		{"seqchan_low_count?", 1,
+			[&]() {
+				int channel = lexical_cast<int>(tokens[1]);
+				fprintf(ctrl_out, "= %d\n", t.get_seqchan_low_count(channel));
+			},
+			"Get low count of sequencer channel",
+			"CHAN"
+		},
+		{"seqchan_high_count?", 1,
+			[&]() {
+				int channel = lexical_cast<int>(tokens[1]);
+				fprintf(ctrl_out, "= %d\n", t.get_seqchan_high_count(channel));
+			},
+			"Get high count of sequencer channel",
+			"CHAN"
 		},
 	};
 
