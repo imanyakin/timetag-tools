@@ -86,6 +86,7 @@ class SeqWindow(object):
                         elif text == 'minutes': return 60
                         else: raise 'invalid time unit'
                 self.get_time_multiplier = get_time_multiplier
+                time_mult = self.get_time_multiplier()
 
                 table = gtk.Table(rows=5, columns=7)
                 vbox.pack_end(table)
@@ -128,21 +129,21 @@ class SeqWindow(object):
                         table.attach(state, col, col+1, c+1, c+2)
                         col += 1
 
-                        val = int(self._tagger_cmd('seqchan_initial_count? %d\n' % c)) * 1e6 / self.freq
+                        val = int(self._tagger_cmd('seqchan_initial_count? %d\n' % c)) / time_mult / self.freq
                         initial_adj = gtk.Adjustment(value=val, lower=0, upper=1e9, step_incr=100)
                         initial_adj.connect('value-changed', lambda w,ch: self.reconfig_channel(ch), c)
                         w = gtk.SpinButton(initial_adj)
                         table.attach(w, col, col+1, c+1, c+2)
                         col += 1
 
-                        val = int(self._tagger_cmd('seqchan_low_count? %d\n' % c)) * 1e6 / self.freq
+                        val = int(self._tagger_cmd('seqchan_low_count? %d\n' % c)) / time_mult / self.freq
                         low_adj = gtk.Adjustment(value=val, lower=0, upper=1e9, step_incr=100)
                         low_adj.connect('value-changed', lambda w,ch: self.reconfig_channel(ch), c)
                         w = gtk.SpinButton(low_adj)
                         table.attach(w, col, col+1, c+1, c+2)
                         col += 1
 
-                        val = int(self._tagger_cmd('seqchan_high_count? %d\n' % c)) * 1e6 / self.freq
+                        val = int(self._tagger_cmd('seqchan_high_count? %d\n' % c)) / time_mult / self.freq
                         high_adj = gtk.Adjustment(value=val, lower=0, upper=1e9, step_incr=100)
                         high_adj.connect('value-changed', lambda w,ch: self.reconfig_channel(ch), c)
                         w = gtk.SpinButton(high_adj)
