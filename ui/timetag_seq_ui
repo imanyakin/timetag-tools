@@ -8,13 +8,12 @@ logging.basicConfig(level=logging.DEBUG)
 
 class SeqWindow(object):
         def operate_toggled_cb(self, button):
+                self._tagger_cmd('seq_operate %d\n' % button.props.active)
                 if button.props.active:
                         button.props.label = 'Running'
-                        self._tagger_cmd('start_seq\n')
                         logging.info('Now running')
                 else:
                         button.props.label = 'Stopped'
-                        self._tagger_cmd('stop_seq\n')
                         logging.info('Now stopped')
 
         def reset_cb(self, button):
@@ -27,6 +26,10 @@ class SeqWindow(object):
                 button.props.label = 'Enabled' if active else 'Disabled'
                 self._tagger_cmd('seqchan_operate %d %d\n' % (chan, active))
 
+        def initial_state_changed_cb(self, button, chan):
+                active = button.props.active
+                button.props.label = 'High' if active else 'Low'
+                self.reconfig_channel(chan)
 
         def reconfig_channel(self, chan):
                 state,initial_adj,low_adj,high_adj = self.controls[chan]
@@ -55,7 +58,9 @@ class SeqWindow(object):
                 bbox = gtk.HButtonBox()
                 vbox.pack_start(bbox)
 
-                btn = gtk.ToggleButton('Stopped')
+                active = int(self._tagger_cmd('seq_operate?\n'))
+                btn = gtk.ToggleButton('Running' if active else 'Stopped')
+                btn.set_active(active)
                 btn.connect('toggled', self.operate_toggled_cb)
                 bbox.pack_start(btn)
 
@@ -87,29 +92,36 @@ class SeqWindow(object):
                         table.attach(w, col, col+1, c+1, c+2)
                         col += 1
 
-                        state = gtk.ToggleButton('Disabled')
+                        active = int(self._tagger_cmd('seqchan_operate? %d\n' % c))
+                        state = gtk.ToggleButton('Enabled' if active else 'Disabled')
+                        state.set_active(active)
                         state.connect('toggled', self.enabled_changed_cb, c)
                         table.attach(state, col, col+1, c+1, c+2)
                         col += 1
 
-                        state = gtk.ToggleButton('State')
-                        state.connect('toggled', lambda w,ch: self.reconfig_channel(ch), c)
+                        active = int(self._tagger_cmd('seqchan_initial_state? %d\n' % c))
+                        state = gtk.ToggleButton('High' if active else 'Low')
+                        state.set_active(active)
+                        state.connect('toggled', self.initial_state_changed_cb, c)
                         table.attach(state, col, col+1, c+1, c+2)
                         col += 1
 
-                        initial_adj = gtk.Adjustment(value=200, lower=0, upper=1e9, step_incr=100)
+                        val = int(self._tagger_cmd('seqchan_initial_count? %d\n' % c)) * 1e6 / self.freq
+                        initial_adj = gtk.Adjustment(value=val, lower=0, upper=1e9, step_incr=100)
                         initial_adj.connect('value-changed', lambda w,ch: self.reconfig_channel(ch), c)
                         w = gtk.SpinButton(initial_adj)
                         table.attach(w, col, col+1, c+1, c+2)
                         col += 1
 
-                        low_adj = gtk.Adjustment(value=200, lower=0, upper=1e9, step_incr=100)
+                        val = int(self._tagger_cmd('seqchan_low_count? %d\n' % c)) * 1e6 / self.freq
+                        low_adj = gtk.Adjustment(value=val, lower=0, upper=1e9, step_incr=100)
                         low_adj.connect('value-changed', lambda w,ch: self.reconfig_channel(ch), c)
                         w = gtk.SpinButton(low_adj)
                         table.attach(w, col, col+1, c+1, c+2)
                         col += 1
 
-                        high_adj = gtk.Adjustment(value=200, lower=0, upper=1e9, step_incr=100)
+                        val = int(self._tagger_cmd('seqchan_high_count? %d\n' % c)) * 1e6 / self.freq
+                        high_adj = gtk.Adjustment(value=val, lower=0, upper=1e9, step_incr=100)
                         high_adj.connect('value-changed', lambda w,ch: self.reconfig_channel(ch), c)
                         w = gtk.SpinButton(high_adj)
                         table.attach(w, col, col+1, c+1, c+2)
@@ -126,8 +138,7 @@ class SeqWindow(object):
                 if l.strip() != "ready":
                         raise RuntimeError('Invalid status message: %s' % l)
 
-                print(self._tagger_cmd('seq_clockrate\n'))
-                self.freq = int(self._tagger_cmd('seq_clockrate\n'))
+                self.freq = int(self._tagger_cmd('seq_clockrate?\n'))
                 self._build_window()
 
         def _tagger_cmd(self, cmd):
