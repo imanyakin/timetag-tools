@@ -83,8 +83,10 @@ public:
 	unsigned int get_version();
 	unsigned int get_clockrate();
 
-	void set_strobe_channel(int channel, bool enabled);
-	void set_delta_channel(int channel, bool enabled);
+	void set_strobe_operate(unsigned int channel, bool enabled);
+	bool get_strobe_operate(unsigned int channel);
+	void set_delta_operate(unsigned int channel, bool enabled);
+	bool get_delta_operate(unsigned int channel);
 
 	void start_readout();
 	void stop_readout();
@@ -98,10 +100,18 @@ public:
 	unsigned int get_lost_record_count();
 
 	void set_global_sequencer_operate(bool operate);
+	bool get_global_sequencer_operate();
 	void reset_sequencer();
-	void set_seqchannel_operate(int seq, bool operate);
-	void config_seqchannel(int seq, bool initial_state, int initial_count,
-			int low_count, int high_count);
+	void set_seqchan_operate(unsigned int seq, bool operate);
+	bool get_seqchan_operate(unsigned int seq);
+	void set_seqchan_initial_state(unsigned int seq, bool initial_state);
+	bool get_seqchan_initial_state(unsigned int seq);
+	void set_seqchan_initial_count(unsigned int seq, uint32_t initial_count);
+	uint32_t get_seqchan_initial_count(unsigned int seq);
+	void set_seqchan_low_count(unsigned int seq, uint32_t low_count);
+	uint32_t get_seqchan_low_count(unsigned int seq);
+	void set_seqchan_high_count(unsigned int seq, uint32_t high_count);
+	uint32_t get_seqchan_high_count(unsigned int seq);
 };
 
 #endif
