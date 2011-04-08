@@ -167,13 +167,19 @@ static bool handle_command(timetagger& t, std::string line, FILE* ctrl_out)
 			[&]() { fprintf(ctrl_out, "= %d\n", t.get_seq_clockrate()); },
 			"Display sequencer clockrate"
 		},
-		{"start_seq", 0,
-			[&]() { t.set_global_sequencer_operate(true); },
-			"Start sequencer"
+		{"seq_operate", 1,
+			[&]() { 
+				bool enabled = lexical_cast<bool>(tokens[1]);
+				t.set_global_sequencer_operate(enabled);
+			},
+			"Enable/disable sequencer",
+			"CHAN"
 		},
-		{"stop_seq", 0,
-			[&]() { t.set_global_sequencer_operate(false); },
-			"Stop sequencer"
+		{"seq_operate?", 0,
+			[&]() {
+				fprintf(ctrl_out, "= %d\n", t.get_global_sequencer_operate());
+			},
+			"Get operational state of sequencer",
 		},
 		{"reset_seq", 0,
 			[&]() { t.reset_sequencer(); },
