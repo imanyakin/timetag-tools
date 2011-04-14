@@ -26,6 +26,7 @@
 #include <cstdio>
 #include <cstring>
 #include <libusb.h>
+#include <signal.h>
 
 #include <sys/time.h>
 #include <sys/resource.h>
@@ -393,6 +394,9 @@ int main(int argc, char** argv)
 	libusb_context* ctx;
 	libusb_device_handle* dev;
 
+	// Handle SIGPIPE somewhat reasonably
+	signal(SIGPIPE, SIG_IGN);
+	
 	// Disable output buffering
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stderr, NULL, _IONBF, 0);
