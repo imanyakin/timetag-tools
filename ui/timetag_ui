@@ -105,12 +105,13 @@ class NumericalIndicators(object):
                 self.last_timestamp = self.pipeline.latest_timestamp
 
         def _update_total_indicators(self):
-                for n, photon_count, lost_count, timestamp in self.pipeline.stats():
+                for n, photon_count, timestamp in self.pipeline.stats():
                         if n not in self.inputs: continue
                         markup = "<span color='darkgreen' size='xx-large'>%1.3e</span> <span size='large'>photons</span>" % photon_count
-                        self.inputs[n][0].set_markup(markup)
-                        markup = "<span color='darkred' size='xx-large'>%d</span> <span size='large'>loss events</span>" % lost_count
-                        self.inputs[n][1].set_markup(markup)
+                        self.inputs[n].set_markup(markup)
+
+                markup = "<span color='darkred' size='xx-large'>%d</span> <span size='large'>losses/s</span>" % self.pipeline.loss_count
+                self.lost.set_markup(markup)
 
 
 class BinSeriesPlot(object):
