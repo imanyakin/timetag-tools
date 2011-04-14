@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
 	unsigned int count = 0;
         record_stream stream(0);
 
-	setvbuf(stdout, NULL, _IONBF, NULL);
+	setvbuf(stdout, NULL, _IONBF, 0);
 	while (true) {
 		try {
 			record r = stream.get_record();
