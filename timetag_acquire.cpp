@@ -236,11 +236,11 @@ static bool handle_command(timetagger& t, std::string line, FILE* ctrl_out, int 
 			"CHAN"
 		},
 		{"version?", 0,
-			[&]() { fprintf(ctrl_out, "= %d\n", t.get_version()); },
+			[&]() { fprintf(ctrl_out, "= %u\n", t.get_version()); },
 			"Display hardware version"
 		},
 		{"clockrate?", 0,
-			[&]() { fprintf(ctrl_out, "= %d\n", t.get_clockrate()); },
+			[&]() { fprintf(ctrl_out, "= %u\n", t.get_clockrate()); },
 			"Display hardware acquisition clockrate"
 		},
 		{"reset_counter", 0,
@@ -248,15 +248,15 @@ static bool handle_command(timetagger& t, std::string line, FILE* ctrl_out, int 
 			"Reset timetag counter"
 		},
 		{"record_count?", 0,
-			[&]() { fprintf(ctrl_out, "= %d\n", t.get_record_count()); },
+			[&]() { fprintf(ctrl_out, "= %u\n", t.get_record_count()); },
 			"Display current record count"
 		},
 		{"lost_record_count?", 0,
-			[&]() { fprintf(ctrl_out, "= %d\n", t.get_lost_record_count()); },
+			[&]() { fprintf(ctrl_out, "= %u\n", t.get_lost_record_count()); },
 			"Display current lost record count"
 		},
 		{"seq_clockrate?", 0,
-			[&]() { fprintf(ctrl_out, "= %d\n", t.get_seq_clockrate()); },
+			[&]() { fprintf(ctrl_out, "= %u\n", t.get_seq_clockrate()); },
 			"Display sequencer clockrate"
 		},
 		{"seq_operate", 1,
@@ -312,7 +312,7 @@ static bool handle_command(timetagger& t, std::string line, FILE* ctrl_out, int 
 		{"seqchan_initial_state?", 1,
 			[&]() {
 				int channel = lexical_cast<int>(tokens[1]);
-				fprintf(ctrl_out, "= %d\n", t.get_seqchan_initial_state(channel));
+				fprintf(ctrl_out, "= %u\n", t.get_seqchan_initial_state(channel));
 			},
 			"Get initial state of sequencer channel",
 			"CHAN"
@@ -320,7 +320,7 @@ static bool handle_command(timetagger& t, std::string line, FILE* ctrl_out, int 
 		{"seqchan_initial_count?", 1,
 			[&]() {
 				int channel = lexical_cast<int>(tokens[1]);
-				fprintf(ctrl_out, "= %d\n", t.get_seqchan_initial_count(channel));
+				fprintf(ctrl_out, "= %u\n", t.get_seqchan_initial_count(channel));
 			},
 			"Get initial count of sequencer channel",
 			"CHAN"
@@ -328,7 +328,7 @@ static bool handle_command(timetagger& t, std::string line, FILE* ctrl_out, int 
 		{"seqchan_low_count?", 1,
 			[&]() {
 				int channel = lexical_cast<int>(tokens[1]);
-				fprintf(ctrl_out, "= %d\n", t.get_seqchan_low_count(channel));
+				fprintf(ctrl_out, "= %u\n", t.get_seqchan_low_count(channel));
 			},
 			"Get low count of sequencer channel",
 			"CHAN"
@@ -336,7 +336,7 @@ static bool handle_command(timetagger& t, std::string line, FILE* ctrl_out, int 
 		{"seqchan_high_count?", 1,
 			[&]() {
 				int channel = lexical_cast<int>(tokens[1]);
-				fprintf(ctrl_out, "= %d\n", t.get_seqchan_high_count(channel));
+				fprintf(ctrl_out, "= %u\n", t.get_seqchan_high_count(channel));
 			},
 			"Get high count of sequencer channel",
 			"CHAN"
