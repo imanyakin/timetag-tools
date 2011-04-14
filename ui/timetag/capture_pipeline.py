@@ -108,7 +108,7 @@ class CapturePipeline(object):
                 self._out_file = open(filename, 'w')
                 self._control.write('add_output file\n')
                 sleep(0.01) # HACK: Otherwise the packet gets lost
-                print passfd.sendfd(self._control_sock, self._out_file)
+                passfd.sendfd(self._control_sock, self._out_file)
                 self._read_reply()
 
         def stop_output_file(self):
@@ -128,7 +128,7 @@ class CapturePipeline(object):
                 self._control.write('add_output binner\n')
                 self._control.flush()
                 sleep(0.01) # HACK: Otherwise the packet gets lost
-                print passfd.sendfd(self._control_sock, self._binner.stdin)
+                passfd.sendfd(self._control_sock, self._binner.stdin)
                 self._read_reply()
                 logging.info("Started process %s" % cmd)
                 self.resize_buffer(1000) # FIXME
@@ -173,6 +173,7 @@ class CapturePipeline(object):
                 bin_fmt = 'iQII'
                 bin_sz = struct.calcsize(bin_fmt)
                 while True:
+                        if not self._binner: break
                         data = self._binner.stdout.read(bin_sz)
                         if len(data) != bin_sz: break
                         self.last_bin_walltime = time()
