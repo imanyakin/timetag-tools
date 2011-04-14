@@ -22,12 +22,13 @@
 # 
 
 
+import os, sys
 import logging
 from collections import defaultdict, namedtuple
 import time
 from datetime import datetime
-import os, sys
 import pkgutil
+import json
 
 import gobject, gtk
 import matplotlib
@@ -518,9 +519,22 @@ class MainWindow(object):
                 output_enabled = get_obj('file_output_enabled').props.active
                 if output_enabled:
                         outfile = get_obj('output_file').props.text
-                        self.pipeline.start_output_file(outfile)
+                        if os.path.exists(outfile):
+                                dialog = gtk.MessageDialog(
+                                                parent=self.win,
+                                                flags=gtk.DIALOG_MODAL,
+                                                type=gtk.MESSAGE_QUESTION,
+                                                buttons=gtk.BUTTONS_YES_NO,
+                                                message_format='The file "%s" already exists. Replace?' % outfile)
+                                resp = dialog.run()
+                                dialog.hide()
+                                del dialog
+                                if resp != gtk.RESPONSE_YES:
+                                        get_obj('readout_running').props.active = False
+                                        get_obj('readout_running').props.label = "Stopped"
+                                        return
 
-                        import json
+                        self.pipeline.start_output_file(outfile)
                         description = get_obj('description').get_buffer().props.text
                         channels = {}
                         for i in range(4):

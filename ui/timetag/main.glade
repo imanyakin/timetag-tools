@@ -296,9 +296,6 @@
                       </packing>
                     </child>
                     <child>
-                      <placeholder/>
-                    </child>
-                    <child>
                       <object class="GtkCheckButton" id="acq_time_enabled">
                         <property name="label" translatable="yes">Acquisition Timer</property>
                         <property name="visible">True</property>
@@ -336,6 +333,9 @@
                         <property name="top_attach">1</property>
                         <property name="bottom_attach">2</property>
                       </packing>
+                    </child>
+                    <child>
+                      <placeholder/>
                     </child>
                   </object>
                 </child>
