@@ -402,6 +402,8 @@ class MainWindow(object):
                 self.win.connect('destroy', quit)
 
                 self.set_default_output_file()
+                get_obj('bin_time_spin').props.value = 10
+                get_obj('bin_time').props.value = 10
                 self.bin_series_win = None
                 self.hist_win = None
                 self.indicators = None
@@ -468,7 +470,7 @@ class MainWindow(object):
 
         @property
         def bin_time(self):
-                return self.builder.get_object('bin_time').props.value / 1000.0
+                return self.builder.get_object('bin_time').props.value * 1e-3
 
         def usb_latency_changed_cb(self, combobox):
                 iter = combobox.get_active_iter()
@@ -537,9 +539,9 @@ class MainWindow(object):
                         meta_file = outfile + ".meta"
                         json.dump(metadata, open(meta_file, 'w'), indent=2)
 
-                self.pipeline.start_binner(10e-3)
                 self.pipeline.reset_counter()
                 self.pipeline.start_capture()
+                self.pipeline.start_binner(self.bin_time)
                 self.readout_running = True
                 get_obj('file_output_enabled').props.sensitive = False
                 get_obj('output_file').props.sensitive = False
