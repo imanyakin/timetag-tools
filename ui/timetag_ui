@@ -519,6 +519,7 @@ class MainWindow(object):
                 output_enabled = get_obj('file_output_enabled').props.active
                 if output_enabled:
                         outfile = get_obj('output_file').props.text
+                        outfile = os.path.expanduser(outfile)
                         if os.path.exists(outfile):
                                 dialog = gtk.MessageDialog(
                                                 parent=self.win,
