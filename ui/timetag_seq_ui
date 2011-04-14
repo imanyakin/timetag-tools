@@ -18,6 +18,8 @@ class SeqWindow(object):
 
         def reset_cb(self, button):
                 logging.info('Reset')
+                self.operate_btn.props.active = False
+                self._tagger_cmd('seq_operate 0\n')
                 self._tagger_cmd('reset_seq\n')
 
         def enabled_changed_cb(self, button, chan):
@@ -62,6 +64,7 @@ class SeqWindow(object):
                 btn = gtk.ToggleButton('Running' if active else 'Stopped')
                 btn.set_active(active)
                 btn.connect('toggled', self.operate_toggled_cb)
+                self.operate_btn = btn
                 bbox.pack_start(btn)
 
                 btn = gtk.Button('Reset')
