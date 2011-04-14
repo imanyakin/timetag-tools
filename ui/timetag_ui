@@ -120,7 +120,7 @@ class BinSeriesPlot(object):
         def __init__(self, main_win):
                 def fix_color(c):
                         c = gtk.gdk.color_parse(c.color)
-                        return (1./0xffff*c.red, 1./0xffff*c.green, 1./0xffff*c.red)
+                        return (c.red_float, c.green_float, c.blue_float)
                 self.colors = [ fix_color(c) for c in main_win.strobe_config ]
 
                 self.plot_update_rate = 12 # in Hertz
@@ -257,7 +257,7 @@ class HistPlot(object):
         def __init__(self, main_win):
                 def fix_color(c):
                         c = gtk.gdk.color_parse(c.color)
-                        return (1./0xffff*c.red, 1./0xffff*c.green, 1./0xffff*c.red)
+                        return (c.red_float, c.green_float, c.blue_float)
                 self.colors = [ fix_color(c) for c in main_win.strobe_config ]
 
                 self.builder = gtk.Builder()
