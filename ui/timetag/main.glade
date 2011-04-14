@@ -227,6 +227,7 @@
                 <child>
                   <object class="GtkTable" id="table4">
                     <property name="visible">True</property>
+                    <property name="n_rows">2</property>
                     <property name="n_columns">5</property>
                     <child>
                       <object class="GtkLabel" id="label10">
@@ -279,6 +280,7 @@
                       <packing>
                         <property name="left_attach">4</property>
                         <property name="right_attach">5</property>
+                        <property name="bottom_attach">2</property>
                       </packing>
                     </child>
                     <child>
@@ -291,6 +293,48 @@
                       <packing>
                         <property name="left_attach">3</property>
                         <property name="right_attach">4</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <object class="GtkCheckButton" id="acq_time_enabled">
+                        <property name="label" translatable="yes">Acquisition Timer</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">False</property>
+                        <property name="draw_indicator">True</property>
+                      </object>
+                      <packing>
+                        <property name="top_attach">1</property>
+                        <property name="bottom_attach">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkSpinButton" id="acq_time_spin">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="invisible_char">•</property>
+                        <property name="adjustment">acq_time</property>
+                      </object>
+                      <packing>
+                        <property name="left_attach">1</property>
+                        <property name="right_attach">2</property>
+                        <property name="top_attach">1</property>
+                        <property name="bottom_attach">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="label1">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">seconds</property>
+                      </object>
+                      <packing>
+                        <property name="left_attach">2</property>
+                        <property name="right_attach">3</property>
+                        <property name="top_attach">1</property>
+                        <property name="bottom_attach">2</property>
                       </packing>
                     </child>
                   </object>
@@ -321,6 +365,16 @@
             <property name="expand">False</property>
             <property name="padding">8</property>
             <property name="position">3</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkProgressBar" id="progressbar">
+            <property name="visible">True</property>
+            <property name="show_text">True</property>
+            <property name="text" translatable="yes">Not running</property>
+          </object>
+          <packing>
+            <property name="position">4</property>
           </packing>
         </child>
         <child>
@@ -459,7 +513,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">False</property>
-            <property name="position">4</property>
+            <property name="position">5</property>
           </packing>
         </child>
       </object>
@@ -475,5 +529,11 @@
     <property name="tooltip">Edit channel configuration</property>
     <property name="stock_id">gtk-edit</property>
     <signal name="activate" handler="edit_channels_activate_cb"/>
+  </object>
+  <object class="GtkAdjustment" id="acq_time">
+    <property name="upper">100</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+    <property name="page_size">10</property>
   </object>
 </interface>

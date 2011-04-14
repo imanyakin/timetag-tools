@@ -544,33 +544,62 @@ class MainWindow(object):
                 self.pipeline.start_capture()
                 self.pipeline.start_binner(self.bin_time)
                 self.readout_running = True
-                get_obj('file_output_enabled').props.sensitive = False
-                get_obj('output_file').props.sensitive = False
-
                 if self.bin_series_win:
                         self.bin_series_win.scroll = True
 
+                get_obj('readout_running').props.active = True
+                get_obj('readout_running').props.label = "Running"
+                get_obj('file_output_enabled').props.sensitive = False
+                get_obj('output_file').props.sensitive = False
+                get_obj('acq_time_enabled').props.sensitive = False
+                get_obj('acq_time_spin').props.sensitive = False
+
+                progressbar = get_obj('progressbar')
+                self.acq_time = 0
+                acq_timer_enabled = get_obj('acq_time_enabled').props.active
+                acq_stop_time = get_obj('acq_time').props.value
+                def timer_cb():
+                        if not self.readout_running:
+                                return False
+                        self.acq_time += 1
+                        progressbar.props.text = 'Acquired %d:%02d' % \
+                                        (self.acq_time/60, self.acq_time%60)
+                        if acq_timer_enabled:
+                                progressbar.set_fraction(self.acq_time / acq_stop_time)
+                        else:
+                                progressbar.pulse()
+                        if acq_timer_enabled and self.acq_time >= acq_stop_time:
+                                self.stop_readout()
+                                return False
+                        return True
+
+                gobject.timeout_add_seconds(1, timer_cb)
+
         def stop_readout(self):
                 get_obj = self.builder.get_object
+                get_obj('readout_running').props.active = False
+                get_obj('readout_running').props.label = "Stopped"
                 self.pipeline.stop_binner()
                 self.pipeline.stop_capture()
                 if get_obj('file_output_enabled').props.active:
                         self.pipeline.stop_output_file()
                 self.readout_running = False
+                if self.bin_series_win:
+                        self.bin_series_win.scroll = False
+
                 # So people don't overwrite the data they just took
                 get_obj('file_output_enabled').props.active = False
                 get_obj('file_output_enabled').props.sensitive = True
                 get_obj('output_file').props.sensitive = True
-                if self.bin_series_win:
-                        self.bin_series_win.scroll = False
+                get_obj('acq_time_enabled').props.sensitive = True
+                get_obj('acq_time_spin').props.sensitive = True
+                get_obj('progressbar').props.text = 'Not running'
 
         def readout_running_toggled_cb(self, action):
                 if action.props.active:
                         self.start_readout()
-                        action.props.label = "Running"       
                 else:
                         self.stop_readout()
-                        action.props.label = "Stopped"
 
         def indicator_mode_changed_cb(self, widget):
                 active = self.builder.get_object('show_rates').props.active
