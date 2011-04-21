@@ -103,7 +103,9 @@ class NumericalIndicators(object):
                         loss_rate = (self.pipeline.loss_count - self.last_loss_count) / (self.pipeline.latest_timestamp - self.last_timestamp)
                         markup = "<span color='darkred' size='xx-large'>%d</span> <span size='large'>losses/s</span>" % loss_rate
                         self.lost.set_markup(markup)
+
                 self.last_timestamp = self.pipeline.latest_timestamp
+                self.last_loss_count = self.pipeline.loss_count
 
         def _update_total_indicators(self):
                 for n, photon_count, timestamp in self.pipeline.stats():
@@ -111,7 +113,7 @@ class NumericalIndicators(object):
                         markup = "<span color='darkgreen' size='xx-large'>%1.3e</span> <span size='large'>photons</span>" % photon_count
                         self.inputs[n].set_markup(markup)
 
-                markup = "<span color='darkred' size='xx-large'>%d</span> <span size='large'>losses/s</span>" % self.pipeline.loss_count
+                markup = "<span color='darkred' size='xx-large'>%d</span> <span size='large'>losses</span>" % self.pipeline.loss_count
                 self.lost.set_markup(markup)
 
 
