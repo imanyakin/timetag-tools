@@ -352,6 +352,7 @@ void timetagger::readout_handler::do_flush() {
 
 void timetagger::readout_handler::operator()()
 {
+	int failed_xfers = 0;
 	uint8_t* buffer = new uint8_t[510];
 
 	do {
@@ -367,10 +368,17 @@ void timetagger::readout_handler::operator()()
 			if (transferred % RECORD_LENGTH != 0)
 				fprintf(stderr, "Warning: Received partial record.");
 			cb(buffer, transferred);
+			failed_xfers = 0;
 		} else if (res == LIBUSB_ERROR_TIMEOUT) {
 			// Ignore timeouts so we can check needs_flush
-		} else
-			fprintf(stderr, "Transfer failed: %d\n", res);
+		} else {
+			fprintf(stderr, "Readout transfer failed: %d\n", res);
+			failed_xfers++;
+			if (failed_xfers > 1000) {
+				fprintf(stderr, "Too many failed transfers. Read-out stopped\n");
+				break;
+			}
+		}
 
 		try {
 			boost::this_thread::interruption_point();
