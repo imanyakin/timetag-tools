@@ -194,6 +194,10 @@ static bool handle_command(timetagger& t, std::string line, FILE* ctrl_out, int 
 			[&]() { t.reset(); },
 			"Perform hardware reset"
 		},
+		{"flush_fifo", 0,
+			[&]() { t.flush_fifo(); },
+			"Flush the hardware's record FIFO"
+		},
 		{"set_send_window", 1,
 			[&]() {
 				int records = lexical_cast<int>(tokens[1]);
