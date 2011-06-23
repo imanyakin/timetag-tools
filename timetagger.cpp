@@ -54,6 +54,7 @@
 #define DELTA_REG		0x05
 #define REC_COUNTER_REG		0x06
 #define LOST_COUNTER_REG	0x07
+#define REC_FIFO_REG		0x08
 
 #define SEQ_REG			0x20
 #define SEQ_CLOCKRATE_REG	0x21
@@ -84,6 +85,13 @@ timetagger::~timetagger()
 {
 	stop_readout();
 	libusb_release_interface(dev, 0);
+}
+
+void timetagger::flush_fifo()
+{
+	// Clear sample FIFO
+	write_reg(REC_FIFO_REG, regs[REC_FIFO_REG] | 0x1);
+	write_reg(REC_FIFO_REG, regs[REC_FIFO_REG] & ~0x1);
 }
 
 void timetagger::reset()

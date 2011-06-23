@@ -94,6 +94,7 @@ public:
 	void start_capture();
 	void stop_capture();
 	void reset_counter();
+	void flush_fifo();
 
 	unsigned int get_seq_clockrate();
 	unsigned int get_record_count();
