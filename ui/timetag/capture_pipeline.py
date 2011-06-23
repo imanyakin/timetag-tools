@@ -202,6 +202,7 @@ class CapturePipeline(object):
                 self._tagger_cmd('stop_capture\n')
 
         def start_capture(self):
+                self._tagger_cmd('flush_fifo\n')
                 self._tagger_cmd('start_capture\n')
 
         def set_send_window(self, window):
