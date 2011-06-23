@@ -52,6 +52,12 @@
 #define   CAPCTL_RESET_CNT	  (1<<2)
 #define STROBE_REG		0x04
 #define DELTA_REG		0x05
+#define REC_COUNTER_REG		0x06
+#define LOST_COUNTER_REG	0x07
+
+#define SEQ_REG			0x20
+#define SEQ_CLOCKRATE_REG	0x21
+#define SEQ_CONFIG_BASE		0x28
 
 timetagger::timetagger(libusb_device_handle* dev, data_cb_t& data_cb) :
 	dev(dev),
@@ -65,9 +71,9 @@ timetagger::timetagger(libusb_device_handle* dev, data_cb_t& data_cb) :
 	// Start things off with sane defaults
 	write_reg(0x0, 0x00); // Possibly unjam register manager
 	flush_fx2_fifo();
-	write_reg(0x3, 0x00);
-	write_reg(0x4, 0x0f);
-	write_reg(0x5, 0x0f);
+	write_reg(CAPCTL_REG, 0x00);
+	write_reg(STROBE_REG, 0x0f); // Strobe channel control
+	write_reg(DELTA_REG, 0x0f); // Delta channel control
 
 	// Update register cache
 	for (int i=1; i<TIMETAG_NREGS; i++)
@@ -142,37 +148,37 @@ void timetagger::write_reg(uint16_t reg, uint32_t val)
 void timetagger::set_strobe_operate(unsigned int channel, bool enabled)
 {
 	if (enabled)
-		write_reg(0x4, regs[0x4] | (1 << channel));
+		write_reg(STROBE_REG, regs[STROBE_REG] | (1 << channel));
 	else
-		write_reg(0x4, regs[0x4] & ~(1 << channel));
+		write_reg(STROBE_REG, regs[STROBE_REG] & ~(1 << channel));
 }
 
 bool timetagger::get_strobe_operate(unsigned int channel)
 {
-	return read_reg(0x4) & (1<<channel);
+	return read_reg(STROBE_REG) & (1<<channel);
 }
 
 void timetagger::set_delta_operate(unsigned int channel, bool enabled)
 {
 	if (enabled)
-		write_reg(0x5, regs[0x4] | (1 << channel));
+		write_reg(DELTA_REG, regs[DELTA_REG] | (1 << channel));
 	else
-		write_reg(0x5, regs[0x4] & ~(1 << channel));
+		write_reg(DELTA_REG, regs[DELTA_REG] & ~(1 << channel));
 }
 
 bool timetagger::get_delta_operate(unsigned int channel)
 {
-	return read_reg(0x5) & (1<<channel);
+	return read_reg(DELTA_REG) & (1<<channel);
 }
 
 unsigned int timetagger::get_version()
 {
-	return read_reg(0x01);
+	return read_reg(VERSION_REG);
 }
 
 unsigned int timetagger::get_clockrate()
 {
-	return read_reg(0x02);
+	return read_reg(CLOCKRATE_REG);
 }
 
 void timetagger::start_capture()
@@ -180,57 +186,57 @@ void timetagger::start_capture()
 	// Don't start capture until flush has finished
 	while (needs_flush)
 		sleep(1);
-	write_reg(0x3, regs[0x3] | CAPCTL_CAPTURE_EN | CAPCTL_COUNT_EN);
+	write_reg(CAPCTL_REG, regs[CAPCTL_REG] | CAPCTL_CAPTURE_EN | CAPCTL_COUNT_EN);
 }
 
 void timetagger::stop_capture()
 {
-	write_reg(0x3, regs[0x3] & ~CAPCTL_CAPTURE_EN);
+	write_reg(CAPCTL_REG, regs[CAPCTL_REG] & ~CAPCTL_CAPTURE_EN);
 }
 
 void timetagger::reset_counter()
 {
-	write_reg(0x3, (regs[0x3] | CAPCTL_RESET_CNT) & ~CAPCTL_COUNT_EN);
-	write_reg(0x3, regs[0x3] & ~CAPCTL_RESET_CNT);
+	write_reg(CAPCTL_REG, (regs[CAPCTL_REG] | CAPCTL_RESET_CNT) & ~CAPCTL_COUNT_EN);
+	write_reg(CAPCTL_REG, regs[CAPCTL_REG] & ~CAPCTL_RESET_CNT);
 }
 
 unsigned int timetagger::get_record_count()
 {
-	return read_reg(0x6);
+	return read_reg(REC_COUNTER_REG);
 }
 
 unsigned int timetagger::get_lost_record_count()
 {
-	return read_reg(0x7);
+	return read_reg(LOST_COUNTER_REG);
 }
 
 void timetagger::set_global_sequencer_operate(bool operate)
 {
 	if (operate)
-		write_reg(0x20, regs[0x20] | 0x1);
+		write_reg(SEQ_REG, regs[SEQ_REG] | 0x1);
 	else
-		write_reg(0x20, regs[0x20] & ~0x1);
+		write_reg(SEQ_REG, regs[SEQ_REG] & ~0x1);
 }
 
 bool timetagger::get_global_sequencer_operate()
 {
-	return read_reg(0x20) & 0x1;
+	return read_reg(SEQ_REG) & 0x1;
 }
 
 void timetagger::reset_sequencer()
 {
-	write_reg(0x20, 0x2);
-	write_reg(0x20, 0x0);
+	write_reg(SEQ_REG, 0x2);
+	write_reg(SEQ_REG, 0x0);
 }
 
 unsigned int timetagger::get_seq_clockrate()
 {
-	return read_reg(0x21);
+	return read_reg(SEQ_CLOCKRATE_REG);
 }
 
 void timetagger::set_seqchan_operate(unsigned int seq, bool operate)
 {
-	unsigned int base_reg = 0x28 + 0x8*seq;
+	unsigned int base_reg = SEQ_CONFIG_BASE + 0x8*seq;
 	if (operate)
 		write_reg(base_reg, regs[base_reg] | 0x1);
 	else
@@ -239,13 +245,13 @@ void timetagger::set_seqchan_operate(unsigned int seq, bool operate)
 
 bool timetagger::get_seqchan_operate(unsigned int seq)
 {
-	unsigned int base_reg = 0x28 + 0x8*seq;
+	unsigned int base_reg = SEQ_CONFIG_BASE + 0x8*seq;
 	return read_reg(base_reg) & 0x1;
 }
 
 void timetagger::set_seqchan_initial_state(unsigned int seq, bool initial_state)
 {
-	unsigned int base_reg = 0x28 + 0x8*seq;
+	unsigned int base_reg = SEQ_CONFIG_BASE + 0x8*seq;
 	if (initial_state)
 		write_reg(base_reg, regs[base_reg] | 0x02); 
 	else
@@ -254,43 +260,43 @@ void timetagger::set_seqchan_initial_state(unsigned int seq, bool initial_state)
 
 void timetagger::set_seqchan_initial_count(unsigned int seq, uint32_t initial_count)
 {
-	unsigned int base_reg = 0x28 + 0x8*seq;
+	unsigned int base_reg = SEQ_CONFIG_BASE + 0x8*seq;
 	write_reg(base_reg+1, initial_count);
 }
 
 void timetagger::set_seqchan_low_count(unsigned int seq, uint32_t low_count)
 {
-	unsigned int base_reg = 0x28 + 0x8*seq;
+	unsigned int base_reg = SEQ_CONFIG_BASE + 0x8*seq;
 	write_reg(base_reg+2, low_count);
 }
 
 void timetagger::set_seqchan_high_count(unsigned int seq, uint32_t high_count)
 {
-	unsigned int base_reg = 0x28 + 0x8*seq;
+	unsigned int base_reg = SEQ_CONFIG_BASE + 0x8*seq;
 	write_reg(base_reg+3, high_count);
 }
 
 bool timetagger::get_seqchan_initial_state(unsigned int seq)
 {
-	unsigned int base_reg = 0x28 + 0x8*seq;
+	unsigned int base_reg = SEQ_CONFIG_BASE + 0x8*seq;
 	return read_reg(base_reg) & 0x02;
 }
 
 uint32_t timetagger::get_seqchan_initial_count(unsigned int seq)
 {
-	unsigned int base_reg = 0x28 + 0x8*seq;
+	unsigned int base_reg = SEQ_CONFIG_BASE + 0x8*seq;
 	return read_reg(base_reg+1);
 }
 
 uint32_t timetagger::get_seqchan_low_count(unsigned int seq)
 {
-	unsigned int base_reg = 0x28 + 0x8*seq;
+	unsigned int base_reg = SEQ_CONFIG_BASE + 0x8*seq;
 	return read_reg(base_reg+2);
 }
 
 uint32_t timetagger::get_seqchan_high_count(unsigned int seq)
 {
-	unsigned int base_reg = 0x28 + 0x8*seq;
+	unsigned int base_reg = SEQ_CONFIG_BASE + 0x8*seq;
 	return read_reg(base_reg+3);
 }
 
