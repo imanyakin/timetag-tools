@@ -10,6 +10,12 @@ setup(name = 'timetag_ui',
       version = '1.0',
       packages = ['timetag'],
       scripts = ['timetag_ui', 'timetag_seq_ui'],
-      package_data = {'timetag': ['main.glade', 'bin_series.glade', 'hist.glade', 'default.cfg']},
+      package_data = {
+              'timetag': ['main.glade', 'bin_series.glade', 'hist.glade', 'default.cfg']
+      },
+      data_files = [
+              ('share/icons', ['timetag_ui.svg']),
+              ('share/applications', ['timetag_ui.desktop']),
+      ],
       license = 'GPLv3',
 )

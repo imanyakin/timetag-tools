@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Timetag UI
+Comment=Interface for FPGA timetagger
+Version=1.0
+Type=Application
+Terminal=false
+Exec=timetag_ui
+Icon=timetag_ui.svg
+Name[en_US]=timetag_ui
+Categories=Utility;Education;Science;Physics;
