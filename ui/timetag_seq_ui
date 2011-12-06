@@ -49,6 +49,7 @@ class SeqWindow(object):
 
         def _build_window(self):
                 self.window = gtk.Window()
+                self.window.set_icon_name('timetag_seq_ui.svg')
                 self.window.set_title('Timetagger Sequencer Configuration')
                 def quit(unused):
                         gtk.main_quit()

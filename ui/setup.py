@@ -14,8 +14,8 @@ setup(name = 'timetag_ui',
               'timetag': ['main.glade', 'bin_series.glade', 'hist.glade', 'default.cfg']
       },
       data_files = [
-              ('share/icons', ['timetag_ui.svg']),
-              ('share/applications', ['timetag_ui.desktop']),
+              ('share/icons', ['timetag_ui.svg', 'timetag_seq_ui.svg']),
+              ('share/applications', ['timetag_ui.desktop', 'timetag_seq_ui.desktop']),
       ],
       license = 'GPLv3',
 )
