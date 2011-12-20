@@ -42,7 +42,8 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/thread.hpp>
+
+#include <thread>
 
 #include "timetagger.h"
 #include "record_format.h"
@@ -448,13 +449,13 @@ int main(int argc, char** argv)
 	
 		fprintf(stderr, "Listening on socket\n");
 		int conn_fd;
-		std::vector<boost::thread*> threads;
+		std::vector<std::thread*> threads;
 		while ((conn_fd = accept(socket_fd,
 					(struct sockaddr*) &address,
 					(socklen_t*) &address_len)) > -1)
 		{
 			FILE* conn = fdopen(conn_fd, "r+");
-			threads.push_back(new boost::thread([&](){ read_loop(t, dev_mutex, conn, conn, conn_fd); }));
+			threads.push_back(new std::thread([&](){ read_loop(t, dev_mutex, conn, conn, conn_fd); }));
 		}
 		fprintf(stderr, "Cleaning up...\n");
 		for (auto thrd=threads.begin(); thrd != threads.end(); thrd++)
