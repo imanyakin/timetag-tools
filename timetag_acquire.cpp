@@ -64,19 +64,12 @@ static std::list<output_fd> output_fds;
 struct data_cb : timetagger::data_cb_t {
 	unsigned int& written;
 	data_cb(unsigned int& written) : written(written) { }
-	void operator()(const uint8_t* buffer, size_t length) {
-		/*
-		 * HACK: Ignore first 8 records
-		 * Hardware returns old records at beginning of acquisition
-		 */
-		int skip = 0;
-		if (written < 8*RECORD_LENGTH)
-			skip += 8*RECORD_LENGTH;
 
+	void operator()(const uint8_t* buffer, size_t length) {
 		for (auto fd=output_fds.begin(); fd != output_fds.end(); fd++) {
-			int ret = write(fd->fd, buffer+skip, length-skip);
+			int ret = write(fd->fd, buffer, length);
 			if (ret < 0 && errno == EAGAIN)
-				fd->lost_records += (length-skip) / RECORD_LENGTH;
+				fd->lost_records += length / RECORD_LENGTH;
 		}
 		written += length;
 	}
