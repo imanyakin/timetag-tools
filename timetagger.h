@@ -36,9 +36,7 @@
 
 class timetagger {
 public:
-	struct data_cb_t {
-		virtual void operator()(const uint8_t* buffer, size_t length)=0;
-	};
+	typedef std::function<void (const uint8_t* buffer, size_t length)> data_cb_t;
 
 private:
 	libusb_device_handle* dev;
@@ -61,7 +59,7 @@ private:
 public:
 	data_cb_t& data_cb;
 
-	timetagger(libusb_device_handle* dev, data_cb_t& data_cb);
+	timetagger(libusb_device_handle* dev, data_cb_t data_cb);
 	~timetagger();
 	
 	void reset();

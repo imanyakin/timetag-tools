@@ -61,7 +61,7 @@
 #define SEQ_CLOCKRATE_REG	0x21
 #define SEQ_CONFIG_BASE		0x28
 
-timetagger::timetagger(libusb_device_handle* dev, data_cb_t& data_cb) :
+timetagger::timetagger(libusb_device_handle* dev, data_cb_t data_cb) :
 	dev(dev),
 	needs_flush(false),
 	data_cb(data_cb)
