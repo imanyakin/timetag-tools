@@ -130,7 +130,7 @@ static bool handle_command(timetagger& t, std::string line, FILE* ctrl_out, int 
 	struct command {
 		std::string name;
 		unsigned int n_args;
-		boost::function<void ()> f;
+		std::function<void ()> f;
 		std::string description;
 		std::string args;
 	};
@@ -367,7 +367,7 @@ static bool handle_command(timetagger& t, std::string line, FILE* ctrl_out, int 
 	return false;
 }
 
-static void read_loop(timetagger& t, boost::mutex& mutex,
+static void read_loop(timetagger& t, std::mutex& mutex,
 		FILE* ctrl_in, FILE* ctrl_out, int sock_fd=-1)
 {
 	char* buf = new char[255];
@@ -376,7 +376,7 @@ static void read_loop(timetagger& t, boost::mutex& mutex,
 		size_t n = 255;
 		fprintf(ctrl_out, "ready\n");
 		if (getline(&buf, &n, ctrl_in) == -1) break;
-		boost::mutex::scoped_lock lock(mutex);
+		std::unique_lock<std::mutex> lock(mutex);
 		std::string line(buf);
 		line = line.substr(0, line.length()-1);
 		stop = handle_command(t, line, ctrl_out, sock_fd);
@@ -411,7 +411,7 @@ int main(int argc, char** argv)
 	}
 
 	data_cb cb(written);
-	boost::mutex dev_mutex;
+	std::mutex dev_mutex;
 	timetagger t(dev, cb);
 	t.reset();
 	t.start_readout();
