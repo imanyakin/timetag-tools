@@ -149,6 +149,7 @@ void timetag_acquire::output_fd::writer() {
 		if (b.length - b.offset == 0)
 			buffers.pop_front();
 	}
+	fprintf(stderr, "fd %d writer died\n", fd);
 	dead = true;
 }
 
@@ -256,8 +257,7 @@ bool timetag_acquire::handle_command(std::string line, FILE* ctrl_out, int sock_
 				}
 				int fd = recv_fd(sock_fd);
 				if (fd < 0) {
-					fprintf(ctrl_out, "error: Error receiving fd (%s)\n",
-							strerror(errno));
+					fprintf(ctrl_out, "error: Error receiving fd: %s\n", strerror(errno));
 					return;
 				}
 				// Make sure a stalled fd doesn't cause us to lose samples
@@ -505,9 +505,15 @@ int main(int argc, char** argv)
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stderr, NULL, _IONBF, 0);
 
-	// Try bumping up our priority
-	if (setpriority(PRIO_PROCESS, 0, -10))
-		fprintf(stderr, "Warning: Priority elevation failed.\n");
+	// Try bumping up ourselves into the FIFO scheduler 
+	sched_param sp;
+	sp.sched_priority = 50;
+	if (sched_setscheduler(0, SCHED_FIFO, &sp)) {
+		fprintf(stderr, "FIFO scheduling failed\n");
+		// That didn't work, just try renicing ourselves
+		if (setpriority(PRIO_PROCESS, 0, -10))
+			fprintf(stderr, "Warning: Priority elevation failed.\n");
+	}
 
 	libusb_init(&ctx);
 	dev = libusb_open_device_with_vid_pid(ctx, VENDOR_ID, PRODUCT_ID);
