@@ -72,6 +72,7 @@ class timetag_acquire {
 		std::mutex buffer_lock;
 		bool stop, dead;
 		std::thread writer_thread;
+		unsigned int fall_behind_count;
 
 		void writer();
 
@@ -82,7 +83,8 @@ class timetag_acquire {
 			, lost_records(0)
 			, stop(false)
 			, dead(false)
-			, writer_thread(&output_fd::writer, this) { }
+			, writer_thread(&output_fd::writer, this)
+		        , fall_behind_count(1000) {}
 
 		~output_fd()
 		{
@@ -130,8 +132,8 @@ public:
 void timetag_acquire::output_fd::writer() {
 	while (!stop) {
 		// Make sure we don't fall too far behind since we are holding memory buffers
-		if (buffers.size() > 100) {
-			fprintf(stderr, "fd %d fell behind. Giving up.\n", fd);
+		if (buffers.size() > fall_behind_count) {
+			fprintf(stderr, "fd %d fell behind by %d buffers. Giving up.\n", fd, fall_behind_count);
 			break;
 		}
 
