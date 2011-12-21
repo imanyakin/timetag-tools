@@ -96,15 +96,20 @@ class timetag_acquire {
 	};
 
 	timetagger t;
-	std::list<output_fd*> output_fds;
 	std::mutex dev_mutex;
+
+	std::mutex output_fds_mutex;
+	std::list<output_fd*> output_fds;
 
 	void data_callback(const uint8_t* buffer, size_t length);
 	bool handle_command(std::string line, FILE* ctrl_out, int sock_fd=-1);
 
 public:
 	void read_loop(FILE* ctrl_in, FILE* ctrl_out, int sock_fd=-1);
+
 	void add_output_fd(int fd, std::string name, bool needs_close);
+	void remove_output_fd(int fd);
+	void remove_output_fd(std::string name);
 
 	timetag_acquire(libusb_device_handle* dev)
 		: t(dev, [=](const uint8_t* buffer, size_t length) {
@@ -152,11 +157,13 @@ void timetag_acquire::data_callback(const uint8_t* buf, size_t length)
 	uint8_t* c = new uint8_t[length];
 	memcpy(c, buf, length);
 	std::shared_ptr<const uint8_t> p(c);
+	std::unique_lock<std::mutex> fds_lock(output_fds_mutex);
+
 	for (auto i=output_fds.begin(); i != output_fds.end(); i++) {
 		if ((*i)->dead) continue;
 		{
 			buffer b(p, length);
-			std::unique_lock<std::mutex> lock((*i)->buffer_lock);
+			std::unique_lock<std::mutex> buffers_lock((*i)->buffer_lock);
 			(*i)->buffers.push_back(b);
 		}
 		(*i)->buffer_ready.notify_one();
@@ -165,6 +172,7 @@ void timetag_acquire::data_callback(const uint8_t* buf, size_t length)
 
 void timetag_acquire::add_output_fd(int fd, std::string name, bool needs_close)
 {
+	std::unique_lock<std::mutex> fds_lock(output_fds_mutex);
 	output_fds.push_back(new output_fd(fd, name, needs_close));
 }
 
@@ -204,6 +212,18 @@ static int recv_fd(int socket)
 	}
 
 	return -1;
+}
+
+void timetag_acquire::remove_output_fd(std::string name)
+{
+	std::unique_lock<std::mutex> fds_lock(output_fds_mutex);
+	output_fds.remove_if([=](output_fd* a) { return a->name == name; });
+}
+
+void timetag_acquire::remove_output_fd(int fd)
+{
+	std::unique_lock<std::mutex> fds_lock(output_fds_mutex);
+	output_fds.remove_if([=](output_fd* a) { return a->fd == fd; });
 }
 
 /*
@@ -250,7 +270,7 @@ bool timetag_acquire::handle_command(std::string line, FILE* ctrl_out, int sock_
 		{"remove_output", 1,
 			[&]() {
 				std::string name = tokens[1];
-				output_fds.remove_if([=](const output_fd* fd){ return fd->name == name; });
+				remove_output_fd(name);
 			},
 			"Remove an output",
 			"FILENAME"
