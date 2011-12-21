@@ -68,6 +68,8 @@ class timetag_acquire {
 		bool needs_close;
 		unsigned int lost_records;
 		std::list<buffer> buffers;
+		std::condition_variable buffer_ready;
+		std::mutex buffer_lock;
 		bool stop, dead;
 		std::thread writer_thread;
 
@@ -123,8 +125,14 @@ public:
 void timetag_acquire::output_fd::writer() {
 	while (!stop) {
 		// Make sure we don't fall too far behind since we are holding memory buffers
-		if (buffers.size() > 100)
+		if (buffers.size() > 100) {
+			fprintf(stderr, "fd %d fell behind. Giving up.\n", fd);
 			break;
+		}
+
+		std::unique_lock<std::mutex> lock(buffer_lock);
+		if (buffers.size() == 0)
+			buffer_ready.wait(lock);
 
 		buffer& b = buffers.front();
 
@@ -148,7 +156,11 @@ void timetag_acquire::data_callback(const uint8_t* buf, size_t length)
 	for (auto i=output_fds.begin(); i != output_fds.end(); i++) {
 		if ((*i)->dead) continue;
 		buffer b(p, length);
-		(*i)->buffers.push_back(b);
+		{
+			std::unique_lock<std::mutex> lock((*i)->buffer_lock);
+			(*i)->buffers.push_back(b);
+		}
+		(*i)->buffer_ready.notify_one();
 	}
 }
 
