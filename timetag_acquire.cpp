@@ -69,7 +69,7 @@ class timetag_acquire {
 		unsigned int lost_records;
 		std::list<buffer> buffers;
 		bool stop, dead;
-		std::shared_ptr<std::thread> writer_thread;
+		std::thread writer_thread;
 
 		void writer();
 
@@ -80,20 +80,21 @@ class timetag_acquire {
 			, lost_records(0)
 			, stop(false)
 			, dead(false)
-			, writer_thread(new std::thread(&output_fd::writer, this)) { }
+			, writer_thread(&output_fd::writer, this) { }
 
 		~output_fd()
 		{
 			stop = true;
-			writer_thread->join();
+			writer_thread.join();
 			if (needs_close)
 				close(fd);
 		}
+
+		output_fd(const output_fd&) = delete;
 	};
 
 	timetagger t;
-	std::mutex output_fd_mutex;
-	std::list<output_fd> output_fds;
+	std::list<output_fd*> output_fds;
 	std::mutex dev_mutex;
 
 	void data_callback(const uint8_t* buffer, size_t length);
@@ -141,17 +142,19 @@ void timetag_acquire::output_fd::writer() {
 
 void timetag_acquire::data_callback(const uint8_t* buf, size_t length)
 {
-	std::shared_ptr<const uint8_t> p(buf);
+	uint8_t* c = new uint8_t[length];
+	memcpy(c, buf, length);
+	std::shared_ptr<const uint8_t> p(c);
 	for (auto i=output_fds.begin(); i != output_fds.end(); i++) {
+		if ((*i)->dead) continue;
 		buffer b(p, length);
-		i->buffers.push_back(b);
+		(*i)->buffers.push_back(b);
 	}
 }
 
 void timetag_acquire::add_output_fd(int fd, std::string name, bool needs_close)
 {
-	output_fd a(fd, name, needs_close);
-	output_fds.push_back(a);
+	output_fds.push_back(new output_fd(fd, name, needs_close));
 }
 
 static int recv_fd(int socket)
@@ -228,8 +231,7 @@ bool timetag_acquire::handle_command(std::string line, FILE* ctrl_out, int sock_
 				}
 				// Make sure a stalled fd doesn't cause us to lose samples
 				fcntl(fd, F_SETFL, O_NONBLOCK);
-				output_fd a = { fd, name, true };
-				output_fds.push_back(a);
+				add_output_fd(fd, name, true);
 			},
 			"Add an output (expects to be sent an fd over domain socket)",
 			"NAME"
@@ -237,7 +239,7 @@ bool timetag_acquire::handle_command(std::string line, FILE* ctrl_out, int sock_
 		{"remove_output", 1,
 			[&]() {
 				std::string name = tokens[1];
-				output_fds.remove_if([&](const output_fd fd){ return fd.name == name; });
+				output_fds.remove_if([=](const output_fd* fd){ return fd->name == name; });
 			},
 			"Remove an output",
 			"FILENAME"
@@ -246,7 +248,7 @@ bool timetag_acquire::handle_command(std::string line, FILE* ctrl_out, int sock_
 			[&]() {
 				for (auto fd=output_fds.begin(); fd != output_fds.end(); fd++)
 					fprintf(ctrl_out, "= %15s\t%d\t%d\n",
-							fd->name.c_str(), fd->fd, fd->lost_records);
+							(*fd)->name.c_str(), (*fd)->fd, (*fd)->lost_records);
 			},
 			"List outputs"
 		},
