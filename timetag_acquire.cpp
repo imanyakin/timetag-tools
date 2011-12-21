@@ -51,30 +51,59 @@
 #define VENDOR_ID 0x04b4
 #define PRODUCT_ID 0x1004
 
-// TODO: This shouldn't be global
-static unsigned int written = 0;
 
-struct output_fd {
-	int fd;
-	std::string name;
-	bool needs_close;
-	unsigned int lost_records;
-};
-static std::list<output_fd> output_fds;
+class timetag_acquire {
+public:
+	struct output_fd {
+		int fd;
+		std::string name;
+		bool needs_close;
+		unsigned int lost_records;
+	};
 
-struct data_cb : timetagger::data_cb_t {
-	unsigned int& written;
-	data_cb(unsigned int& written) : written(written) { }
+private:
+	timetagger t;
+	std::list<output_fd> output_fds;
+	unsigned int written;
+	std::mutex dev_mutex;
 
-	void operator()(const uint8_t* buffer, size_t length) {
-		for (auto fd=output_fds.begin(); fd != output_fds.end(); fd++) {
-			int ret = write(fd->fd, buffer, length);
-			if (ret < 0 && errno == EAGAIN)
-				fd->lost_records += length / RECORD_LENGTH;
-		}
-		written += length;
+	void data_callback(const uint8_t* buffer, size_t length);
+	bool handle_command(std::string line, FILE* ctrl_out, int sock_fd=-1);
+
+public:
+	void read_loop(FILE* ctrl_in, FILE* ctrl_out, int sock_fd=-1);
+	void add_output_fd(output_fd fd);
+
+	timetag_acquire(libusb_device_handle* dev)
+		: t(dev, [&](const uint8_t* buffer, size_t length) {
+				this->data_callback(buffer, length);
+		  })
+		, written(0)
+	{
+		t.reset();
+		t.start_readout();
+	}
+
+	~timetag_acquire()
+	{
+		t.stop_readout();
 	}
 };
+
+void timetag_acquire::data_callback(const uint8_t* buffer, size_t length)
+{
+	for (auto fd=output_fds.begin(); fd != output_fds.end(); fd++) {
+		int ret = write(fd->fd, buffer, length);
+		if (ret < 0 && errno == EAGAIN)
+			fd->lost_records += length / RECORD_LENGTH;
+	}
+	written += length;
+}
+
+void timetag_acquire::add_output_fd(output_fd fd)
+{
+	output_fds.push_back(fd);
+}
 
 static int recv_fd(int socket)
 {
@@ -117,7 +146,7 @@ static int recv_fd(int socket)
 /*
  * Return whether to stop
  */
-static bool handle_command(timetagger& t, std::string line, FILE* ctrl_out, int sock_fd=-1)
+bool timetag_acquire::handle_command(std::string line, FILE* ctrl_out, int sock_fd)
 {
 	using boost::lexical_cast;
 	std::vector<std::string> tokens;
@@ -367,8 +396,7 @@ static bool handle_command(timetagger& t, std::string line, FILE* ctrl_out, int 
 	return false;
 }
 
-static void read_loop(timetagger& t, std::mutex& mutex,
-		FILE* ctrl_in, FILE* ctrl_out, int sock_fd=-1)
+void timetag_acquire::read_loop(FILE* ctrl_in, FILE* ctrl_out, int sock_fd)
 {
 	char* buf = new char[255];
 	bool stop = false;
@@ -376,10 +404,10 @@ static void read_loop(timetagger& t, std::mutex& mutex,
 		size_t n = 255;
 		fprintf(ctrl_out, "ready\n");
 		if (getline(&buf, &n, ctrl_in) == -1) break;
-		std::unique_lock<std::mutex> lock(mutex);
+		std::unique_lock<std::mutex> lock(dev_mutex);
 		std::string line(buf);
 		line = line.substr(0, line.length()-1);
-		stop = handle_command(t, line, ctrl_out, sock_fd);
+		stop = handle_command(line, ctrl_out, sock_fd);
 	}
 	delete [] buf;
 	fclose(ctrl_out);
@@ -410,11 +438,7 @@ int main(int argc, char** argv)
 		exit(1);
 	}
 
-	data_cb cb(written);
-	std::mutex dev_mutex;
-	timetagger t(dev, cb);
-	t.reset();
-	t.start_readout();
+	timetag_acquire ta(dev);
 
 #ifdef WITH_DOMAIN_SOCKET
         if (argc > 1) {
@@ -455,21 +479,19 @@ int main(int argc, char** argv)
 					(socklen_t*) &address_len)) > -1)
 		{
 			FILE* conn = fdopen(conn_fd, "r+");
-			threads.push_back(new std::thread([&](){ read_loop(t, dev_mutex, conn, conn, conn_fd); }));
+			threads.push_back(new std::thread([&](){ ta.read_loop(conn, conn, conn_fd); }));
 		}
 		fprintf(stderr, "Cleaning up...\n");
 		for (auto thrd=threads.begin(); thrd != threads.end(); thrd++)
 			(*thrd)->join();
-		t.stop_readout();
 		libusb_close(dev);
 		return 0;
         }
 #endif
 
-	output_fd a = { 1, "stdout", false };
-	output_fds.push_back(a);
-	read_loop(t, dev_mutex, stdin, stderr);
-	t.stop_readout();
+	timetag_acquire::output_fd a = { 1, "stdout", false };
+	ta.add_output_fd(a);
+	ta.read_loop(stdin, stderr);
 	libusb_close(dev);
 	return 0;
 }
