@@ -131,7 +131,7 @@ void timetag_acquire::output_fd::writer() {
 		}
 
 		std::unique_lock<std::mutex> lock(buffer_lock);
-		if (buffers.size() == 0)
+		while (buffers.size() == 0)
 			buffer_ready.wait(lock);
 
 		buffer b = buffers.front();
