@@ -134,13 +134,12 @@ void timetag_acquire::output_fd::writer() {
 		if (buffers.size() == 0)
 			buffer_ready.wait(lock);
 
-		buffer& b = buffers.front();
-
+		buffer b = buffers.front();
 		int ret = write(fd, b.buf.get() + b.offset, b.length - b.offset);
 		if (ret < 0)
 			lost_records += b.length / RECORD_LENGTH;
 		else
-			b.offset += ret;
+			buffers.front().offset += ret;
 
 		if (b.length - b.offset == 0)
 			buffers.pop_front();
@@ -155,8 +154,8 @@ void timetag_acquire::data_callback(const uint8_t* buf, size_t length)
 	std::shared_ptr<const uint8_t> p(c);
 	for (auto i=output_fds.begin(); i != output_fds.end(); i++) {
 		if ((*i)->dead) continue;
-		buffer b(p, length);
 		{
+			buffer b(p, length);
 			std::unique_lock<std::mutex> lock((*i)->buffer_lock);
 			(*i)->buffers.push_back(b);
 		}
