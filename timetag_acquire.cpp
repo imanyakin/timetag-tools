@@ -104,7 +104,7 @@ public:
 	void add_output_fd(int fd, std::string name, bool needs_close);
 
 	timetag_acquire(libusb_device_handle* dev)
-		: t(dev, [&](const uint8_t* buffer, size_t length) {
+		: t(dev, [=](const uint8_t* buffer, size_t length) {
 				this->data_callback(buffer, length);
 		  })
 	{
@@ -237,7 +237,7 @@ bool timetag_acquire::handle_command(std::string line, FILE* ctrl_out, int sock_
 		{"remove_output", 1,
 			[&]() {
 				std::string name = tokens[1];
-				output_fds.remove_if([&](const output_fd& fd){ return fd.name == name; });
+				output_fds.remove_if([&](const output_fd fd){ return fd.name == name; });
 			},
 			"Remove an output",
 			"FILENAME"

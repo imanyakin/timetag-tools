@@ -57,7 +57,7 @@ private:
 	void do_flush();
 
 public:
-	data_cb_t& data_cb;
+	data_cb_t data_cb;
 
 	timetagger(libusb_device_handle* dev, data_cb_t data_cb);
 	~timetagger();
