@@ -23,6 +23,7 @@
 // Enable for protocol level dumps
 //#define DEBUG
 
+#include <assert.h>
 #include <cstdio>
 #include <cstring>
 #include "timetagger.h"
@@ -332,7 +333,8 @@ void timetagger::flush_fx2_fifo() {
 		fprintf(stderr, "Error requesting FX2 FIFO flush: %d\n", res);
 }
 
-void timetagger::readout_handler::do_flush() {
+void timetagger::do_flush()
+{
 	int transferred = 0;
 	uint8_t buffer[512];
         // Flush data FIFO
@@ -350,12 +352,13 @@ void timetagger::readout_handler::do_flush() {
 	needs_flush = false;
 }
 
-void timetagger::readout_handler::operator()()
+void timetagger::readout_handler()
 {
+	const int data_timeout = 500;
 	int failed_xfers = 0;
 	uint8_t* buffer = new uint8_t[510];
 
-	do {
+	while (!_stop_readout) {
 		if (needs_flush)
 			do_flush();
 
@@ -367,7 +370,7 @@ void timetagger::readout_handler::operator()()
 		if (!res || res == LIBUSB_ERROR_OVERFLOW) {
 			if (transferred % RECORD_LENGTH != 0)
 				fprintf(stderr, "Warning: Received partial record.");
-			cb(buffer, transferred);
+			data_cb(buffer, transferred);
 			failed_xfers = 0;
 		} else if (res == LIBUSB_ERROR_TIMEOUT) {
 			// Ignore timeouts so we can check needs_flush
@@ -379,26 +382,20 @@ void timetagger::readout_handler::operator()()
 				break;
 			}
 		}
-
-		try {
-			boost::this_thread::interruption_point();
-		} catch (...) {
-			break;
-		}
-	} while (true);
+	}
 	delete [] buffer;
 }
 
 void timetagger::start_readout() 
 {
 	assert(readout_thread == 0);
-	readout_handler readout(dev, data_cb, needs_flush, send_window);
-	readout_thread = boost::shared_ptr<boost::thread>(new boost::thread(readout));
+	_stop_readout = false;
+	readout_thread = std::shared_ptr<std::thread>(new std::thread(&timetagger::readout_handler, this));
 }
 
 void timetagger::stop_readout() {
 	assert(readout_thread != 0);
-	readout_thread->interrupt();
+	_stop_readout = true;
 	readout_thread->join();
 }
 

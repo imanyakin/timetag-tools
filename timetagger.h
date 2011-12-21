@@ -26,9 +26,9 @@
 
 #include <libusb.h>
 #include <vector>
-#include <tr1/array>
-#include <boost/shared_ptr.hpp>
-#include <boost/thread.hpp>
+#include <array>
+#include <memory>
+#include <thread>
 
 #include "record_format.h"
 
@@ -41,25 +41,10 @@ public:
 	};
 
 private:
-	struct readout_handler {
-		libusb_device_handle* dev;
-		timetagger::data_cb_t& cb;
-		const unsigned int data_timeout; // milliseconds
-		bool& needs_flush;
-		unsigned int& send_window;
-
-		readout_handler(libusb_device_handle* dev, timetagger::data_cb_t& cb,
-			bool& needs_flush, unsigned int& send_window) :
-			dev(dev), cb(cb), data_timeout(500),
-			needs_flush(needs_flush), send_window(send_window) { }
-		void operator()();
-	private:
-		void do_flush();
-	};
-
-private:
 	libusb_device_handle* dev;
-	boost::shared_ptr<boost::thread> readout_thread;
+	std::shared_ptr<std::thread> readout_thread;
+	bool _stop_readout;
+	unsigned int data_timeout; // milliseconds
 	bool needs_flush;
 	unsigned int send_window; // In records
 	
@@ -70,6 +55,8 @@ private:
 	uint32_t read_reg(uint16_t reg);
 	void write_reg(uint16_t reg, uint32_t val);
 	void flush_fx2_fifo();
+	void readout_handler();
+	void do_flush();
 
 public:
 	data_cb_t& data_cb;
