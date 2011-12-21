@@ -44,6 +44,7 @@
 #include <boost/lexical_cast.hpp>
 
 #include <thread>
+#include <mutex>
 
 #include "timetagger.h"
 #include "record_format.h"
@@ -53,18 +54,46 @@
 
 
 class timetag_acquire {
-public:
+	struct buffer {
+		std::shared_ptr<const uint8_t> buf;
+		size_t length;
+		off_t offset;
+		buffer(std::shared_ptr<const uint8_t> buf, size_t length, off_t offset=0)
+			: buf(buf), length(length), offset(offset) {}
+	};
+
 	struct output_fd {
 		int fd;
 		std::string name;
 		bool needs_close;
 		unsigned int lost_records;
+		std::list<buffer> buffers;
+		bool stop, dead;
+		std::shared_ptr<std::thread> writer_thread;
+
+		void writer();
+
+		output_fd(int fd, std::string name, bool needs_close=false) 
+			: fd(fd)
+			, name(name)
+			, needs_close(needs_close)
+			, lost_records(0)
+			, stop(false)
+			, dead(false)
+			, writer_thread(new std::thread(&output_fd::writer, this)) { }
+
+		~output_fd()
+		{
+			stop = true;
+			writer_thread->join();
+			if (needs_close)
+				close(fd);
+		}
 	};
 
-private:
 	timetagger t;
+	std::mutex output_fd_mutex;
 	std::list<output_fd> output_fds;
-	unsigned int written;
 	std::mutex dev_mutex;
 
 	void data_callback(const uint8_t* buffer, size_t length);
@@ -72,13 +101,12 @@ private:
 
 public:
 	void read_loop(FILE* ctrl_in, FILE* ctrl_out, int sock_fd=-1);
-	void add_output_fd(output_fd fd);
+	void add_output_fd(int fd, std::string name, bool needs_close);
 
 	timetag_acquire(libusb_device_handle* dev)
 		: t(dev, [&](const uint8_t* buffer, size_t length) {
 				this->data_callback(buffer, length);
 		  })
-		, written(0)
 	{
 		t.reset();
 		t.start_readout();
@@ -87,22 +115,43 @@ public:
 	~timetag_acquire()
 	{
 		t.stop_readout();
+		output_fds.clear();
 	}
 };
 
-void timetag_acquire::data_callback(const uint8_t* buffer, size_t length)
-{
-	for (auto fd=output_fds.begin(); fd != output_fds.end(); fd++) {
-		int ret = write(fd->fd, buffer, length);
-		if (ret < 0 && errno == EAGAIN)
-			fd->lost_records += length / RECORD_LENGTH;
+void timetag_acquire::output_fd::writer() {
+	while (!stop) {
+		// Make sure we don't fall too far behind since we are holding memory buffers
+		if (buffers.size() > 100)
+			break;
+
+		buffer& b = buffers.front();
+
+		int ret = write(fd, b.buf.get() + b.offset, b.length - b.offset);
+		if (ret < 0)
+			lost_records += b.length / RECORD_LENGTH;
+		else
+			b.offset += ret;
+
+		if (b.length - b.offset == 0)
+			buffers.pop_front();
 	}
-	written += length;
+	dead = true;
 }
 
-void timetag_acquire::add_output_fd(output_fd fd)
+void timetag_acquire::data_callback(const uint8_t* buf, size_t length)
 {
-	output_fds.push_back(fd);
+	std::shared_ptr<const uint8_t> p(buf);
+	for (auto i=output_fds.begin(); i != output_fds.end(); i++) {
+		buffer b(p, length);
+		i->buffers.push_back(b);
+	}
+}
+
+void timetag_acquire::add_output_fd(int fd, std::string name, bool needs_close)
+{
+	output_fd a(fd, name, needs_close);
+	output_fds.push_back(a);
 }
 
 static int recv_fd(int socket)
@@ -188,10 +237,6 @@ bool timetag_acquire::handle_command(std::string line, FILE* ctrl_out, int sock_
 		{"remove_output", 1,
 			[&]() {
 				std::string name = tokens[1];
-				for (auto fd=output_fds.begin(); fd != output_fds.end(); fd++) {
-					if (fd->name == name && fd->needs_close)
-						close(fd->fd);
-				}
 				output_fds.remove_if([&](const output_fd& fd){ return fd.name == name; });
 			},
 			"Remove an output",
@@ -489,8 +534,7 @@ int main(int argc, char** argv)
         }
 #endif
 
-	timetag_acquire::output_fd a = { 1, "stdout", false };
-	ta.add_output_fd(a);
+	ta.add_output_fd(1, "stdout", false);
 	ta.read_loop(stdin, stderr);
 	libusb_close(dev);
 	return 0;
