@@ -511,15 +511,9 @@ int main(int argc, char** argv)
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stderr, NULL, _IONBF, 0);
 
-	// Try bumping up ourselves into the FIFO scheduler 
-	sched_param sp;
-	sp.sched_priority = 50;
-	if (sched_setscheduler(0, SCHED_FIFO, &sp)) {
-		fprintf(stderr, "FIFO scheduling failed\n");
-		// That didn't work, just try renicing ourselves
-		if (setpriority(PRIO_PROCESS, 0, -10))
-			fprintf(stderr, "Warning: Priority elevation failed.\n");
-	}
+	// Renice ourselves
+	if (setpriority(PRIO_PROCESS, 0, -10))
+		fprintf(stderr, "Warning: Priority elevation failed.\n");
 
 	libusb_init(&ctx);
 	dev = libusb_open_device_with_vid_pid(ctx, VENDOR_ID, PRODUCT_ID);

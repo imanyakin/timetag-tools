@@ -358,6 +358,12 @@ void timetagger::readout_handler()
 	int failed_xfers = 0;
 	uint8_t* buffer = new uint8_t[510];
 
+	// Try bumping up ourselves into the FIFO scheduler 
+	sched_param sp;
+	sp.sched_priority = 50;
+	if (sched_setscheduler(0, SCHED_FIFO, &sp))
+		fprintf(stderr, "FIFO scheduling failed\n");
+
 	while (!_stop_readout) {
 		if (needs_flush)
 			do_flush();
