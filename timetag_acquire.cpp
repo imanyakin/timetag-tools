@@ -143,11 +143,15 @@ void timetag_acquire::output_fd::writer() {
 
 		buffer b = buffers.front();
 		int ret = write(fd, b.buf.get() + b.offset, b.length - b.offset);
-		if (ret < 0)
-			lost_records += b.length / RECORD_LENGTH;
-		else
+		if (ret == -1) {
+			fprintf(stderr, "fd %d encountered error during write: %s", fd, strerror(errno));
+			break;
+		} else {
+			lost_records += (b.length - ret) / RECORD_LENGTH;
 			buffers.front().offset += ret;
+		}
 
+		// Check if we're done with this buffer
 		if (b.length - b.offset == 0)
 			buffers.pop_front();
 	}
