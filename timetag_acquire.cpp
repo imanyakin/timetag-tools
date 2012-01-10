@@ -491,7 +491,11 @@ void timetag_acquire::read_loop(FILE* ctrl_in, FILE* ctrl_out, int sock_fd)
 		std::unique_lock<std::mutex> lock(dev_mutex);
 		std::string line(buf);
 		line = line.substr(0, line.length()-1);
-		stop = handle_command(line, ctrl_out, sock_fd);
+		try {
+			stop = handle_command(line, ctrl_out, sock_fd);
+		} catch (std::exception e) {
+			fprintf(ctrl_out, "error: uncaught exception: %s\n", e.what());
+		}
 	}
 	delete [] buf;
 	fclose(ctrl_out);
