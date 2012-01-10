@@ -35,6 +35,9 @@ class SeqWindow(object):
                 button.props.label = 'High' if active else 'Low'
                 self.reconfig_channel(chan)
 
+        def reconfig_all(self):
+                for c in range(4): self.reconfig_channel(c)
+
         def reconfig_channel(self, chan):
                 state,initial_adj,low_adj,high_adj = self.controls[chan]
                 time_mult = self.get_time_multiplier()
@@ -86,6 +89,7 @@ class SeqWindow(object):
                 combo.append_text('seconds')
                 combo.append_text('minutes')
                 combo.set_active(1)
+                combo.connect('changed', lambda _: self.reconfig_all())
                 self.widgets.append(combo)
                 def get_time_multiplier():
                         text = combo.get_active_text()
