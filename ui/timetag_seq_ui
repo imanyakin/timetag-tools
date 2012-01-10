@@ -8,8 +8,8 @@ logging.basicConfig(level=logging.DEBUG)
 
 class SeqWindow(object):
         def operate_toggled_cb(self, button):
-                self._tagger_cmd('seq_operate %d\n' % button.props.active)
                 if button.props.active:
+                        self._tagger_cmd('reset_seq\n')
                         button.props.label = 'Running'
                         logging.info('Now running')
                         for w in self.widgets: w.props.sensitive = False
@@ -17,6 +17,8 @@ class SeqWindow(object):
                         button.props.label = 'Stopped'
                         logging.info('Now stopped')
                         for w in self.widgets: w.props.sensitive = True
+
+                self._tagger_cmd('seq_operate %d\n' % button.props.active)
 
         def reset_cb(self, button):
                 logging.info('Reset')
