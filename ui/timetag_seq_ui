@@ -12,9 +12,11 @@ class SeqWindow(object):
                 if button.props.active:
                         button.props.label = 'Running'
                         logging.info('Now running')
+                        for w in self.widgets: w.props.sensitive = False
                 else:
                         button.props.label = 'Stopped'
                         logging.info('Now stopped')
+                        for w in self.widgets: w.props.sensitive = True
 
         def reset_cb(self, button):
                 logging.info('Reset')
@@ -48,6 +50,7 @@ class SeqWindow(object):
                 self._tagger_cmd(cmd + '\n')
 
         def _build_window(self):
+                self.widgets = []
                 self.window = gtk.Window()
                 self.window.set_icon_name('timetag_seq_ui.svg')
                 self.window.set_title('Timetagger Sequencer Configuration')
@@ -61,9 +64,9 @@ class SeqWindow(object):
                 bbox = gtk.HButtonBox()
                 vbox.pack_start(bbox)
 
-                active = int(self._tagger_cmd('seq_operate?\n'))
-                btn = gtk.ToggleButton('Running' if active else 'Stopped')
-                btn.set_active(active)
+                seq_active = int(self._tagger_cmd('seq_operate?\n'))
+                btn = gtk.ToggleButton('Running' if seq_active else 'Stopped')
+                btn.set_active(seq_active)
                 btn.connect('toggled', self.operate_toggled_cb)
                 self.operate_btn = btn
                 bbox.pack_start(btn)
@@ -81,7 +84,8 @@ class SeqWindow(object):
                 combo.append_text('milliseconds')
                 combo.append_text('seconds')
                 combo.append_text('minutes')
-                combo.set_active(0)
+                combo.set_active(1)
+                self.widgets.append(combo)
                 def get_time_multiplier():
                         text = combo.get_active_text()
                         if text == 'microseconds': return 1e-6
@@ -124,6 +128,7 @@ class SeqWindow(object):
                         state.set_active(active)
                         state.connect('toggled', self.enabled_changed_cb, c)
                         table.attach(state, col, col+1, c+1, c+2)
+                        self.widgets.append(state)
                         col += 1
 
                         active = int(self._tagger_cmd('seqchan_initial_state? %d\n' % c))
@@ -131,6 +136,7 @@ class SeqWindow(object):
                         state.set_active(active)
                         state.connect('toggled', self.initial_state_changed_cb, c)
                         table.attach(state, col, col+1, c+1, c+2)
+                        self.widgets.append(state)
                         col += 1
 
                         val = int(self._tagger_cmd('seqchan_initial_count? %d\n' % c)) / time_mult / self.freq
@@ -138,6 +144,7 @@ class SeqWindow(object):
                         initial_adj.connect('value-changed', lambda w,ch: self.reconfig_channel(ch), c)
                         w = gtk.SpinButton(initial_adj)
                         table.attach(w, col, col+1, c+1, c+2)
+                        self.widgets.append(w)
                         col += 1
 
                         val = int(self._tagger_cmd('seqchan_low_count? %d\n' % c)) / time_mult / self.freq
@@ -145,6 +152,7 @@ class SeqWindow(object):
                         low_adj.connect('value-changed', lambda w,ch: self.reconfig_channel(ch), c)
                         w = gtk.SpinButton(low_adj)
                         table.attach(w, col, col+1, c+1, c+2)
+                        self.widgets.append(w)
                         col += 1
 
                         val = int(self._tagger_cmd('seqchan_high_count? %d\n' % c)) / time_mult / self.freq
@@ -152,10 +160,12 @@ class SeqWindow(object):
                         high_adj.connect('value-changed', lambda w,ch: self.reconfig_channel(ch), c)
                         w = gtk.SpinButton(high_adj)
                         table.attach(w, col, col+1, c+1, c+2)
+                        self.widgets.append(w)
                         col += 1
 
                         self.controls.append((state, initial_adj, low_adj, high_adj))
                         
+                for w in self.widgets: w.props.sensitive = not seq_active
                 self.window.show_all()
 
         def __init__(self, socket):
