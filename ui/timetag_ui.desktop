@@ -7,5 +7,4 @@ Type=Application
 Terminal=false
 Exec=timetag_ui
 Icon=timetag_ui.svg
-Name[en_US]=timetag_ui
 Categories=Utility;Education;Science;Physics;
