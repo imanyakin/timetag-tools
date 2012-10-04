@@ -1,10 +1,10 @@
 [Desktop Entry]
 Encoding=UTF-8
 Name=Sequencer UI
-Comment=Interface for FPGA timetagger's sequencer module
+Comment=Interface for FPGA timetagger sequencer module
 Version=1.0
 Type=Application
 Terminal=false
 Exec=timetag_seq_ui
-Icon=timetag_seq_ui.svg
+Icon=timetag_seq_ui
 Categories=Utility;Education;Science;Physics;
