@@ -30,8 +30,8 @@ class RingBuffer:
 
         def resize(self, length):
                 assert(length > 0)
-		self._size = length
-		self._data = np.array(fmt, [0] * length, dtype=self.dtype)
+                self._size = length
+                self._data = np.array([0] * length, dtype=self.dtype)
                 self.clear()
 
         def clear(self):
