@@ -37,9 +37,11 @@ from matplotlib.backends.backend_gtk import FigureCanvasGTK
 from matplotlib.backends.backend_gtkagg import FigureCanvasGTKAgg
 from matplotlib.backends.backend_gtkcairo import FigureCanvasGTKCairo
 
-from timetag.capture_pipeline import CapturePipeline, TestPipeline
+from timetag.capture_pipeline import CapturePipeline
+from timetag.test_pipeline import TestPipeline
 from timetag.bin_series_plot import BinSeriesPlot
 from timetag.hist_plot import HistPlot
+from timetag.binner import BufferBinner
 
 StrobeConfig = namedtuple('StrobeConfig', 'enabled color label')
 DeltaConfig = namedtuple('DeltaConfig', 'enabled label')
@@ -58,12 +60,11 @@ def_delta_config = [
 
 class NumericalIndicators(object):
         def __init__(self, main_win):
-                self.main_win = main_win
+                self.update_rate = 5 # Hz
                 self.pipeline = main_win.pipeline
+                self.binner = BufferBinner(1. / self.update_rate, self.pipeline.clockrate)
+                self.pipeline.add_output('indicators', self.binner.get_data_fd())
                 self.rate_mode = True
-                self.last_stats = defaultdict(lambda: (0, 0)) # counts, timestamp
-                self.last_loss_count = 0
-                self.last_timestamp = 0
 
                 self.inputs = {}
                 table = gtk.Table(len(main_win.strobe_config)+1, 3)
@@ -91,31 +92,24 @@ class NumericalIndicators(object):
                         self._update_total_indicators()
 
         def _update_rate_indicators(self):
-                for n, photon_count, timestamp in self.pipeline.stats():
+                for n,channel in enumerate(self.binner.channels):
                         if n not in self.inputs: continue
-                        last_photon_count, last_timestamp = self.last_stats[n]
-                        if last_timestamp != timestamp:
-                                photon_rate = (photon_count - last_photon_count) / (timestamp - last_timestamp)
-
-                                markup = "<span color='darkgreen' size='xx-large'>%d</span> <span size='large'>photons/s</span>" % photon_rate
-                                self.inputs[n].set_markup(markup)
-                        self.last_stats[n] = (photon_count, timestamp)
-
-                if self.pipeline.latest_timestamp != self.last_timestamp:
-                        loss_rate = (self.pipeline.loss_count - self.last_loss_count) / (self.pipeline.latest_timestamp - self.last_timestamp)
-                        markup = "<span color='darkred' size='xx-large'>%d</span> <span size='large'>losses/s</span>" % loss_rate
-                        self.lost.set_markup(markup)
-
-                self.last_timestamp = self.pipeline.latest_timestamp
-                self.last_loss_count = self.pipeline.loss_count
-
-        def _update_total_indicators(self):
-                for n, photon_count, timestamp in self.pipeline.stats():
-                        if n not in self.inputs: continue
-                        markup = "<span color='darkgreen' size='xx-large'>%1.3e</span> <span size='large'>photons</span>" % photon_count
+                        counts = channel.counts.get()
+                        if len(counts) == 0: continue
+                        photon_rate = counts[-1]['counts'] * self.update_rate
+                        markup = "<span color='darkgreen' size='xx-large'>%d</span> <span size='large'>photons/s</span>" % photon_rate
                         self.inputs[n].set_markup(markup)
 
-                markup = "<span color='darkred' size='xx-large'>%d</span> <span size='large'>losses</span>" % self.pipeline.loss_count
+                markup = "<span color='darkred' size='xx-large'>%d</span> <span size='large'>losses</span>" % self.binner.loss_count
+                self.lost.set_markup(markup)
+
+        def _update_total_indicators(self):
+                for n,channel in enumerate(self.binner.channels):
+                        if n not in self.inputs: continue
+                        markup = "<span color='darkgreen' size='xx-large'>%1.3e</span> <span size='large'>photons</span>" % channel.photon_count
+                        self.inputs[n].set_markup(markup)
+
+                markup = "<span color='darkred' size='xx-large'>%d</span> <span size='large'>losses</span>" % self.binner.loss_count
                 self.lost.set_markup(markup)
 
 def run_channel_editor(parent, strobe_config, delta_config):
@@ -185,7 +179,7 @@ class MainWindow(object):
         def __init__(self, n_inputs=4):
                 self.indicators_update_rate = 5 # in Hertz
                 if use_test_pipeline:
-                        self.pipeline = TestPipeline(100)
+                        self.pipeline = TestPipeline()
                 else:
                         self.pipeline = CapturePipeline()
                 self.readout_running = False
@@ -205,8 +199,6 @@ class MainWindow(object):
                 self.win.connect('destroy', quit)
 
                 self.set_default_output_file()
-                get_obj('bin_time_spin').props.value = 10
-                get_obj('bin_time').props.value = 10
                 self.bin_series_win = None
                 self.hist_win = None
                 self.indicators = None
@@ -232,7 +224,6 @@ class MainWindow(object):
                                 logging.warn('Warning: Failed to load RC: %s' % e)
                                 pass
 
-                get_obj('bin_time').value = rc.get('bin_time', 10)
                 self.strobe_config = def_strobe_config
                 if 'strobe_config' in rc:
                         self.strobe_config = [ StrobeConfig(*a) for a in rc['strobe_config'] ]
@@ -244,7 +235,6 @@ class MainWindow(object):
                 import json
                 get_obj = self.builder.get_object
                 rc = {
-                        'bin_time': get_obj('bin_time').value,
                         'strobe_config': self.strobe_config,
                         'delta_config': self.delta_config,
                 }
@@ -271,10 +261,6 @@ class MainWindow(object):
                 stats.pack_start(self.indicators.widget)
                 self.indicators.widget.show_all()
 
-        @property
-        def bin_time(self):
-                return self.builder.get_object('bin_time').props.value * 1e-3
-
         def usb_latency_changed_cb(self, combobox):
                 iter = combobox.get_active_iter()
                 latency = combobox.get_model().get_value(iter, 0)
@@ -294,11 +280,6 @@ class MainWindow(object):
         def output_file_icon_press_cb(self, entry, icon_pos, event):
                 self.select_output_file()
 
-        def bin_time_value_changed_cb(self, adj):
-                bin_time = adj.props.value
-                self.pipeline.stop_binner()
-                self.pipeline.start_binner(bin_time)
-
         def select_output_file(self):
                 filter = gtk.FileFilter()
                 filter.set_name('Timetag data file')
@@ -313,12 +294,15 @@ class MainWindow(object):
                 res = fc.run()
                 fc.hide()
                 if res == gtk.RESPONSE_OK:
-                        self.builder.get_object('output_file').props.text = fc.get_filename()
+                        self.builder.get_object('output_file').props.text = \
+                            fc.get_filename()
 
         def start_readout(self):
                 get_obj = self.builder.get_object
                 output_enabled = get_obj('file_output_enabled').props.active
-                if output_enabled:
+                if not output_enabled:
+                        self._out_file = None
+                else:
                         outfile = get_obj('output_file').props.text
                         outfile = os.path.expanduser(outfile)
                         if os.path.exists(outfile):
@@ -336,7 +320,9 @@ class MainWindow(object):
                                         get_obj('readout_running').props.label = "Stopped"
                                         return
 
-                        self.pipeline.start_output_file(outfile)
+                        self._out_file = open(outfile, 'w')
+                        self.pipeline.add_output('file', self._out_file)
+
                         description = get_obj('description').get_buffer().props.text
                         channels = {}
                         for i in range(4):
@@ -358,10 +344,7 @@ class MainWindow(object):
 
                 self.pipeline.reset_counter()
                 self.pipeline.start_capture()
-                self.pipeline.start_binner(self.bin_time)
                 self.readout_running = True
-                if self.bin_series_win:
-                        self.bin_series_win.scroll = True
 
                 get_obj('readout_running').props.active = True
                 get_obj('readout_running').props.label = "Running"
@@ -395,13 +378,8 @@ class MainWindow(object):
                 get_obj = self.builder.get_object
                 get_obj('readout_running').props.active = False
                 get_obj('readout_running').props.label = "Stopped"
-                self.pipeline.stop_binner()
                 self.pipeline.stop_capture()
-                if get_obj('file_output_enabled').props.active:
-                        self.pipeline.stop_output_file()
                 self.readout_running = False
-                if self.bin_series_win:
-                        self.bin_series_win.scroll = False
 
                 # So people don't overwrite the data they just took
                 get_obj('file_output_enabled').props.active = False
@@ -428,13 +406,8 @@ class MainWindow(object):
                         self.hist_win.close()
                         self.hist_win = None
 
-        def show_bin_series_toggled_cb(self, action):
-                if action.props.active:
-                        self.bin_series_win = BinSeriesPlot(self)
-                        self.bin_series_win.scroll = self.readout_running
-                else:
-                        self.bin_series_win.close()
-                        self.bin_series_win = None
+        def show_bin_series_activate_cb(self, action):
+                BinSeriesPlot(self.pipeline)
 
         def bin_series_win_closed(self):
                 self.builder.get_object('show_bin_series').props.active = False

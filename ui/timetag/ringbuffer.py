@@ -31,7 +31,7 @@ class RingBuffer:
         def resize(self, length):
                 assert(length > 0)
                 self._size = length
-                self._data = np.array([0] * length, dtype=self.dtype)
+                self._data = np.empty(shape=length, dtype=self.dtype)
                 self.clear()
 
         def clear(self):
@@ -60,7 +60,8 @@ class RingBuffer:
                         self._cur = (self._cur+1) % self._size
 
                 def get(self):
-                        return self._data[self._cur:] + self._data[:self._cur]
+                        return np.concatenate([self._data[self._cur:],
+                                               self._data[:self._cur]])
                 
                 def get_unordered(self):
                         return self._data
