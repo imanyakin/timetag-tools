@@ -71,6 +71,47 @@ class HistBinner(Binner):
         c = self.channels[channel]
         c[int(count / self.hist_width) * self.hist_width] += 1
 
+class FretHistBinner(Binner):
+    def __init__(self, bin_time, clockrate, hist_width=10,
+                 acceptor_channel=2, donor_channel=1):
+        Binner.__init__(self, bin_time, clockrate)
+        self.hist_width = hist_width
+        self.last_donor_bin = None
+        self.last_acceptor_bin = None
+        self.acceptor_channel = acceptor_channel
+        self.donor_channel = donor_channel
+        self.threshold = 3
+
+    @property
+    def hist_width(self):
+        return self._hist_width
+
+    @hist_width.setter
+    def hist_width(self, width):
+        self._hist_width = width
+        self.reset_hist()
+
+    def reset_hist(self):
+        self.hist = defaultdict(lambda: 0)
+
+    def handle_bin(self, channel, start_time, count, lost):
+        if channel == self.donor_channel:
+            self.last_donor_bin = (start_time, count)
+        elif channel == self.acceptor_channel:
+            self.last_acceptor_bin = (start_time, count)
+        else:
+            return
+
+        if self.last_donor_bin is None or self.last_acceptor_bin is None: return
+        if self.last_donor_bin[0] != self.last_acceptor_bin[0]: return
+        
+        a_count = self.last_acceptor_bin[1]
+        d_count = self.last_donor_bin[1]
+        if a_count + d_count < self.threshold: return
+        
+        fret_eff = 1. * a_count / (a_count + d_count)
+        hist[int(fret_eff / self.hist_width) * self.hist_width] += 1
+
 class BufferBinner(Binner):
     class Channel(object):
             def __init__(self, npts):

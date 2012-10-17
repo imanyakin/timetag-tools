@@ -41,6 +41,7 @@ from timetag.capture_pipeline import CapturePipeline
 from timetag.test_pipeline import TestPipeline
 from timetag.bin_series_plot import BinSeriesPlot
 from timetag.hist_plot import HistPlot
+from timetag.fret_hist_plot import FretHistPlot
 from timetag.binner import BufferBinner
 
 StrobeConfig = namedtuple('StrobeConfig', 'enabled color label')
@@ -408,6 +409,9 @@ class MainWindow(object):
 
         def show_bin_series_activate_cb(self, action):
                 BinSeriesPlot(self.pipeline)
+
+        def show_fret_hist_activate_cb(self, action):
+                FretHistPlot(self.pipeline)
 
         def bin_series_win_closed(self):
                 self.builder.get_object('show_bin_series').props.active = False
