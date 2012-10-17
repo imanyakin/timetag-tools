@@ -21,17 +21,25 @@
 # 
 
 
-from array import array
+import numpy as np
 
 class RingBuffer:
-	def __init__(self, length, fmt='f'):
-		self._cur = 0
-		self._size = int(length)
-                assert(self._size > 0)
-		self._data = array(fmt, [0] * int(length))
+	def __init__(self, length, dtype='f'):
+                self.dtype = dtype
+                self.resize(length)
+
+        def resize(self, length):
+                assert(length > 0)
+		self._size = length
+		self._data = np.array(fmt, [0] * length, dtype=self.dtype)
+                self.clear()
+
+        def clear(self):
+                self._cur = 0
+                self.__class__ = RingBuffer
 
 	def append(self, x):
-		"""append an element at the end of the buffer"""
+		""" append an element at the end of the buffer """
 		self._data[self._cur] = x
                 self._cur += 1
 		if self._cur >= self._size:
@@ -49,10 +57,11 @@ class RingBuffer:
         class RingBufferFull:
                 def append(self, x):
                         self._data[self._cur] = x
-                        self._cur = int((self._cur+1) % self._size)
+                        self._cur = (self._cur+1) % self._size
 
                 def get(self):
                         return self._data[self._cur:] + self._data[:self._cur]
                 
                 def get_unordered(self):
-                        return self.data
+                        return self._data
+
