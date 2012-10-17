@@ -212,6 +212,7 @@ class TestPipeline(object):
         def __init__(self, npts=10):
                 self.resize_buffer(npts)
                 self.count_totals = [0,0]
+                self.loss_count = 0
                 self.latest_timestamp = self.t = 0
                 self.set_hist_width(10)
                 self.clockrate = 30e6
@@ -237,7 +238,7 @@ class TestPipeline(object):
 
         def stats(self):
                 for i,c in enumerate(self.counts):
-                        yield 0, self.count_totals[i], 0, self.t
+                        yield 0, self.count_totals[i], self.t
 
         def start(self):
                 pass
@@ -267,6 +268,12 @@ class TestPipeline(object):
         def stop_capture(self):
                 logging.info('stop_capture')
                 self._running = False
+
+        def start_binner(self, bin_time):
+                pass
+        
+        def stop_binner(self):
+                pass
 
         def set_send_window(self, window):
                 logging.info('set_send_widow %d' % window)
