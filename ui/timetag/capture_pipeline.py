@@ -222,7 +222,7 @@ class TestPipeline(object):
                 class Channel(object):
                         def __init__(self):
                                 self.hist = defaultdict(lambda: 0)
-                self.channels = [Channel(), Channel()]
+                self.channels = { 0: Channel(), 1: Channel() }
 
         def bins(self):
                 for i,c in enumerate(self.counts):
