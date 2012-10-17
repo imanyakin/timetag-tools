@@ -5,6 +5,7 @@ import numpy as np
 from time import time
 import os
 import subprocess
+from collections import defaultdict
 from ringbuffer import RingBuffer
 
 bin_dtype = np.dtype([('time', 'f'), ('counts', 'u4')])

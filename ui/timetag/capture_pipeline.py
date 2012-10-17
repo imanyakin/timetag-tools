@@ -25,7 +25,6 @@ import passfd
 import logging
 import sys
 from time import sleep
-from collections import defaultdict
 
 logging.basicConfig(level=logging.DEBUG)
 
