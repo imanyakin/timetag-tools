@@ -2,12 +2,6 @@
 <interface>
   <requires lib="gtk+" version="2.16"/>
   <!-- interface-naming-policy project-wide -->
-  <object class="GtkToggleAction" id="y_auto">
-    <property name="label">Automatic</property>
-    <property name="short_label">Automatic</property>
-    <property name="active">True</property>
-    <signal name="toggled" handler="y_bounds_changed_cb" swapped="no"/>
-  </object>
   <object class="GtkWindow" id="bin_series_window">
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Plot: Bins</property>
@@ -112,7 +106,6 @@
                                 <property name="secondary_icon_sensitive">True</property>
                                 <property name="adjustment">bin_time</property>
                                 <property name="numeric">True</property>
-                                <signal name="change-value" handler="bin_time_changed_cb" swapped="no"/>
                               </object>
                               <packing>
                                 <property name="left_attach">1</property>
@@ -346,9 +339,16 @@
   <object class="GtkAdjustment" id="bin_time">
     <property name="lower">5</property>
     <property name="upper">1000</property>
+    <property name="value">5</property>
     <property name="step_increment">5</property>
     <property name="page_increment">10</property>
-    <signal name="value-changed" handler="bin_time_value_changed_cb" swapped="no"/>
+    <signal name="value-changed" handler="bin_time_changed_cb" swapped="no"/>
+  </object>
+  <object class="GtkToggleAction" id="y_auto">
+    <property name="label">Automatic</property>
+    <property name="short_label">Automatic</property>
+    <property name="active">True</property>
+    <signal name="toggled" handler="y_bounds_changed_cb" swapped="no"/>
   </object>
   <object class="GtkAdjustment" id="x_width">
     <property name="lower">0.01</property>
