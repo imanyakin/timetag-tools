@@ -27,6 +27,7 @@ class BinSeriesPlot(object):
                 self.builder.add_from_string(src)
                 self.builder.connect_signals(self)
                 self.win = self.builder.get_object('bin_series_window')
+                self.win.connect('destroy', self.destroy_cb)
                 self.pipeline = pipeline
 
                 self.colors = map(fix_color, def_colors)
@@ -39,6 +40,9 @@ class BinSeriesPlot(object):
                 self._setup_plot()
                 self.start_fps_display()
                 self.win.show_all()
+
+        def destroy_cb(self, a):
+                pass # TODO
 
         def start_fps_display(self):
                 self.fps_interval = 5 # seconds
@@ -79,40 +83,43 @@ class BinSeriesPlot(object):
                 gobject.timeout_add(int(1000.0/self.plot_update_rate), update_plot)
 
         def _restart_binner(self):
-                clockrate = 1./128e6 # FIXME
                 if self.binner is not None:
-                        self.pipeline.rm_output(self.output_id)
+                        self.pipeline.remove_output(self.output_id)
                         self.binner.stop()
-                self.binner = BufferBinner(self.bin_time / 1000., clockrate)
+                self.binner = BufferBinner(self.bin_time, self.pipeline.clockrate)
                 self.output_id = str(id(self))
                 self.pipeline.add_output(self.output_id, self.binner.get_data_fd())
 
         def _update(self):
-                max_counts = 0
-                for n,channel in enumerate(self.pipeline.channels):
-                        counts = channel['counts']
-                        max_counts = max(max_counts, max(counts))
+                max_counts = 1
+                clockrate = self.pipeline.clockrate
+                for n,channel in enumerate(self.binner.channels):
+                        bins = channel.counts.get()
+                        if len(bins) == 0:
+                                continue
+                        max_counts = max(max_counts, max(bins['counts']))
                         # FIXME
                         #if not self.main_win.strobe_config[n].enabled: continue
                         if not self.lines.has_key(n):
-                                self.lines[n], = self.axes.plot(times, counts, color=self.colors[n])
+                                self.lines[n], = self.axes.plot(bins['time'],
+                                                                bins['counts'],
+                                                                color=self.colors[n])
                         else:
-                                self.lines[n].set_data(times, counts)
+                                self.lines[n].set_data(bins['time'], bins['counts'])
 
                 self.axes.relim()
 
                 # Scale X axis:
                 def calc_x_bounds():
-                        xmax = self.sync_timestamp
-                        if self.scroll:
-                                xmax += time.time() - self.sync_walltime
+                        xmax = self.sync_timestamp / clockrate
+                        xmax += time.time() - self.sync_walltime
                         xmin = xmax - self.width
                         return xmin, xmax
 
                 xmin, xmax = calc_x_bounds()
-                if not xmin < self.pipeline.latest_timestamp < xmax:
+                if not xmin < self.binner.latest_timestamp / clockrate < xmax:
                         self.sync_walltime = time.time()
-                        self.sync_timestamp = self.pipeline.latest_timestamp
+                        self.sync_timestamp = self.binner.latest_timestamp
                         xmin, xmax = calc_x_bounds()
 
                 self.axes.set_xlim(xmin, xmax)
@@ -138,7 +145,7 @@ class BinSeriesPlot(object):
 
         @property
         def bin_time(self):
-                return self.builder.get_object('bin_time').props.value
+                return 1e-3 * self.builder.get_object('bin_time').props.value
 
         def x_width_value_changed_cb(self, *args):
                 if not self.pipeline: return
@@ -159,4 +166,4 @@ class BinSeriesPlot(object):
                                          get_object('y_upper').props.value)
 
         def bin_time_changed_cb(self, *args):
-                self.restart_binner()
+                self._restart_binner()

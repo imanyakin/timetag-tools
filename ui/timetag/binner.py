@@ -7,7 +7,7 @@ import os
 import subprocess
 from ringbuffer import RingBuffer
 
-bin_dtype = np.dtype([('time', 'u8'), ('counts', 'u4')])
+bin_dtype = np.dtype([('time', 'f'), ('counts', 'u4')])
 
 class Binner(object):
     def __init__(self, bin_time, clockrate):
