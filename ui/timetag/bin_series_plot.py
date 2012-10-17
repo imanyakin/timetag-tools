@@ -35,6 +35,7 @@ class BinSeriesPlot(object):
                 self.width = 10 # seconds
                 self.y_bounds = None
 
+                self.running = True
                 self.binner = None
                 self._restart_binner()
                 self._setup_plot()
@@ -42,7 +43,8 @@ class BinSeriesPlot(object):
                 self.win.show_all()
 
         def destroy_cb(self, a):
-                pass # TODO
+                self.running = False
+                self._stop_binner()
 
         def start_fps_display(self):
                 self.fps_interval = 5 # seconds
@@ -52,7 +54,7 @@ class BinSeriesPlot(object):
                         fps = self.frame_cnt / self.fps_interval
                         self.frame_cnt = 0
                         logging.debug("Plot: %2.1f FPS" % fps)
-                        return True
+                        return self.running
 
                 gobject.timeout_add_seconds(self.fps_interval, display_fps)
                 
@@ -78,14 +80,17 @@ class BinSeriesPlot(object):
                         except AttributeError as e:
                                 # Ignore exceptions in case pipeline is shut down
                                 raise e
-                        return True
+                        return self.running
 
                 gobject.timeout_add(int(1000.0/self.plot_update_rate), update_plot)
 
-        def _restart_binner(self):
+        def _stop_binner(self):
                 if self.binner is not None:
                         self.pipeline.remove_output(self.output_id)
                         self.binner.stop()
+
+        def _restart_binner(self):
+                self._stop_binner()
                 self.binner = BufferBinner(self.bin_time, self.pipeline.clockrate)
                 self.output_id = str(id(self))
                 self.pipeline.add_output(self.output_id, self.binner.get_data_fd())
