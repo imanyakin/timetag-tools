@@ -11,7 +11,9 @@ setup(name = 'timetag_ui',
       packages = ['timetag'],
       scripts = ['timetag_ui', 'timetag_seq_ui'],
       package_data = {
-              'timetag': ['main.glade', 'bin_series.glade', 'hist.glade', 'default.cfg']
+              'timetag': ['main.glade', 'bin_series.glade', 'hist.glade', 'default.cfg',
+                          'fret_hist.glade'
+                          ]
       },
       data_files = [
               ('share/icons', ['timetag_ui.svg', 'timetag_seq_ui.svg']),
