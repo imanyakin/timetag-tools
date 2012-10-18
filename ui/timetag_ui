@@ -200,8 +200,6 @@ class MainWindow(object):
                 self.win.connect('destroy', quit)
 
                 self.set_default_output_file()
-                self.bin_series_win = None
-                self.hist_win = None
                 self.indicators = None
                 self.load_rc()
 
@@ -400,12 +398,8 @@ class MainWindow(object):
                 active = self.builder.get_object('show_rates').props.active
                 self.indicators.rate_mode = bool(active)
 
-        def show_hist_toggled_cb(self, action):
-                if action.props.active:
-                        self.hist_win = HistPlot(self)
-                else:
-                        self.hist_win.close()
-                        self.hist_win = None
+        def show_hist_activate_cb(self, action):
+                HistPlot(self)
 
         def show_bin_series_activate_cb(self, action):
                 BinSeriesPlot(self.pipeline)
@@ -415,9 +409,6 @@ class MainWindow(object):
 
         def bin_series_win_closed(self):
                 self.builder.get_object('show_bin_series').props.active = False
-
-        def hist_win_closed(self):
-                self.builder.get_object('show_hist').props.active = False
 
 if __name__ == '__main__':
         from optparse import OptionParser
