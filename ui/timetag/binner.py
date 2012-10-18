@@ -76,11 +76,11 @@ class FretHistBinner(Binner):
                  acceptor_channel=1, donor_channel=0):
         Binner.__init__(self, bin_time, clockrate)
         self.hist_width = hist_width
-        self.last_donor_bin = None
-        self.last_acceptor_bin = None
         self.acceptor_channel = acceptor_channel
         self.donor_channel = donor_channel
         self.threshold = 3
+        self._last_donor_bin = None
+        self._last_acceptor_bin = None
 
     @property
     def hist_width(self):
@@ -96,15 +96,15 @@ class FretHistBinner(Binner):
 
     def handle_bin(self, channel, start_time, count, lost):
         if channel == self.donor_channel:
-            self.last_donor_bin = (start_time, count)
+            self._last_donor_bin = (start_time, count)
         elif channel == self.acceptor_channel:
-            self.last_acceptor_bin = (start_time, count)
+            self._last_acceptor_bin = (start_time, count)
         else:
             return
 
-        if self.last_donor_bin is None or self.last_acceptor_bin is None: return
-        a_time, a_count = self.last_acceptor_bin
-        d_time, d_count = self.last_donor_bin
+        if self._last_donor_bin is None or self._last_acceptor_bin is None: return
+        a_time, a_count = self._last_acceptor_bin
+        d_time, d_count = self._last_donor_bin
 
         if d_time != a_time: return
         if a_count + d_count < self.threshold: return

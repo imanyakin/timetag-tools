@@ -77,6 +77,12 @@ class FretHistPlot(object):
                 self.axes.xlim(0, 1)
                 self.figure.canvas.draw()
 
-        def nbins_changed_cb(self, adj):
-                self.binner.hist_width = 1. / adj.get_value()
+        def binning_config_changed_cb(self, *args):
+                get_obj = self.builder.get_object
+                model = get_obj('channel_model')
+                self.binner.donor_channel = model[get_obj('donor_combo').get_active_iter()][0]
+                self.binner.acceptor_channel = model[get_obj('acceptor_combo').get_active_iter()][0]
+                self.binner.threshold = get_obj('threshold').get_value()
+                self.binner.hist_width = 1. / get_obj('nbins').get_value()
+                self.binner.reset_hist()
 
