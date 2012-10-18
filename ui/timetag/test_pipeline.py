@@ -4,9 +4,16 @@ from time import sleep
 import struct
 import numpy.random
 
+def categorical(xs):
+        a = numpy.random.rand()
+        for (p,x) in xs:
+                if p > a: return x
+                a -= p
+        return x
+
 class TestPipeline(object):
         def __init__(self, clockrate=32e6):
-                self.count_rates = [ 100, 80, 0, 0 ]
+                self.count_rates = [ 2000, 2000, 0, 0 ]
                 self.clockrate = clockrate
                 self.hw_version = '1'
                 self._outputs = {}
@@ -22,12 +29,15 @@ class TestPipeline(object):
                 for id,file in self._outputs.items():
                     file.write(a)
                     
-        def _worker(self, channel, rate):
+        def _worker(self, count_rates):
                 t = 0
+                sum_rate = sum(count_rates)
                 while self._running:
                     accum = 0
                     while accum < 1e-1:
-                        dt = numpy.random.exponential(1./rate)
+                        dt = numpy.random.exponential(1./sum_rate)
+                        channel = categorical((1. * rate / sum_rate, ch+1)
+                                              for (ch,rate) in enumerate(count_rates))
                         accum += dt
                         t += int(self.clockrate*dt)
                         self._emit_record(channel, t)
@@ -40,7 +50,7 @@ class TestPipeline(object):
                 self._running = True
                 self.listener = threading.Thread(name='Test Data Generator',
                                                  target=self._worker,
-                                                 args=(1, self.count_rates[0]))
+                                                 args=(self.count_rates,))
                 self.listener.daemon = True
                 self.listener.start()
 

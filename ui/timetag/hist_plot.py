@@ -47,7 +47,7 @@ class HistPlot(object):
 
                 canvas = self.__class__.FigureCanvas(self.figure)
                 self.builder.get_object('plot_container').pack_start(canvas)
-                self.builder.get_object('bin_width').value = 10 # HACK: set default
+                self.builder.get_object('bin_width').value = 0.02 # HACK: set default
                 self.win.show_all()
 
                 def update_plot():

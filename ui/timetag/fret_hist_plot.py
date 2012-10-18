@@ -17,7 +17,7 @@ class FretHistPlot(object):
         def __init__(self, pipeline):
                 self.bin_time = 1e-2
                 self.builder = gtk.Builder()
-                src = pkgutil.get_data('timetag', 'hist.glade')
+                src = pkgutil.get_data('timetag', 'fret_hist.glade')
                 self.builder.add_from_string(src)
                 self.builder.connect_signals(self)
                 self.win = self.builder.get_object('hist_window')
@@ -36,7 +36,7 @@ class FretHistPlot(object):
 
                 canvas = self.__class__.FigureCanvas(self.figure)
                 self.builder.get_object('plot_container').pack_start(canvas)
-                self.builder.get_object('bin_width').value = 10 # HACK: set default
+                self.builder.get_object('bin_width').value = 40
                 self.win.show_all()
 
                 def update_plot():
@@ -66,14 +66,17 @@ class FretHistPlot(object):
                 self.pipeline.add_output(self.output_id, self.binner.get_data_fd())
 
         def update(self):
+                print 'hi'
                 hist_width = self.binner.hist_width
                 hist = self.binner.hist
                 if len(hist) == 0: return
+                print 'hello'
                 self.axes.cla()
                 self.axes.bar(hist.keys(), hist.values(), hist_width)
                 self.axes.relim()
+                self.axes.xlim(0, 1)
                 self.figure.canvas.draw()
 
-        def bin_width_changed_cb(self, adj):
-                self.binner.hist_width = adj.get_value()
+        def nbins_changed_cb(self, adj):
+                self.binner.hist_width = 1. / adj.get_value()
 
