@@ -23,7 +23,7 @@ class FretHistPlot(object):
                 self.win = self.builder.get_object('hist_window')
                 self.win.connect('destroy', self.destroy_cb)
                 self.pipeline = pipeline
-                self.update_rate = 0.3 # Hz
+                self.update_rate = 0.5 # Hz
 
                 self.binner = None
                 self._restart_binner()
@@ -32,11 +32,10 @@ class FretHistPlot(object):
                 self.axes = self.figure.add_subplot(111)
                 self.axes.get_xaxis().set_major_formatter(
                                 matplotlib.ticker.ScalarFormatter(useOffset=False))
-                self.axes.set_xlabel('Counts per bin')
 
                 canvas = self.__class__.FigureCanvas(self.figure)
                 self.builder.get_object('plot_container').pack_start(canvas)
-                self.builder.get_object('bin_width').value = 40
+                self.builder.get_object('nbins').value = 40
                 self.win.show_all()
 
                 def update_plot():
@@ -72,7 +71,8 @@ class FretHistPlot(object):
                 self.axes.cla()
                 self.axes.bar(hist.keys(), hist.values(), hist_width)
                 self.axes.relim()
-                self.axes.xlim(0, 1)
+                self.axes.set_xlim(0, 1)
+                self.axes.set_xlabel('FRET efficiency')
                 self.figure.canvas.draw()
 
         def binning_config_changed_cb(self, *args):

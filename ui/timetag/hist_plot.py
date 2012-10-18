@@ -42,7 +42,6 @@ class HistPlot(object):
                         axes = self.figure.add_subplot(140+i)
                         axes.get_xaxis().set_major_formatter(
                                         matplotlib.ticker.ScalarFormatter(useOffset=False))
-                        axes.set_xlabel('Counts per bin')
                         self.axes.append(axes)
 
                 canvas = self.__class__.FigureCanvas(self.figure)
@@ -84,6 +83,7 @@ class HistPlot(object):
                         self.axes[c].bar(hist.keys(), hist.values(), hist_width,
                                          color=self.colors[c])
                         self.axes[c].relim()
+                        self.axes[c].set_xlabel('Counts per bin')
 
                 self.figure.canvas.draw()
 
