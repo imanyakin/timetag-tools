@@ -244,7 +244,9 @@
     <signal name="value-changed" handler="binning_config_changed_cb" swapped="no"/>
   </object>
   <object class="GtkAdjustment" id="threshold">
+    <property name="lower">1</property>
     <property name="upper">1000000</property>
+    <property name="value">10</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
     <signal name="value-changed" handler="binning_config_changed_cb" swapped="no"/>
