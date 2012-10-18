@@ -15,7 +15,6 @@ class FretHistPlot(object):
         FigureCanvas = FigureCanvasGTK
 
         def __init__(self, pipeline):
-                self.bin_time = 1e-2
                 self.builder = gtk.Builder()
                 src = pkgutil.get_data('timetag', 'fret_hist.glade')
                 self.builder.add_from_string(src)
@@ -48,6 +47,10 @@ class FretHistPlot(object):
 
                 self.running = True
                 gobject.timeout_add(int(1000.0 / self.update_rate), update_plot)
+
+        @property
+        def bin_time(self):
+                return 1e-3 * self.builder.get_object('bin_time').props.value
 
         def destroy_cb(self, a):
                 self.running = False
@@ -83,4 +86,7 @@ class FretHistPlot(object):
                 self.binner.threshold = get_obj('threshold').get_value()
                 self.binner.hist_width = 1. / get_obj('nbins').get_value()
                 self.binner.reset_hist()
+
+        def bin_time_changed_cb(self, adj):
+                self._restart_binner()
 
