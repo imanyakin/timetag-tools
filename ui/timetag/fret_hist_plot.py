@@ -66,11 +66,9 @@ class FretHistPlot(object):
                 self.pipeline.add_output(self.output_id, self.binner.get_data_fd())
 
         def update(self):
-                print 'hi'
                 hist_width = self.binner.hist_width
                 hist = self.binner.hist
                 if len(hist) == 0: return
-                print 'hello'
                 self.axes.cla()
                 self.axes.bar(hist.keys(), hist.values(), hist_width)
                 self.axes.relim()
