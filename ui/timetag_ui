@@ -203,6 +203,9 @@ class MainWindow(object):
                 self.indicators = None
                 self.load_rc()
 
+                self._out_file = None
+                self._out_file_id = None
+
                 # Start indicators update loop
                 def update_indicators():
                         self.indicators.update()
@@ -296,6 +299,14 @@ class MainWindow(object):
                         self.builder.get_object('output_file').props.text = \
                             fc.get_filename()
 
+        def new_out_file(self, filename):
+                if self._out_file_id is not None:
+                        self.remove_output(self._out_file_id)
+
+                self._out_file_id = 'file:%x' % hash(filename)
+                self._out_file = open(filename, 'w')
+                self.pipeline.add_output('file', self._out_file)
+
         def start_readout(self):
                 get_obj = self.builder.get_object
                 output_enabled = get_obj('file_output_enabled').props.active
@@ -319,8 +330,7 @@ class MainWindow(object):
                                         get_obj('readout_running').props.label = "Stopped"
                                         return
 
-                        self._out_file = open(outfile, 'w')
-                        self.pipeline.add_output('file', self._out_file)
+                        self.new_out_file(outfile)
 
                         description = get_obj('description').get_buffer().props.text
                         channels = {}
@@ -380,8 +390,15 @@ class MainWindow(object):
                 self.pipeline.stop_capture()
                 self.readout_running = False
 
-                # So people don't overwrite the data they just took
+                # Disable output file
                 get_obj('file_output_enabled').props.active = False
+                if self._out_file_id is not None:
+                    self.pipeline.remove_output(self._out_file_id)
+                    self._out_file.close()
+                    self._out_file_id = None
+                    self._out_file = None
+
+                # So people don't overwrite the data they just took
                 get_obj('file_output_enabled').props.sensitive = True
                 get_obj('output_file').props.sensitive = True
                 get_obj('acq_time_enabled').props.sensitive = True
