@@ -24,6 +24,7 @@
 //#define DEBUG
 
 #include <assert.h>
+#include <unistd.h>
 #include <cstdio>
 #include <cstring>
 #include "timetagger.h"

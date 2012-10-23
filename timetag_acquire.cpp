@@ -44,6 +44,7 @@
 #include <boost/lexical_cast.hpp>
 
 #include <thread>
+#include <condition_variable>
 #include <mutex>
 
 #include "timetagger.h"
