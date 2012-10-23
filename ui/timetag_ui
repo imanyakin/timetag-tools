@@ -210,7 +210,8 @@ class MainWindow(object):
                 def update_indicators():
                         self.indicators.update()
                         return True
-                gobject.timeout_add(int(1000.0/self.indicators_update_rate), update_indicators)
+                gobject.timeout_add(int(1000.0/self.indicators_update_rate),
+                                    update_indicators)
 
                 self.win.show_all()
 
