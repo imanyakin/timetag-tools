@@ -10,6 +10,7 @@ from matplotlib.backends.backend_gtkagg import FigureCanvasGTKAgg
 from matplotlib.backends.backend_gtkcairo import FigureCanvasGTKCairo
 
 from timetag.binner import BufferBinner
+from timetag.managed_binner import ManagedBinner
 
 # FIXME
 def_colors = ['#A80505', '#006619', '#0142D5', '#922FFF']
@@ -18,51 +19,50 @@ def fix_color(c):
         c = gtk.gdk.color_parse(c)
         return (c.red_float, c.green_float, c.blue_float)
 
-class BinSeriesPlot(object):
+class BinSeriesPlot(ManagedBinner):
         FigureCanvas = FigureCanvasGTK
 
         def __init__(self, pipeline):
+                self.pipeline = pipeline
                 self.builder = gtk.Builder()
                 src = pkgutil.get_data('timetag', 'bin_series.glade')
                 self.builder.add_from_string(src)
                 self.builder.connect_signals(self)
                 self.win = self.builder.get_object('bin_series_window')
                 self.win.connect('destroy', self.destroy_cb)
-                self.pipeline = pipeline
 
                 self.colors = map(fix_color, def_colors)
                 self.plot_update_rate = 12 # in Hertz
-                self.width = 10 # seconds
                 self.y_bounds = None
 
                 self.running = True
-                self.binner = None
-                self._restart_binner()
                 self._setup_plot()
-                self.start_fps_display()
                 self.win.show_all()
+		ManagedBinner.__init__(self, self.pipeline, 'bin-series')
 
-        def destroy_cb(self, a):
-                self.running = False
-                self._stop_binner()
+	def on_started(self):
+		self._start_fps_display()
+                gobject.timeout_add(int(1000.0/self.plot_update_rate), self._update_plot)
 
-        def start_fps_display(self):
+        def _start_fps_display(self):
                 self.fps_interval = 5 # seconds
                 self.frame_cnt = 0
                 def display_fps():
-                        if not self.frame_cnt > 0: return True
-                        fps = self.frame_cnt / self.fps_interval
-                        self.frame_cnt = 0
-                        logging.debug("Plot: %2.1f FPS" % fps)
-                        return self.running
+                        if self.frame_cnt > 0:
+			    fps = self.frame_cnt / self.fps_interval
+			    self.frame_cnt = 0
+			    logging.debug("Plot: %2.1f FPS" % fps)
+                        return self.is_running()
 
                 gobject.timeout_add_seconds(self.fps_interval, display_fps)
+
+        def destroy_cb(self, a):
+                self.stop_binner()
                 
         def _setup_plot(self):
                 self.last_timestamp = 0
                 self.sync_timestamp = 0
                 self.sync_walltime = 0
-                self.builder.get_object('x_width').props.value = 10 # HACK: set default
                 self.figure = Figure()
                 self.axes = self.figure.add_subplot(111)
                 self.axes.get_xaxis().set_major_formatter(
@@ -73,32 +73,17 @@ class BinSeriesPlot(object):
                 canvas = self.__class__.FigureCanvas(self.figure)
                 self.builder.get_object('plot_container').pack_start(canvas)
 
-                # Start update loop
-                def update_plot():
-                        try:
-                                self._update()
-                        except AttributeError as e:
-                                # Ignore exceptions in case pipeline is shut down
-                                raise e
-                        return self.running
+        def create_binner(self):
+                binner = BufferBinner(self.bin_time, self.pipeline.clockrate)
+		binner.resize_buffer(self.n_points)
+		return binner
 
-                gobject.timeout_add(int(1000.0/self.plot_update_rate), update_plot)
-
-        def _stop_binner(self):
-                if self.binner is not None:
-                        self.pipeline.remove_output(self.output_id)
-                        self.binner.stop()
-
-        def _restart_binner(self):
-                self._stop_binner()
-                self.binner = BufferBinner(self.bin_time, self.pipeline.clockrate)
-                self.output_id = str(id(self))
-                self.pipeline.add_output(self.output_id, self.binner.get_data_fd())
-
-        def _update(self):
+        def _update_plot(self):
                 max_counts = 1
                 clockrate = self.pipeline.clockrate
-                for n,channel in enumerate(self.binner.channels):
+		binner = self.get_binner()
+		if binner is None: return False
+                for n,channel in enumerate(binner.channels):
                         bins = channel.counts.get()
                         if len(bins) == 0:
                                 continue
@@ -118,13 +103,13 @@ class BinSeriesPlot(object):
                 def calc_x_bounds():
                         xmax = self.sync_timestamp / clockrate
                         xmax += time.time() - self.sync_walltime
-                        xmin = xmax - self.width
+                        xmin = xmax - self.plot_width
                         return xmin, xmax
 
                 xmin, xmax = calc_x_bounds()
-                if not xmin < self.binner.latest_timestamp / clockrate < xmax:
+                if not xmin < binner.latest_timestamp / clockrate < xmax:
                         self.sync_walltime = time.time()
-                        self.sync_timestamp = self.binner.latest_timestamp
+                        self.sync_timestamp = binner.latest_timestamp
                         xmin, xmax = calc_x_bounds()
 
                 self.axes.set_xlim(xmin, xmax)
@@ -137,6 +122,7 @@ class BinSeriesPlot(object):
 
                 self.figure.canvas.draw()
                 self.frame_cnt += 1
+		return self.is_running()
 
         @property
         def plot_width(self):
@@ -153,9 +139,7 @@ class BinSeriesPlot(object):
                 return 1e-3 * self.builder.get_object('bin_time').props.value
 
         def x_width_value_changed_cb(self, *args):
-                if not self.pipeline: return
-                self.binner.resize_buffer(self.n_points)
-                self.width = self.plot_width
+		self.restart_binner()
 
         def y_bounds_changed_cb(self, *args):
                 get_object = self.builder.get_object
@@ -171,4 +155,4 @@ class BinSeriesPlot(object):
                                          get_object('y_upper').props.value)
 
         def bin_time_changed_cb(self, *args):
-                self._restart_binner()
+                self.restart_binner()

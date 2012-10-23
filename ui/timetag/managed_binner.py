@@ -36,6 +36,15 @@ class ManagedBinner(object):
         self._binner = None
         self.on_stopped()
 
+    def stop_binner(self):
+        if self._binner is not None:
+            self._stop_binner()
+
+    def restart_binner(self):
+        self.stop_binner()
+        if self._pipeline.is_capture_running():
+            self._start_binner()
+
     def get_binner(self):
         return self._binner
 
