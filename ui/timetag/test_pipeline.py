@@ -30,7 +30,8 @@ class TestPipeline(object):
                                (time >>  0) & 0xff
                                ])
                 for id,file in self._outputs.items():
-                    file.write(a)
+                    try: file.write(a)
+                    except: pass
                     
         def _worker(self, count_rates):
                 t = 0
