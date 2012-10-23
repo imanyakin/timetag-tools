@@ -28,6 +28,9 @@ from collections import defaultdict, namedtuple
 import time
 from datetime import datetime
 import pkgutil
+
+import subprocess
+from glob import glob
 import json
 
 import gobject, gtk
@@ -329,6 +332,20 @@ class MainWindow(object):
                         'description': description,
                         'channels': channels,
                 }
+
+                hooks = glob('/etc/timetag/metadata-hooks.d/*') + \
+                    glob(os.path.expanduser('~/.timetag/metadata-hooks.d/*'))
+                for f in hooks:
+                        if not os.access(f, os.X_OK): continue
+                        logging.info('Running metadata hook %s' % f)
+                        try:
+                                p = subprocess.check_output([f])
+                                p = json.loads(p)
+                                if not isinstance(p, dict):
+                                        raise RuntimeError("Metadata hook returned invalid output")
+                                metadata.update(p)
+                        except Exception as e:
+                                logging.warn('Metadata hook %s failed: %s' % (f, e))
                 return metadata
 
         def start_readout(self):
