@@ -1,3 +1,4 @@
+import logging
 import gobject
 
 class ManagedBinner(object):
@@ -6,6 +7,8 @@ class ManagedBinner(object):
         self._pipeline = pipeline
         self._binner = None
         self._binner_name = '%s:%x' % (name,id(self))
+        self._pipeline.start_notifiers.append(self._start_binner)
+        self._pipeline.stop_notifiers.append(self._stop_binner)
         self._watch()
         gobject.timeout_add_seconds(ManagedBinner.POLL_PERIOD, self._watch)
     
@@ -17,13 +20,17 @@ class ManagedBinner(object):
         return True
 
     def _start_binner(self):
-        assert(self._binner is None)
+        if self._binner is not None:
+            logging.warn("Binner already started")
+            return
         self._binner = self.create_binner()
         self._pipeline.add_output(self._binner_name, self._binner.get_data_fd())
         self.on_started()
 
     def _stop_binner(self):
-        assert(self._binner is not None)
+        if self._binner is None:
+            logging.warn("Binner already stopped")
+            return
         self._pipeline.remove_output(self._binner_name)
         self._binner.stop()
         self._binner = None

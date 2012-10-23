@@ -32,6 +32,8 @@ class CapturePipeline(object):
         def __init__(self, control_sock='/tmp/timetag.sock'):
                 """ Create a capture pipeline. The bin_time is given in
                     seconds. """
+                self.stop_notifiers = []
+                self.start_notifiers = []
                 self._control_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM, 0)
                 for i in range(10):
                         sleep(0.05)
@@ -86,10 +88,12 @@ class CapturePipeline(object):
 
         def stop_capture(self):
                 self._tagger_cmd('stop_capture\n')
+                for n in self.stop_notifiers: n()
 
         def start_capture(self):
                 self._tagger_cmd('flush_fifo\n')
                 self._tagger_cmd('start_capture\n')
+                for n in self.start_notifiers: n()
 
         def is_capture_running(self):
                 return bool(int(self._tagger_cmd('get_capturing\n')))

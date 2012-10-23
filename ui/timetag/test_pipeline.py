@@ -18,6 +18,8 @@ class TestPipeline(object):
                 self.hw_version = '1'
                 self._outputs = {}
                 self._running = False
+                self.stop_notifiers = []
+                self.start_notifiers = []
 
         def _emit_record(self, channel, time):
                 a = bytearray([0,
@@ -54,10 +56,12 @@ class TestPipeline(object):
                                                  args=(self.count_rates,))
                 self.listener.daemon = True
                 self.listener.start()
+                for n in self.start_notifiers: n()
 
         def stop_capture(self):
                 logging.info('stop_capture')
                 self._running = False
+                for n in self.stop_notifiers: n()
 
         def is_capture_running(self):
                 return self._running
