@@ -305,7 +305,7 @@ class MainWindow(object):
 
                 self._out_file_id = 'file:%x' % hash(filename)
                 self._out_file = open(filename, 'w')
-                self.pipeline.add_output('file', self._out_file)
+                self.pipeline.add_output(self._out_file_id, self._out_file)
 
         def start_readout(self):
                 get_obj = self.builder.get_object
