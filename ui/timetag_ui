@@ -43,6 +43,7 @@ from timetag.bin_series_plot import BinSeriesPlot
 from timetag.hist_plot import HistPlot
 from timetag.fret_hist_plot import FretHistPlot
 from timetag.binner import BufferBinner
+from timetag.managed_binner import ManagedBinner
 
 StrobeConfig = namedtuple('StrobeConfig', 'enabled color label')
 DeltaConfig = namedtuple('DeltaConfig', 'enabled label')
@@ -59,12 +60,10 @@ def_delta_config = [
                 DeltaConfig(False, 'Delta 4')
                 ]
 
-class NumericalIndicators(object):
+class NumericalIndicators(ManagedBinner):
         def __init__(self, main_win):
                 self.update_rate = 5 # Hz
                 self.pipeline = main_win.pipeline
-                self.binner = BufferBinner(1. / self.update_rate, self.pipeline.clockrate)
-                self.pipeline.add_output('indicators', self.binner.get_data_fd())
                 self.rate_mode = True
 
                 self.inputs = {}
@@ -86,14 +85,26 @@ class NumericalIndicators(object):
 
                 self.widget = table
 
+		ManagedBinner.__init__(self, self.pipeline, 'indicators')
+
+	def create_binner(self):
+                return BufferBinner(1. / self.update_rate, self.pipeline.clockrate)
+
+	def on_started(self):
+                """ Start indicators update loop """
+                gobject.timeout_add(int(1000.0/self.update_rate), self.update)
+
         def update(self):
+		if not self.is_running(): return False
                 if self.rate_mode:
                         self._update_rate_indicators()
                 else:
                         self._update_total_indicators()
+		return True
 
         def _update_rate_indicators(self):
-                for n,channel in enumerate(self.binner.channels):
+		binner = self.get_binner()
+                for n,channel in enumerate(binner.channels):
                         if n not in self.inputs: continue
                         counts = channel.counts.get()
                         if len(counts) == 0: continue
@@ -101,16 +112,17 @@ class NumericalIndicators(object):
                         markup = "<span color='darkgreen' size='xx-large'>%d</span> <span size='large'>photons/s</span>" % photon_rate
                         self.inputs[n].set_markup(markup)
 
-                markup = "<span color='darkred' size='xx-large'>%d</span> <span size='large'>losses</span>" % self.binner.loss_count
+                markup = "<span color='darkred' size='xx-large'>%d</span> <span size='large'>losses</span>" % binner.loss_count
                 self.lost.set_markup(markup)
 
         def _update_total_indicators(self):
-                for n,channel in enumerate(self.binner.channels):
+		binner = self.get_binner()
+                for n,channel in enumerate(binner.channels):
                         if n not in self.inputs: continue
                         markup = "<span color='darkgreen' size='xx-large'>%1.3e</span> <span size='large'>photons</span>" % channel.photon_count
                         self.inputs[n].set_markup(markup)
 
-                markup = "<span color='darkred' size='xx-large'>%d</span> <span size='large'>losses</span>" % self.binner.loss_count
+                markup = "<span color='darkred' size='xx-large'>%d</span> <span size='large'>losses</span>" % binner.loss_count
                 self.lost.set_markup(markup)
 
 def run_channel_editor(parent, strobe_config, delta_config):
@@ -178,12 +190,13 @@ def run_channel_editor(parent, strobe_config, delta_config):
         
 class MainWindow(object):
         def __init__(self, n_inputs=4):
-                self.indicators_update_rate = 5 # in Hertz
                 if use_test_pipeline:
                         self.pipeline = TestPipeline()
                 else:
                         self.pipeline = CapturePipeline()
                 self.readout_running = False
+                self._out_file = None
+                self._out_file_id = None
 
                 self.builder = gtk.Builder()
                 src = pkgutil.get_data('timetag', 'main.glade')
@@ -202,16 +215,6 @@ class MainWindow(object):
                 self.set_default_output_file()
                 self.indicators = None
                 self.load_rc()
-
-                self._out_file = None
-                self._out_file_id = None
-
-                # Start indicators update loop
-                def update_indicators():
-                        self.indicators.update()
-                        return True
-                gobject.timeout_add(int(1000.0/self.indicators_update_rate),
-                                    update_indicators)
 
                 self.win.show_all()
 
