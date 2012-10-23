@@ -17,6 +17,7 @@ class TestPipeline(object):
                 self.clockrate = clockrate
                 self.hw_version = '1'
                 self._outputs = {}
+                self._running = False
 
         def _emit_record(self, channel, time):
                 a = bytearray([0,
@@ -57,6 +58,9 @@ class TestPipeline(object):
         def stop_capture(self):
                 logging.info('stop_capture')
                 self._running = False
+
+        def is_capture_running(self):
+                return self._running
 
         def set_send_window(self, window):
                 logging.info('set_send_widow %d' % window)

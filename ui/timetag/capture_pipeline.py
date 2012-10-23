@@ -91,6 +91,9 @@ class CapturePipeline(object):
                 self._tagger_cmd('flush_fifo\n')
                 self._tagger_cmd('start_capture\n')
 
+        def is_capture_running(self):
+                return bool(int(self._tagger_cmd('get_capturing\n')))
+
         def set_send_window(self, window):
                 self._tagger_cmd('set_send_window %d\n' % window)
 
