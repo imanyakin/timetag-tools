@@ -78,6 +78,7 @@ public:
 
 	void start_capture();
 	void stop_capture();
+	bool get_capture_en();
 	void reset_counter();
 	void flush_fifo();
 

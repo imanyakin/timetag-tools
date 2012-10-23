@@ -204,6 +204,11 @@ void timetagger::stop_capture()
 	write_reg(CAPCTL_REG, regs[CAPCTL_REG] & ~CAPCTL_CAPTURE_EN);
 }
 
+bool timetagger::get_capture_en()
+{
+	return read_reg(CAPCTL_REG) & CAPCTL_CAPTURE_EN;
+}
+
 void timetagger::reset_counter()
 {
 	write_reg(CAPCTL_REG, (regs[CAPCTL_REG] | CAPCTL_RESET_CNT) & ~CAPCTL_COUNT_EN);
