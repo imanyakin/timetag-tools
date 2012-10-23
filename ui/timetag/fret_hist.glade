@@ -219,15 +219,6 @@
                   </packing>
                 </child>
                 <child>
-                  <placeholder/>
-                </child>
-                <child>
-                  <placeholder/>
-                </child>
-                <child>
-                  <placeholder/>
-                </child>
-                <child>
                   <object class="GtkLabel" id="label7">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
@@ -261,6 +252,15 @@
                     <property name="right_attach">2</property>
                   </packing>
                 </child>
+                <child>
+                  <placeholder/>
+                </child>
+                <child>
+                  <placeholder/>
+                </child>
+                <child>
+                  <placeholder/>
+                </child>
               </object>
             </child>
             <child type="label">
@@ -284,7 +284,7 @@
   <object class="GtkAdjustment" id="nbins">
     <property name="lower">5</property>
     <property name="upper">500</property>
-    <property name="value">30</property>
+    <property name="value">40</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
     <signal name="value-changed" handler="binning_config_changed_cb" swapped="no"/>
