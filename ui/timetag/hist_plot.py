@@ -10,6 +10,7 @@ from matplotlib.backends.backend_gtkcairo import FigureCanvasGTKCairo
 from collections import defaultdict
 
 from timetag.binner import HistBinner
+from timetag.managed_binner import ManagedBinner
 
 # FIXME
 def_colors = ['#A80505', '#006619', '#0142D5', '#922FFF']
@@ -18,11 +19,10 @@ def fix_color(c):
         c = gtk.gdk.color_parse(c)
         return (c.red_float, c.green_float, c.blue_float)
 
-class HistPlot(object):
+class HistPlot(ManagedBinner):
         FigureCanvas = FigureCanvasGTK
 
         def __init__(self, main_win):
-                self.bin_time = 1e-2
                 self.colors = map(fix_color, def_colors)
                 self.builder = gtk.Builder()
                 src = pkgutil.get_data('timetag', 'hist.glade')
@@ -32,9 +32,6 @@ class HistPlot(object):
                 self.win.connect('destroy', self.destroy_cb)
                 self.pipeline = main_win.pipeline
                 self.update_rate = 0.3 # Hz
-
-                self.binner = None
-                self._restart_binner()
 
                 self.figure = Figure()
                 self.axes = []
@@ -46,38 +43,22 @@ class HistPlot(object):
 
                 canvas = self.__class__.FigureCanvas(self.figure)
                 self.builder.get_object('plot_container').pack_start(canvas)
-                self.builder.get_object('bin_width').value = 0.02 # HACK: set default
                 self.win.show_all()
+                ManagedBinner.__init__(self, self.pipeline, 'hist-plot')
 
-                def update_plot():
-                        try:
-                                self.update()
-                        except AttributeError as e:
-                                # Ignore exceptions in case pipeline is shut down
-                                raise e
-                        return self.running
+        def create_binner(self):
+                return HistBinner(self.bin_time, self.pipeline.clockrate)
 
-                self.running = True
-                gobject.timeout_add(int(1000.0 / self.update_rate), update_plot)
+        def on_started(self):
+                gobject.timeout_add(int(1000.0 / self.update_rate), self._update_plot)
 
         def destroy_cb(self, a):
-                self.running = False
-                self._stop_binner()
+                self.stop_binner()
 
-        def _stop_binner(self):
-                if self.binner is not None:
-                        self.pipeline.remove_output(self.output_id)
-                        self.binner.stop()
-
-        def _restart_binner(self):
-                self._stop_binner()
-                self.binner = HistBinner(self.bin_time, self.pipeline.clockrate)
-                self.output_id = str(id(self))
-                self.pipeline.add_output(self.output_id, self.binner.get_data_fd())
-
-        def update(self):
-                hist_width = self.binner.hist_width
-                for c,hist in enumerate(self.binner.channels):
+        def _update_plot(self):
+                if self.get_binner() is None: return False
+                hist_width = self.get_binner().hist_width
+                for c,hist in enumerate(self.get_binner().channels):
                         if len(hist) == 0: continue
                         self.axes[c].cla()
                         self.axes[c].bar(hist.keys(), hist.values(), hist_width,
@@ -86,7 +67,12 @@ class HistPlot(object):
                         self.axes[c].set_xlabel('Counts per bin')
 
                 self.figure.canvas.draw()
+                return True
 
+        @property
+        def bin_time(self):
+                return self.builder.get_object('bin_width').props.value
+        
         def bin_width_changed_cb(self, adj):
-                self.binner.hist_width = adj.get_value()
+                self.restart_binner()
 
