@@ -412,7 +412,7 @@ class MainWindow(object):
                 self.indicators.rate_mode = bool(active)
 
         def show_hist_activate_cb(self, action):
-                HistPlot(self)
+                HistPlot(self.pipeline)
 
         def show_bin_series_activate_cb(self, action):
                 BinSeriesPlot(self.pipeline)

@@ -20,7 +20,7 @@ def fix_color(c):
 class HistPlot(ManagedBinner):
         FigureCanvas = FigureCanvasGTK
 
-        def __init__(self, main_win):
+        def __init__(self, pipeline):
                 self.colors = map(fix_color, def_colors)
                 self.builder = gtk.Builder()
                 src = pkgutil.get_data('timetag', 'hist.glade')
@@ -28,7 +28,7 @@ class HistPlot(ManagedBinner):
                 self.builder.connect_signals(self)
                 self.win = self.builder.get_object('hist_window')
                 self.win.connect('destroy', self.destroy_cb)
-                self.pipeline = main_win.pipeline
+                self.pipeline = pipeline
                 self.update_rate = 0.3 # Hz
 
                 rc = config.load_rc()
