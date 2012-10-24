@@ -8,6 +8,8 @@
     <property name="page_increment">10</property>
   </object>
   <object class="GtkAction" id="edit_channels">
+    <property name="label" translatable="yes">Edit channel configuration...</property>
+    <property name="short_label" translatable="yes">Channels</property>
     <property name="tooltip">Edit channel configuration</property>
     <property name="stock_id">gtk-edit</property>
     <signal name="activate" handler="edit_channels_activate_cb" swapped="no"/>
@@ -59,38 +61,53 @@
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <child>
-          <object class="GtkFrame" id="frame6">
+          <object class="GtkMenuBar" id="menubar">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="label_xalign">0</property>
-            <property name="shadow_type">none</property>
             <child>
-              <object class="GtkAlignment" id="channels_container">
+              <object class="GtkMenuItem" id="file_item">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="left_padding">12</property>
-                <child>
-                  <object class="GtkButton" id="edit_channels_btn">
+                <property name="use_action_appearance">False</property>
+                <property name="label" translatable="yes">_File</property>
+                <property name="use_underline">True</property>
+                <child type="submenu">
+                  <object class="GtkMenu" id="menu1">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="related_action">edit_channels</property>
-                    <property name="use_stock">True</property>
+                    <property name="can_focus">False</property>
+                    <child>
+                      <object class="GtkImageMenuItem" id="edit_channels_item">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="related_action">edit_channels</property>
+                        <property name="use_stock">True</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSeparatorMenuItem" id="separatormenuitem1">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_action_appearance">False</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="quit_item">
+                        <property name="label">gtk-quit</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="use_underline">True</property>
+                        <property name="use_stock">True</property>
+                        <signal name="activate" handler="quit" swapped="no"/>
+                      </object>
+                    </child>
                   </object>
                 </child>
               </object>
             </child>
-            <child type="label">
-              <object class="GtkLabel" id="label9">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">&lt;b&gt;Channel Configuration&lt;/b&gt;</property>
-                <property name="use_markup">True</property>
-              </object>
-            </child>
           </object>
           <packing>
-            <property name="expand">True</property>
+            <property name="expand">False</property>
             <property name="fill">True</property>
             <property name="position">0</property>
           </packing>

@@ -193,19 +193,20 @@ class MainWindow(object):
                 self.builder.connect_signals(self)
                 get_obj = self.builder.get_object
 
-                def quit(unused):
-                        if self.pipeline:
-                                self.stop_readout()
-                                self.pipeline.stop()
-                        gtk.main_quit()
                 self.win = get_obj('main_window')
-                self.win.connect('destroy', quit)
+                self.win.connect('destroy', self.quit)
 
                 self.set_default_output_file()
                 self.indicators = None
                 self.load_rc()
 
                 self.win.show_all()
+
+        def quit(self, *args):
+                if self.pipeline:
+                        self.stop_readout()
+                        self.pipeline.stop()
+                gtk.main_quit()
 
         def load_rc(self):
                 get_obj = self.builder.get_object
