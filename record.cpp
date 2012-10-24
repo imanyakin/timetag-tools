@@ -20,9 +20,9 @@
  * Author: Ben Gamari <bgamari@physics.umass.edu>
  */
 
-
 #include "record.h"
 #include <sys/stat.h>
+#include <unistd.h>
 
 record::type record::get_type() const {
         return (data & REC_TYPE_MASK) ? DELTA : STROBE;

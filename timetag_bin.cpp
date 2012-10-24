@@ -24,6 +24,7 @@
 #include <vector>
 #include <cstdio>
 #include <cstdlib>
+#include <unistd.h>
 
 #include "record.h"
 
