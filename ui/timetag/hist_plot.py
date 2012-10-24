@@ -21,7 +21,6 @@ class HistPlot(ManagedBinner):
         FigureCanvas = FigureCanvasGTK
 
         def __init__(self, pipeline):
-                self.colors = map(fix_color, def_colors)
                 self.builder = gtk.Builder()
                 src = pkgutil.get_data('timetag', 'hist.glade')
                 self.builder.add_from_string(src)
