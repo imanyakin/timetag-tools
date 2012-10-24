@@ -68,8 +68,8 @@ int main(int argc, char** argv) {
 	if (vm.count("skip-records"))
 		skip_records = vm["skip-records"].as<unsigned int>();
 
-        if (vm.count("truncate-records"))
-                truncate_records = vm["truncate-records"].as<unsigned int>();
+	if (vm.count("truncate-records"))
+		truncate_records = vm["truncate-records"].as<unsigned int>();
 
 	record_stream stream(0);
 	unsigned int i=0;
@@ -86,7 +86,7 @@ int main(int argc, char** argv) {
 			if (r.get_time() > end_time) break;
 			if (r.get_time() < start_time) continue;
 			if (i <= skip_records) continue;
-                        if (i >= truncate_records) break;
+			if (truncate_records != 0 && i >= truncate_records) break;
 
 			std::bitset<4> chans = r.get_channels();
 			if (strobe_on != -1 && !chans[strobe_on]) continue;
