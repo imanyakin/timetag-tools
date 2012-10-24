@@ -46,7 +46,8 @@ class FretHistPlot(ManagedBinner):
                 return binner
                 
         def on_started(self):
-                gobject.timeout_add(int(1000.0 / self.update_rate), self._update_plot)
+                gobject.timeout_add(int(1000.0 / self.update_rate), self._update_plot,
+                                    priority=gobject.PRIORITY_DEFAULT_IDLE)
 
         @property
         def bin_time(self):

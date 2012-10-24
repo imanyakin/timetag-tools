@@ -49,7 +49,8 @@ class HistPlot(ManagedBinner):
                 return HistBinner(self.bin_time, self.pipeline.clockrate)
 
         def on_started(self):
-                gobject.timeout_add(int(1000.0 / self.update_rate), self._update_plot)
+                gobject.timeout_add(int(1000.0 / self.update_rate), self._update_plot,
+                                    priority=gobject.PRIORITY_DEFAULT_IDLE)
 
         def destroy_cb(self, a):
                 self.stop_binner()

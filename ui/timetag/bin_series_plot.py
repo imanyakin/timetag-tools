@@ -41,7 +41,8 @@ class BinSeriesPlot(ManagedBinner):
 
 	def on_started(self):
 		self._start_fps_display()
-                gobject.timeout_add(int(1000.0/self.plot_update_rate), self._update_plot)
+                gobject.timeout_add(int(1000.0/self.plot_update_rate), self._update_plot,
+                                    priority=gobject.PRIORITY_DEFAULT_IDLE)
 
         def _start_fps_display(self):
                 self.fps_interval = 5 # seconds
