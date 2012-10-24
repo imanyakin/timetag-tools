@@ -11,9 +11,7 @@ from collections import defaultdict
 
 from timetag.binner import HistBinner
 from timetag.managed_binner import ManagedBinner
-
-# FIXME
-def_colors = ['#A80505', '#006619', '#0142D5', '#922FFF']
+from timetag import config
 
 def fix_color(c):
         c = gtk.gdk.color_parse(c)
@@ -33,6 +31,8 @@ class HistPlot(ManagedBinner):
                 self.pipeline = main_win.pipeline
                 self.update_rate = 0.3 # Hz
 
+                rc = config.load_rc()
+                self.colors = map(lambda chan: fix_color(chan.color), rc['strobe-channels'])
                 self.figure = Figure()
                 self.axes = []
                 for i in range(4):

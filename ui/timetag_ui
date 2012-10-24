@@ -24,7 +24,7 @@
 
 import os, sys
 import logging
-from collections import defaultdict, namedtuple
+from collections import defaultdict
 import time
 from datetime import datetime
 import pkgutil
@@ -47,21 +47,7 @@ from timetag.hist_plot import HistPlot
 from timetag.fret_hist_plot import FretHistPlot
 from timetag.binner import BufferBinner
 from timetag.managed_binner import ManagedBinner
-
-StrobeConfig = namedtuple('StrobeConfig', 'enabled color label')
-DeltaConfig = namedtuple('DeltaConfig', 'enabled label')
-def_strobe_config = [
-                StrobeConfig(True, '#A80505', 'Strobe 1'),
-                StrobeConfig(True, '#006619', 'Strobe 2'),
-                StrobeConfig(False, '#0142D5', 'Strobe 3'),
-                StrobeConfig(False, '#922FFF', 'Strobe 4')
-                ]
-def_delta_config = [
-                DeltaConfig(False, 'Delta 1'),
-                DeltaConfig(False, 'Delta 2'),
-                DeltaConfig(False, 'Delta 3'),
-                DeltaConfig(False, 'Delta 4')
-                ]
+from timetag import config
 
 class NumericalIndicators(ManagedBinner):
         def __init__(self, main_win):
@@ -139,20 +125,20 @@ def run_channel_editor(parent, strobe_config, delta_config):
         # Strobe channels
         strobes = []
         table = gtk.Table(rows=4, columns=4)
-        for config,i in zip(strobe_config, range(4)):
+        for cfg,i in zip(strobe_config, range(4)):
                 a = gtk.Label()
                 a.set_markup('<i>Strobe %d</i>' % i)
                 table.attach(a, 0, 1, i, i+1)
 
                 e = gtk.CheckButton('Enabled')
-                e.set_active(config.enabled)
+                e.set_active(cfg.enabled)
                 table.attach(e, 1, 2, i, i+1)
 
-                c = gtk.ColorButton(gtk.gdk.color_parse(config.color))
+                c = gtk.ColorButton(gtk.gdk.color_parse(cfg.color))
                 table.attach(c, 2, 3, i, i+1)
 
                 l = gtk.Entry()
-                l.set_text(config.label)
+                l.set_text(cfg.label)
                 table.attach(l, 3, 4, i, i+1)
 
                 strobes.append((e,c,l))
@@ -164,17 +150,17 @@ def run_channel_editor(parent, strobe_config, delta_config):
         # Delta channels
         deltas = []
         table = gtk.Table(rows=4, columns=4)
-        for config,i in zip(delta_config, range(4)):
+        for cfg,i in zip(delta_config, range(4)):
                 a = gtk.Label()
                 a.set_markup('<i>Delta %d</i>' % (i+1))
                 table.attach(a, 0, 1, i, i+1)
 
                 e = gtk.CheckButton('Enabled')
-                e.set_active(config.enabled)
+                e.set_active(cfg.enabled)
                 table.attach(e, 1, 2, i, i+1)
 
                 l = gtk.Entry()
-                l.set_text(config.label)
+                l.set_text(cfg.label)
                 table.attach(l, 3, 4, i, i+1)
 
                 deltas.append((e,l))
@@ -188,8 +174,8 @@ def run_channel_editor(parent, strobe_config, delta_config):
                 return None
 
         win.hide()
-        return ([ StrobeConfig(e.get_active(), c.get_color().to_string(), l.get_text()) for e,c,l in strobes ],
-                [ DeltaConfig(e.get_active(), l.get_text()) for e,l in deltas ])
+        return ([ config.StrobeChannel(e.get_active(), c.get_color().to_string(), l.get_text()) for e,c,l in strobes ],
+                [ config.DeltaChannel(e.get_active(), l.get_text()) for e,l in deltas ])
         
 class MainWindow(object):
         def __init__(self, n_inputs=4):
@@ -222,33 +208,17 @@ class MainWindow(object):
                 self.win.show_all()
 
         def load_rc(self):
-                import json
                 get_obj = self.builder.get_object
-                rc = {}
-                f = os.path.expanduser('~/.timetagrc')
-                if os.path.isfile(f):
-                        try:
-                                rc = json.load(open(f))
-                        except Exception as e:
-                                logging.warn('Warning: Failed to load RC: %s' % e)
-                                pass
-
-                self.strobe_config = def_strobe_config
-                if 'strobe_config' in rc:
-                        self.strobe_config = [ StrobeConfig(*a) for a in rc['strobe_config'] ]
-                self.delta_config = def_delta_config
-                if 'delta_config' in rc:
-                        self.delta_config = [ DeltaConfig(*a) for a in rc['delta_config'] ]
+                rc = config.load_rc()
+                self.strobe_config = rc['strobe-channels']
+                self.delta_config = rc['delta-channels']
 
         def save_rc(self):
-                import json
-                get_obj = self.builder.get_object
                 rc = {
-                        'strobe_config': self.strobe_config,
-                        'delta_config': self.delta_config,
+                        'strobe-channels': self.strobe_config,
+                        'delta-channels': self.delta_config,
                 }
-                f = os.path.expanduser('~/.timetagrc')
-                json.dump(rc, open(f, 'w'), indent=2)
+                config.update_rc(rc)
 
         def edit_channels_activate_cb(self, action):
                 res = run_channel_editor(self.win, self.strobe_config, self.delta_config)

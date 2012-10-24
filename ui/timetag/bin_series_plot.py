@@ -11,9 +11,7 @@ from matplotlib.backends.backend_gtkcairo import FigureCanvasGTKCairo
 
 from timetag.binner import BufferBinner
 from timetag.managed_binner import ManagedBinner
-
-# FIXME
-def_colors = ['#A80505', '#006619', '#0142D5', '#922FFF']
+from timetag import config
 
 def fix_color(c):
         c = gtk.gdk.color_parse(c)
@@ -31,7 +29,8 @@ class BinSeriesPlot(ManagedBinner):
                 self.win = self.builder.get_object('bin_series_window')
                 self.win.connect('destroy', self.destroy_cb)
 
-                self.colors = map(fix_color, def_colors)
+                rc = config.load_rc()
+                self.colors = map(lambda chan: fix_color(chan.color), rc['strobe-channels'])
                 self.plot_update_rate = 12 # in Hertz
                 self.y_bounds = None
 
