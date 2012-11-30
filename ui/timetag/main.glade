@@ -17,6 +17,21 @@
   <object class="GtkToggleAction" id="file_output_enabled">
     <property name="label">File output enabled</property>
   </object>
+  <object class="GtkAction" id="show_bin_series">
+    <property name="label" translatable="yes">Show bin series</property>
+    <property name="short_label" translatable="yes">Bin series</property>
+    <signal name="activate" handler="show_bin_series_activate_cb" swapped="no"/>
+  </object>
+  <object class="GtkAction" id="show_fret_hist">
+    <property name="label" translatable="yes">Show FRET efficiency</property>
+    <property name="short_label" translatable="yes">FRET efficiency</property>
+    <signal name="activate" handler="show_fret_hist_activate_cb" swapped="no"/>
+  </object>
+  <object class="GtkAction" id="show_hist">
+    <property name="label" translatable="yes">Photon counting histogram</property>
+    <property name="short_label" translatable="yes">Photon counting hist.</property>
+    <signal name="activate" handler="show_hist_activate_cb" swapped="no"/>
+  </object>
   <object class="GtkListStore" id="latency_store">
     <columns>
       <!-- column-name records -->
@@ -37,21 +52,6 @@
   <object class="GtkToggleAction" id="readout_running">
     <property name="label">Stopped</property>
     <signal name="toggled" handler="readout_running_toggled_cb" swapped="no"/>
-  </object>
-  <object class="GtkAction" id="show_bin_series">
-    <property name="label" translatable="yes">Show bin series</property>
-    <property name="short_label" translatable="yes">Bin series</property>
-    <signal name="activate" handler="show_bin_series_activate_cb" swapped="no"/>
-  </object>
-  <object class="GtkAction" id="show_fret_hist">
-    <property name="label" translatable="yes">Show FRET efficiency</property>
-    <property name="short_label" translatable="yes">FRET efficiency</property>
-    <signal name="activate" handler="show_fret_hist_activate_cb" swapped="no"/>
-  </object>
-  <object class="GtkAction" id="show_hist">
-    <property name="label" translatable="yes">Photon counting histogram</property>
-    <property name="short_label" translatable="yes">Photon counting hist.</property>
-    <signal name="activate" handler="show_hist_activate_cb" swapped="no"/>
   </object>
   <object class="GtkWindow" id="main_window">
     <property name="can_focus">False</property>
@@ -222,6 +222,9 @@
                               <object class="GtkScrolledWindow" id="scrolledwindow1">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
+                                <property name="hscrollbar_policy">never</property>
+                                <property name="vscrollbar_policy">automatic</property>
+                                <property name="shadow_type">in</property>
                                 <child>
                                   <object class="GtkTextView" id="description">
                                     <property name="height_request">80</property>
@@ -238,7 +241,9 @@
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="label" translatable="yes">Experiment Description</property>
-                            <property name="use_markup">True</property>
+                            <attributes>
+                              <attribute name="weight" value="bold"/>
+                            </attributes>
                           </object>
                         </child>
                       </object>
