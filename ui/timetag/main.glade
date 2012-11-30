@@ -17,6 +17,23 @@
   <object class="GtkToggleAction" id="file_output_enabled">
     <property name="label">File output enabled</property>
   </object>
+  <object class="GtkListStore" id="latency_store">
+    <columns>
+      <!-- column-name records -->
+      <column type="guint"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0">84</col>
+      </row>
+      <row>
+        <col id="0">10</col>
+      </row>
+      <row>
+        <col id="0">2</col>
+      </row>
+    </data>
+  </object>
   <object class="GtkToggleAction" id="readout_running">
     <property name="label">Stopped</property>
     <signal name="toggled" handler="readout_running_toggled_cb" swapped="no"/>
@@ -35,23 +52,6 @@
     <property name="label" translatable="yes">Photon counting histogram</property>
     <property name="short_label" translatable="yes">Photon counting hist.</property>
     <signal name="activate" handler="show_hist_activate_cb" swapped="no"/>
-  </object>
-  <object class="GtkListStore" id="latency_store">
-    <columns>
-      <!-- column-name records -->
-      <column type="guint"/>
-    </columns>
-    <data>
-      <row>
-        <col id="0">84</col>
-      </row>
-      <row>
-        <col id="0">10</col>
-      </row>
-      <row>
-        <col id="0">2</col>
-      </row>
-    </data>
   </object>
   <object class="GtkWindow" id="main_window">
     <property name="can_focus">False</property>
@@ -125,6 +125,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="related_action">show_bin_series</property>
+                        <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
                     </child>
@@ -133,6 +134,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="related_action">show_hist</property>
+                        <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
                     </child>
@@ -141,6 +143,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="related_action">show_fret_hist</property>
+                        <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
                     </child>
@@ -441,7 +444,7 @@
             <property name="text" translatable="yes">Not running</property>
           </object>
           <packing>
-            <property name="expand">True</property>
+            <property name="expand">False</property>
             <property name="fill">True</property>
             <property name="position">4</property>
           </packing>
