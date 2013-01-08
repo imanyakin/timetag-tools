@@ -16,11 +16,14 @@ timetag_bin : timetag_bin.o record.o
 timetag_dump : timetag_dump.o record.o
 timetag_extract : timetag_extract.o record.o
 
-install : ${PROGS}
+install : ${PROGS} install-upstart-job
 	cp ${PROGS} ${PREFIX}/bin
 	chmod ug+s ${PREFIX}/bin/timetag_acquire
 	mkdir -p ${PREFIX}/share/timetag
 	git rev-parse HEAD > ${PREFIX}/share/timetag/timetag-tools-ver
+
+install-upstart-job : timetag-acquire.conf
+	cp $< /etc/init/timetag-acquire.conf
 
 clean :
 	rm -f ${PROGS} *.o
