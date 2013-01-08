@@ -17,10 +17,6 @@
   <object class="GtkToggleAction" id="file_output_enabled">
     <property name="label">File output enabled</property>
   </object>
-  <object class="GtkToggleAction" id="readout_running">
-    <property name="label">Stopped</property>
-    <signal name="toggled" handler="readout_running_toggled_cb" swapped="no"/>
-  </object>
   <object class="GtkAction" id="show_bin_series">
     <property name="label" translatable="yes">Show bin series</property>
     <property name="short_label" translatable="yes">Bin series</property>
@@ -52,6 +48,10 @@
         <col id="0">2</col>
       </row>
     </data>
+  </object>
+  <object class="GtkToggleAction" id="readout_running">
+    <property name="label">Stopped</property>
+    <signal name="toggled" handler="readout_running_toggled_cb" swapped="no"/>
   </object>
   <object class="GtkWindow" id="main_window">
     <property name="can_focus">False</property>
@@ -125,6 +125,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="related_action">show_bin_series</property>
+                        <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
                     </child>
@@ -133,6 +134,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="related_action">show_hist</property>
+                        <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
                     </child>
@@ -141,6 +143,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="related_action">show_fret_hist</property>
+                        <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
                     </child>
@@ -219,6 +222,9 @@
                               <object class="GtkScrolledWindow" id="scrolledwindow1">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
+                                <property name="hscrollbar_policy">never</property>
+                                <property name="vscrollbar_policy">automatic</property>
+                                <property name="shadow_type">in</property>
                                 <child>
                                   <object class="GtkTextView" id="description">
                                     <property name="height_request">80</property>
@@ -235,7 +241,9 @@
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="label" translatable="yes">Experiment Description</property>
-                            <property name="use_markup">True</property>
+                            <attributes>
+                              <attribute name="weight" value="bold"/>
+                            </attributes>
                           </object>
                         </child>
                       </object>
@@ -441,7 +449,7 @@
             <property name="text" translatable="yes">Not running</property>
           </object>
           <packing>
-            <property name="expand">True</property>
+            <property name="expand">False</property>
             <property name="fill">True</property>
             <property name="position">4</property>
           </packing>
