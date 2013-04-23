@@ -388,6 +388,16 @@ void timetagger::readout_handler()
 	int failed_xfers = 0;
 	uint8_t* buffer = new uint8_t[510];
 
+	libusb_transfer *transfer = libusb_alloc_transfer(0);
+	if (transfer == NULL) {
+		fprintf(stderr, "Error allocating transfer for readout\n");
+		throw std::runtime_error("Error allocating transfer for readout\n");
+	}
+	
+	int completed = 0;
+	libusb_fill_bulk_transfer(transfer, dev, DATA_ENDP, buffer, 510,
+			 	  [](libusb_transfer *t) {*((int*) t->user_data) = 1;}, &completed, data_timeout);
+
 	// Try bumping up ourselves into the FIFO scheduler 
 	sched_param sp;
 	sp.sched_priority = 50;
@@ -395,18 +405,26 @@ void timetagger::readout_handler()
 		fprintf(stderr, "FIFO scheduling failed\n");
 
 	while (!_stop_readout) {
+		completed = 0;
 		if (needs_flush)
 			do_flush();
 
-		int transferred, res;
-		res = libusb_bulk_transfer(dev, DATA_ENDP,
-			buffer, 510,
-			&transferred, data_timeout);
-		//fprintf(stderr, "Read %d bytes\n", transferred);
+		int res = libusb_submit_transfer(transfer);
+		if (res) {
+			fprintf(stderr, "Failed to send request: %d\n", res);
+			throw std::runtime_error("Failed to send request");
+		}
+
+		while (!completed && !_stop_readout)
+			libusb_handle_events_completed(ctx, &completed);
+
+		if (_stop_readout) break;
+
+		//fprintf(stderr, "Read %d bytes\n", transfer->actual_length);
 		if (!res || res == LIBUSB_ERROR_OVERFLOW) {
-			if (transferred % RECORD_LENGTH != 0)
+			if (transfer->actual_length % RECORD_LENGTH != 0)
 				fprintf(stderr, "Warning: Received partial record.");
-			data_cb(buffer, transferred);
+			data_cb(buffer, transfer->actual_length);
 			failed_xfers = 0;
 		} else if (res == LIBUSB_ERROR_TIMEOUT) {
 			// Ignore timeouts so we can check needs_flush
@@ -419,6 +437,8 @@ void timetagger::readout_handler()
 			}
 		}
 	}
+
+	libusb_free_transfer(transfer);
 	delete [] buffer;
 }
 
