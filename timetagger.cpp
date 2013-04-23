@@ -106,7 +106,7 @@ void timetagger::reset()
 
 uint32_t timetagger::reg_cmd(bool write, uint16_t reg, uint32_t val)
 {
-	int ret, transferred;
+	int ret;
 	uint8_t buffer[] = { 0xAA, (uint8_t) write,
 		(uint8_t) (reg >> 0),
 		(uint8_t) (reg >> 8),
@@ -116,32 +116,55 @@ uint32_t timetagger::reg_cmd(bool write, uint16_t reg, uint32_t val)
 		(uint8_t) (val >> 24),
 	};
 
+	int completed = 0;
+	libusb_transfer* transfer = libusb_alloc_transfer(0);
+	if (transfer == NULL) {
+		fprintf(stderr, "Error allocating transfer for register command\n");
+		throw std::runtime_error("Error allocating transfer for register command\n");
+	}
+	
 #ifdef DEBUG
 	fprintf(stderr, "%s reg %04x = %08x; ", write ? "write" : "read", reg, val);
 #endif
 
-	if ( (ret = libusb_bulk_transfer(dev, CMD_ENDP, buffer, 8, &transferred, TIMEOUT)) ) {
+	// Submit request
+	libusb_fill_bulk_transfer(transfer, dev, CMD_ENDP, buffer, 8,
+			 	  [](libusb_transfer *t) {*((int*) t->user_data) = 1;}, &completed, TIMEOUT);
+	ret = libusb_submit_transfer(transfer);
+	if (ret) {
 		fprintf(stderr, "Failed to send request: %d\n", ret);
 		throw std::runtime_error("Failed to send request");
 	}
 
-	if ( (ret = libusb_bulk_transfer(dev, REPLY_ENDP, buffer, 4, &transferred, TIMEOUT)) ) {
+	while (!completed)
+		libusb_handle_events_completed(ctx, &completed);
+
+	// Read reply
+	completed = 0;
+	libusb_fill_bulk_transfer(transfer, dev, REPLY_ENDP, buffer, 4,
+			 	  [](libusb_transfer *t) {*((int*) t->user_data) = 1;}, &completed, TIMEOUT);
+	ret = libusb_submit_transfer(transfer);
+	if (ret) {
 		fprintf(stderr, "Failed to receive reply: %d\n", ret);
 		throw std::runtime_error("Failed to receive reply");
 	}
 
+	while (!completed)
+		libusb_handle_events_completed(ctx, &completed);
+
 #ifdef DEBUG
 	fprintf(stderr, "reply: ");
-	for (int i=0; i<transferred; i++)
+	for (int i=0; i<transfer->actual_length; i++)
 		fprintf(stderr, " %02x ", buffer[i]);
 	fprintf(stderr, "\n");
 #endif
 
-	if (transferred != 4) {
-		fprintf(stderr, "Invalid reply (length=%d)\n", transferred);
+	if (transfer->actual_length != 4) {
+		fprintf(stderr, "Invalid reply (length=%d)\n", transfer->actual_length);
 		throw std::runtime_error("Invalid reply");
 	}
 
+	libusb_free_transfer(transfer);
 	regs[reg] = *((uint32_t*) buffer);
 	return regs[reg];
 }
