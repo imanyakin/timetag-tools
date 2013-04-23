@@ -39,6 +39,7 @@ public:
 	typedef std::function<void (const uint8_t* buffer, size_t length)> data_cb_t;
 
 private:
+	libusb_context* ctx;
 	libusb_device_handle* dev;
 	std::shared_ptr<std::thread> readout_thread;
 	bool _stop_readout;
@@ -59,7 +60,7 @@ private:
 public:
 	data_cb_t data_cb;
 
-	timetagger(libusb_device_handle* dev, data_cb_t data_cb);
+	timetagger(libusb_context* ctx, libusb_device_handle* dev, data_cb_t data_cb);
 	~timetagger();
 	
 	void reset();

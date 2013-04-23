@@ -114,8 +114,8 @@ public:
 	void remove_output_fd(int fd);
 	void remove_output_fd(std::string name);
 
-	timetag_acquire(libusb_device_handle* dev)
-		: t(dev, [=](const uint8_t* buffer, size_t length) {
+	timetag_acquire(libusb_context* ctx, libusb_device_handle* dev)
+		: t(ctx, dev, [=](const uint8_t* buffer, size_t length) {
 				this->data_callback(buffer, length);
 		  })
 	{
@@ -531,7 +531,7 @@ int main(int argc, char** argv)
 		exit(1);
 	}
 
-	timetag_acquire ta(dev);
+	timetag_acquire ta(ctx, dev);
 
 #ifdef WITH_DOMAIN_SOCKET
         if (argc > 1) {
