@@ -280,7 +280,7 @@ bool timetag_acquire::handle_command(std::string line, FILE* ctrl_out, int sock_
 			[&]() {
 				std::string name = tokens[1];
 				std::string file = tokens[2];
-				int fd = open(file.c_str(), O_WRONLY);
+				int fd = open(file.c_str(), O_WRONLY | O_CREAT);
 				if (fd < 0) {
 					fprintf(ctrl_out, "error: Error opening output file: %s\n", strerror(errno));
 					return;
