@@ -136,6 +136,7 @@ void timetag_acquire::output_fd::writer() {
 		// Make sure we don't fall too far behind since we are holding memory buffers
 		if (buffers.size() > fall_behind_count) {
 			fprintf(stderr, "fd %d fell behind by %d buffers. Giving up.\n", fd, fall_behind_count);
+			buffers.clear();
 			break;
 		}
 
