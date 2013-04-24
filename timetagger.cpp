@@ -62,6 +62,12 @@
 #define SEQ_CLOCKRATE_REG	0x21
 #define SEQ_CONFIG_BASE		0x28
 
+// This is a common theme when handling libusb completions
+void completed_cb(libusb_transfer *transfer) {
+	int *completed = (int *) transfer->user_data;
+	*completed = 1;
+}
+
 timetagger::timetagger(libusb_context* ctx, libusb_device_handle* dev, data_cb_t data_cb) :
 	ctx(ctx),
 	dev(dev),
@@ -129,7 +135,7 @@ uint32_t timetagger::reg_cmd(bool write, uint16_t reg, uint32_t val)
 
 	// Submit request
 	libusb_fill_bulk_transfer(transfer, dev, CMD_ENDP, buffer, 8,
-			 	  [](libusb_transfer *t) {*((int*) t->user_data) = 1;}, &completed, TIMEOUT);
+			 	  completed_cb, &completed, TIMEOUT);
 	ret = libusb_submit_transfer(transfer);
 	if (ret) {
 		fprintf(stderr, "Failed to send request: %d\n", ret);
@@ -142,7 +148,7 @@ uint32_t timetagger::reg_cmd(bool write, uint16_t reg, uint32_t val)
 	// Read reply
 	completed = 0;
 	libusb_fill_bulk_transfer(transfer, dev, REPLY_ENDP, buffer, 4,
-			 	  [](libusb_transfer *t) {*((int*) t->user_data) = 1;}, &completed, TIMEOUT);
+			 	  completed_cb, &completed, TIMEOUT);
 	ret = libusb_submit_transfer(transfer);
 	if (ret) {
 		fprintf(stderr, "Failed to receive reply: %d\n", ret);
@@ -396,7 +402,7 @@ void timetagger::readout_handler()
 	
 	int completed = 0;
 	libusb_fill_bulk_transfer(transfer, dev, DATA_ENDP, buffer, 510,
-			 	  [](libusb_transfer *t) {*((int*) t->user_data) = 1;}, &completed, data_timeout);
+			 	  completed_cb, &completed, data_timeout);
 
 	// Try bumping up ourselves into the FIFO scheduler 
 	sched_param sp;
