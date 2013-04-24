@@ -165,7 +165,7 @@ void timetag_acquire::data_callback(const uint8_t* buf, size_t length)
 {
 	uint8_t* c = new uint8_t[length];
 	memcpy(c, buf, length);
-	std::shared_ptr<const uint8_t> p(c);
+	std::shared_ptr<const uint8_t> p(c, std::default_delete<uint8_t[]>());
 	std::unique_lock<std::mutex> fds_lock(output_fds_mutex);
 
 	for (auto i=output_fds.begin(); i != output_fds.end(); i++) {
