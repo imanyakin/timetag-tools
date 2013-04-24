@@ -102,7 +102,7 @@ class CapturePipeline(object):
                 for n in self.start_notifiers: n()
 
         def is_capture_running(self):
-                return bool(int(self._tagger_cmd('get_capturing\n')))
+                return bool(int(self._tagger_cmd('capture?\n')))
 
         def set_send_window(self, window):
                 self._tagger_cmd('set_send_window %d\n' % window)

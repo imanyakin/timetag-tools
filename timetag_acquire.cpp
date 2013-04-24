@@ -316,7 +316,7 @@ bool timetag_acquire::handle_command(std::string line, FILE* ctrl_out, int sock_
 			[&]() { t.stop_capture(); },
 			"Stop the timetagging engine"
 		},
-		{"get_capturing", 0,
+		{"capture?", 0,
 			[&]() { fprintf(ctrl_out, "= %d\n", t.get_capture_en()); },
 			"Return whether the timetagging engine is running"
 		},
