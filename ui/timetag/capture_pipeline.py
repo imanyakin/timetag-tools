@@ -102,13 +102,13 @@ class CapturePipeline(object):
                 for n in self.start_notifiers: n()
 
         def is_capture_running(self):
-                return bool(int(self._tagger_cmd('get_capturing\n')))
+                return bool(int(self._tagger_cmd('capture?\n')))
 
         def set_send_window(self, window):
                 self._tagger_cmd('set_send_window %d\n' % window)
 
         def add_output(self, id, file):
-                self._control.write('add_output %s\n' % id)
+                self._control.write('add_output_fd %s\n' % id)
                 sleep(0.01) # HACK: Otherwise the packet gets lost
                 passfd.sendfd(self._control_sock, file)
                 self._read_reply()

@@ -257,7 +257,7 @@ bool timetag_acquire::handle_command(std::string line, FILE* ctrl_out, int sock_
 		std::string args;
 	};
 	std::vector<command> commands = {
-		{"add_output", 1,
+		{"add_output_fd", 1,
 			[&]() {
 				std::string name = tokens[1];
 				if (sock_fd == -1) {
@@ -276,13 +276,29 @@ bool timetag_acquire::handle_command(std::string line, FILE* ctrl_out, int sock_
 			"Add an output (expects to be sent an fd over domain socket)",
 			"NAME"
 		},
+		{"add_output_file", 2,
+			[&]() {
+				std::string name = tokens[1];
+				std::string file = tokens[2];
+				int fd = open(file.c_str(), O_WRONLY | O_CREAT);
+				if (fd < 0) {
+					fprintf(ctrl_out, "error: Error opening output file: %s\n", strerror(errno));
+					return;
+				}
+				// Make sure a stalled fd doesn't cause us to lose samples
+				fcntl(fd, F_SETFL, O_NONBLOCK);
+				add_output_fd(fd, name, true);
+			},
+			"Add an output file",
+			"NAME FILENAME"
+		},
 		{"remove_output", 1,
 			[&]() {
 				std::string name = tokens[1];
 				remove_output_fd(name);
 			},
 			"Remove an output",
-			"FILENAME"
+			"NAME"
 		},
 		{"list_outputs", 0,
 			[&]() {
@@ -300,7 +316,7 @@ bool timetag_acquire::handle_command(std::string line, FILE* ctrl_out, int sock_
 			[&]() { t.stop_capture(); },
 			"Stop the timetagging engine"
 		},
-		{"get_capturing", 0,
+		{"capture?", 0,
 			[&]() { fprintf(ctrl_out, "= %d\n", t.get_capture_en()); },
 			"Return whether the timetagging engine is running"
 		},
@@ -587,6 +603,7 @@ int main(int argc, char** argv)
 	ta.add_output_fd(1, "stdout", false);
 	ta.read_loop(stdin, stderr);
 	libusb_close(dev);
+	libusb_exit(ctx);
 	return 0;
 }
 
