@@ -416,7 +416,9 @@ void timetagger::do_flush()
 	do {
 		usleep(10000); // Give plenty of time for FPGA to fill FIFOs
 		completed = 0;
-		libusb_submit_transfer(transfer);
+		int ret = libusb_submit_transfer(transfer);
+		if (ret != 0)
+			fprintf(stderr, "Error flushing data FIFO: %d\n", ret);
 		while (!completed)
 			libusb_handle_events_completed(ctx, &completed);
 	} while (transfer->actual_length > 0);
@@ -426,7 +428,9 @@ void timetagger::do_flush()
 	do {
 		usleep(10000); // Give plenty of time for FPGA to fill FIFOs
 		completed = 0;
-		libusb_submit_transfer(transfer);
+		int ret = libusb_submit_transfer(transfer);
+		if (ret != 0)
+			fprintf(stderr, "Error flushing reply FIFO: %d\n", ret);
 		while (!completed)
 			libusb_handle_events_completed(ctx, &completed);
 	} while (transfer->actual_length > 0);
