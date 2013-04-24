@@ -587,6 +587,7 @@ int main(int argc, char** argv)
 	ta.add_output_fd(1, "stdout", false);
 	ta.read_loop(stdin, stderr);
 	libusb_close(dev);
+	libusb_exit(ctx);
 	return 0;
 }
 
