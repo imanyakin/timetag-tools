@@ -276,6 +276,22 @@ bool timetag_acquire::handle_command(std::string line, FILE* ctrl_out, int sock_
 			"Add an output (expects to be sent an fd over domain socket)",
 			"NAME"
 		},
+		{"add_output_file", 2,
+			[&]() {
+				std::string name = tokens[1];
+				std::string file = tokens[2];
+				int fd = open(file.c_str(), O_WRONLY);
+				if (fd < 0) {
+					fprintf(ctrl_out, "error: Error opening output file: %s\n", strerror(errno));
+					return;
+				}
+				// Make sure a stalled fd doesn't cause us to lose samples
+				fcntl(fd, F_SETFL, O_NONBLOCK);
+				add_output_fd(fd, name, true);
+			},
+			"Add an output file",
+			"NAME FILENAME"
+		},
 		{"remove_output", 1,
 			[&]() {
 				std::string name = tokens[1];
