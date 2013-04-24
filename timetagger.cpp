@@ -477,7 +477,8 @@ void timetagger::readout_handler()
 		if (!res || res == LIBUSB_ERROR_OVERFLOW) {
 			if (transfer->actual_length % RECORD_LENGTH != 0)
 				fprintf(stderr, "Warning: Received partial record.");
-			data_cb(buffer, transfer->actual_length);
+			if (transfer->actual_length > 0)
+				data_cb(buffer, transfer->actual_length);
 			failed_xfers = 0;
 		} else if (res == LIBUSB_ERROR_TIMEOUT) {
 			// Ignore timeouts so we can check needs_flush
