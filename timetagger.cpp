@@ -74,6 +74,9 @@ timetagger::timetagger(libusb_context* ctx, libusb_device_handle* dev, data_cb_t
 	needs_flush(false),
 	data_cb(data_cb)
 {
+#ifdef DEBUG
+	libusb_set_debug(ctx, 3);
+#endif
 	libusb_claim_interface(dev, 0);
 	// Set send window to maximum value
 	set_send_window(512/RECORD_LENGTH);
