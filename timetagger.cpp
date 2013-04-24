@@ -451,7 +451,7 @@ void timetagger::readout_handler()
 		throw std::runtime_error("Error allocating transfer for readout\n");
 	}
 	
-	int completed = 0;
+	int completed;
 	libusb_fill_bulk_transfer(transfer, dev, DATA_ENDP, buffer, 510,
 			 	  completed_cb, &completed, data_timeout);
 
@@ -477,22 +477,35 @@ void timetagger::readout_handler()
 
 		if (_stop_readout) break;
 
-		//fprintf(stderr, "Read %d bytes\n", transfer->actual_length);
-		if (!res || res == LIBUSB_ERROR_OVERFLOW) {
+		switch (transfer->status) {
+		case LIBUSB_TRANSFER_COMPLETED:
+		case LIBUSB_TRANSFER_OVERFLOW:
+#ifdef DEBUG
+			fprintf(stderr, "Read %d bytes (status=%d, res=%d)\n",
+				transfer->actual_length, transfer->status, res);
+#endif
 			if (transfer->actual_length % RECORD_LENGTH != 0)
 				fprintf(stderr, "Warning: Received partial record.");
-			if (transfer->actual_length > 0)
-				data_cb(buffer, transfer->actual_length);
+			data_cb(buffer, transfer->actual_length);
 			failed_xfers = 0;
-		} else if (res == LIBUSB_ERROR_TIMEOUT) {
+			break;
+
+		case LIBUSB_TRANSFER_TIMED_OUT:
 			// Ignore timeouts so we can check needs_flush
-		} else {
+			break;
+
+		case LIBUSB_TRANSFER_ERROR:
 			fprintf(stderr, "Readout transfer failed: %d\n", res);
 			failed_xfers++;
 			if (failed_xfers > 1000) {
 				fprintf(stderr, "Too many failed transfers. Read-out stopped\n");
 				break;
 			}
+			break;
+		
+		default:
+			fprintf(stderr, "Odd transfer status in readout: %d\n", transfer->status);
+			break;
 		}
 	}
 
