@@ -298,7 +298,7 @@ bool timetag_acquire::handle_command(std::string line, FILE* ctrl_out, int sock_
 				remove_output_fd(name);
 			},
 			"Remove an output",
-			"FILENAME"
+			"NAME"
 		},
 		{"list_outputs", 0,
 			[&]() {
