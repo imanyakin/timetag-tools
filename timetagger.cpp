@@ -387,20 +387,35 @@ void timetagger::flush_fx2_fifo() {
 
 void timetagger::do_flush()
 {
-	int transferred = 0;
 	uint8_t buffer[512];
+	int completed;
+	libusb_transfer *transfer = libusb_alloc_transfer(0);
+	if (transfer == NULL) {
+		fprintf(stderr, "Error allocating transfer for flush\n");
+		throw std::runtime_error("Error allocating transfer for flush\n");
+	}
+
         // Flush data FIFO
+	libusb_fill_bulk_transfer(transfer, dev, DATA_ENDP, buffer, 512, completed_cb, &completed, 10);
 	do {
 		usleep(10000); // Give plenty of time for FPGA to fill FIFOs
-		libusb_bulk_transfer(dev, DATA_ENDP, buffer, 512, &transferred, 10);
-	} while (transferred > 0);
+		completed = 0;
+		libusb_submit_transfer(transfer);
+		while (!completed)
+			libusb_handle_events_completed(ctx, &completed);
+	} while (transfer->actual_length > 0);
 
         // Flush command reply FIFO
+	libusb_fill_bulk_transfer(transfer, dev, REPLY_ENDP, buffer, 512, completed_cb, &completed, 10);
 	do {
 		usleep(10000); // Give plenty of time for FPGA to fill FIFOs
-                libusb_bulk_transfer(dev, REPLY_ENDP, buffer, 512, &transferred, 10);
-	} while (transferred > 0);
+		completed = 0;
+		libusb_submit_transfer(transfer);
+		while (!completed)
+			libusb_handle_events_completed(ctx, &completed);
+	} while (transfer->actual_length > 0);
 
+	libusb_free_transfer(transfer);
 	needs_flush = false;
 }
 
