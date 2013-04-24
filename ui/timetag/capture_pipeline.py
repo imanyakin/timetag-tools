@@ -35,11 +35,17 @@ class CapturePipeline(object):
                 self.stop_notifiers = []
                 self.start_notifiers = []
                 self._control_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM, 0)
+                connected = False
                 for i in range(10):
                         sleep(0.05)
                         try: self._control_sock.connect(control_sock)
                         except: pass
-                        else: break
+                        else:
+				connected = True
+				break
+
+                if not connected:
+                        raise RuntimeError('Failed to connect to timetag_acquire')
 
                 sleep(0.5)
                 self._control = self._control_sock.makefile('rw', 0)
