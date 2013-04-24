@@ -257,7 +257,7 @@ bool timetag_acquire::handle_command(std::string line, FILE* ctrl_out, int sock_
 		std::string args;
 	};
 	std::vector<command> commands = {
-		{"add_output", 1,
+		{"add_output_fd", 1,
 			[&]() {
 				std::string name = tokens[1];
 				if (sock_fd == -1) {

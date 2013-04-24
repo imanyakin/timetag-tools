@@ -108,7 +108,7 @@ class CapturePipeline(object):
                 self._tagger_cmd('set_send_window %d\n' % window)
 
         def add_output(self, id, file):
-                self._control.write('add_output %s\n' % id)
+                self._control.write('add_output_fd %s\n' % id)
                 sleep(0.01) # HACK: Otherwise the packet gets lost
                 passfd.sendfd(self._control_sock, file)
                 self._read_reply()
