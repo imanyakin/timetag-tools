@@ -362,11 +362,27 @@ void timetagger::set_send_window(unsigned int records)
 	send_window = records;
 }
 
+// Request FIFO flush
 void timetagger::flush_fx2_fifo() {
-	// Request FIFO flush
-	int res = libusb_control_transfer(dev, REQ_TYPE_VENDOR, 0x02, 0, 0, NULL, 0, 0);
+	libusb_transfer *transfer = libusb_alloc_transfer(0);
+	if (transfer == NULL) {
+		fprintf(stderr, "Error allocating transfer for flush\n");
+		throw std::runtime_error("Error allocating transfer for flush\n");
+	}
+
+	int completed = 0;
+	unsigned char buffer[8];
+	libusb_fill_control_setup(buffer, REQ_TYPE_VENDOR, 0x02, 0, 0, 0);
+	libusb_fill_control_transfer(transfer, dev, buffer,
+				     completed_cb, &completed, 0);
+
+	int res = libusb_submit_transfer(transfer);
 	if (res != 0)
 		fprintf(stderr, "Error requesting FX2 FIFO flush: %d\n", res);
+
+	while (!completed)
+		libusb_handle_events_completed(ctx, &completed);
+	libusb_free_transfer(transfer);
 }
 
 void timetagger::do_flush()
