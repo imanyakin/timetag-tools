@@ -353,12 +353,28 @@ void timetagger::set_send_window(unsigned int records)
 		return;
 	}
 
-	int res = libusb_control_transfer(dev,
-		REQ_TYPE_TO_DEV | REQ_TYPE_VENDOR | REQ_TYPE_HOST2DEV,
-		0x01, bytes, 0, NULL, 0, 1);
-	if (res != 0)
-		fprintf(stderr, "Error setting send window size: %d\n", res);
+	libusb_transfer *transfer = libusb_alloc_transfer(0);
+	if (transfer == NULL) {
+		fprintf(stderr, "Error allocating transfer for flush\n");
+		throw std::runtime_error("Error allocating transfer for flush\n");
+	}
 
+	int completed = 0;
+	unsigned char buffer[8];
+	libusb_fill_control_setup(buffer,
+				  REQ_TYPE_TO_DEV | REQ_TYPE_HOST2DEV | REQ_TYPE_VENDOR,
+				  0x01, bytes, 0, 0);
+	libusb_fill_control_transfer(transfer, dev, buffer,
+				     completed_cb, &completed, 0);
+
+	int res = libusb_submit_transfer(transfer);
+	if (res != 0)
+		fprintf(stderr, "Error requesting window size change: %d\n", res);
+
+	while (!completed)
+		libusb_handle_events_completed(ctx, &completed);
+
+	libusb_free_transfer(transfer);
 	send_window = records;
 }
 
