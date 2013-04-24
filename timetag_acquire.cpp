@@ -82,6 +82,7 @@ class timetag_acquire {
 			, name(name)
 			, needs_close(needs_close)
 			, lost_records(0)
+			, buffers()
 			, stop(false)
 			, dead(false)
 			, writer_thread(&output_fd::writer, this)
