@@ -53,7 +53,6 @@
 #define VENDOR_ID 0x04b4
 #define PRODUCT_ID 0x1004
 
-
 class timetag_acquire {
 	struct buffer {
 		std::shared_ptr<const uint8_t> buf;
@@ -135,7 +134,7 @@ void timetag_acquire::output_fd::writer() {
 	while (!stop) {
 		// Make sure we don't fall too far behind since we are holding memory buffers
 		if (buffers.size() > fall_behind_count) {
-			fprintf(stderr, "fd %d fell behind by %d buffers. Giving up.\n", fd, fall_behind_count);
+			fprintf(log_file, "fd %d fell behind by %d buffers. Giving up.\n", fd, fall_behind_count);
 			buffers.clear();
 			break;
 		}
@@ -147,7 +146,7 @@ void timetag_acquire::output_fd::writer() {
 		buffer b = buffers.front();
 		int ret = write(fd, b.buf.get() + b.offset, b.length - b.offset);
 		if (ret == -1) {
-			fprintf(stderr, "fd %d encountered error during write: %s", fd, strerror(errno));
+			fprintf(log_file, "fd %d encountered error during write: %s", fd, strerror(errno));
 			break;
 		} else {
 			lost_records += (b.length - ret) / RECORD_LENGTH;
@@ -158,7 +157,7 @@ void timetag_acquire::output_fd::writer() {
 		if (b.length - b.offset == 0)
 			buffers.pop_front();
 	}
-	fprintf(stderr, "fd %d writer died\n", fd);
+	fprintf(log_file, "fd %d writer died\n", fd);
 	dead = true;
 }
 
@@ -206,7 +205,7 @@ static int recv_fd(int socket)
 	message.msg_flags = 0;
 
 	if (recvmsg(socket, &message, 0) < 0) {
-		fprintf(stderr, "Failed to receive fd: %s\n", strerror(errno));
+		fprintf(log_file, "Failed to receive fd: %s\n", strerror(errno));
 		return -1;
 	}
 
@@ -541,7 +540,7 @@ static void daemonize()
 
 	sid = setsid();
 	if (sid < 0) {
-		fprintf(stderr, "Failed to detach from parent\n");
+		fprintf(log_file, "Failed to detach from parent\n");
 		exit(EXIT_FAILURE);
 	}
 }
@@ -564,10 +563,13 @@ int main(int argc, char** argv)
 	bool daemon = false;
 	char *ctrl_sock_name = NULL;
 	int c;
-	while ((c = getopt(argc, argv, "s:dh")) != -1) {
+	while ((c = getopt(argc, argv, "s:l:dh")) != -1) {
 		switch (c) {
 		case 's':
 			ctrl_sock_name = optarg;
+			break;
+		case 'l':
+			log_file = fopen(optarg, "w");
 			break;
 		case 'd':
 			daemon = true;
@@ -589,16 +591,16 @@ int main(int argc, char** argv)
 	
 	// Disable output buffering
 	setvbuf(stdout, NULL, _IONBF, 0);
-	setvbuf(stderr, NULL, _IONBF, 0);
+	setvbuf(log_file, NULL, _IONBF, 0);
 
 	// Renice ourselves
 	if (setpriority(PRIO_PROCESS, 0, -10))
-		fprintf(stderr, "Warning: Priority elevation failed.\n");
+		fprintf(log_file, "Warning: Priority elevation failed.\n");
 
 	libusb_init(&ctx);
 	dev = libusb_open_device_with_vid_pid(ctx, VENDOR_ID, PRODUCT_ID);
 	if (!dev) {
-		fprintf(stderr, "Failed to open device.\n");
+		fprintf(log_file, "Failed to open device.\n");
 		exit(1);
 	}
 
@@ -608,7 +610,7 @@ int main(int argc, char** argv)
         if (ctrl_sock_name) {
                 int socket_fd = socket(PF_UNIX, SOCK_STREAM, 0);
                 if (socket_fd < 0) {
-                        fprintf(stderr, "Error opening control fd: %s\n", strerror(errno));
+                        fprintf(log_file, "Error opening control fd: %s\n", strerror(errno));
 			return 1;
                 }
 		
@@ -620,21 +622,21 @@ int main(int argc, char** argv)
 			sprintf(address.sun_path, "%s", ctrl_sock_name);
 
 		if (bind(socket_fd, (struct sockaddr*) &address, address_len) != 0) {
-			fprintf(stderr, "Error binding socket: %s\n", strerror(errno));
+			fprintf(log_file, "Error binding socket: %s\n", strerror(errno));
 			return 1;
 		}
 
 		if (chmod(address.sun_path, 0666) != 0) {
-			fprintf(stderr, "Error chmodding socket: %s\n", strerror(errno));
+			fprintf(log_file, "Error chmodding socket: %s\n", strerror(errno));
 			return 1;
 		}
 
 		if (listen(socket_fd, 5) != 0) {
-			fprintf(stderr, "Error listening on socket: %s\n", strerror(errno));
+			fprintf(log_file, "Error listening on socket: %s\n", strerror(errno));
 			return 1;
 		}
 	
-		fprintf(stderr, "Listening on socket\n");
+		fprintf(log_file, "Listening on socket\n");
 		int conn_fd;
 		std::vector<std::thread*> threads;
 		while ((conn_fd = accept(socket_fd,
@@ -644,7 +646,7 @@ int main(int argc, char** argv)
 			FILE* conn = fdopen(conn_fd, "r+");
 			threads.push_back(new std::thread([&](){ ta.read_loop(conn, conn, conn_fd); }));
 		}
-		fprintf(stderr, "Cleaning up...\n");
+		fprintf(log_file, "Cleaning up...\n");
 		for (auto thrd=threads.begin(); thrd != threads.end(); thrd++)
 			(*thrd)->join();
 		libusb_close(dev);
@@ -653,7 +655,7 @@ int main(int argc, char** argv)
 #endif
 
 	ta.add_output_fd(1, "stdout", false);
-	ta.read_loop(stdin, stderr);
+	ta.read_loop(stdin, log_file);
 	libusb_close(dev);
 	libusb_exit(ctx);
 	return 0;

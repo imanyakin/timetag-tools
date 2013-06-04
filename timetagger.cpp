@@ -62,6 +62,8 @@
 #define SEQ_CLOCKRATE_REG	0x21
 #define SEQ_CONFIG_BASE		0x28
 
+FILE* log_file = stderr;
+
 // This is a common theme when handling libusb completions
 void completed_cb(libusb_transfer *transfer) {
 	int *completed = (int *) transfer->user_data;
@@ -128,12 +130,12 @@ uint32_t timetagger::reg_cmd(bool write, uint16_t reg, uint32_t val)
 	int completed = 0;
 	libusb_transfer* transfer = libusb_alloc_transfer(0);
 	if (transfer == NULL) {
-		fprintf(stderr, "Error allocating transfer for register command\n");
+		fprintf(log_file, "Error allocating transfer for register command\n");
 		throw std::runtime_error("Error allocating transfer for register command\n");
 	}
 	
 #ifdef DEBUG
-	fprintf(stderr, "%s reg %04x = %08x; ", write ? "write" : "read", reg, val);
+	fprintf(log_file, "%s reg %04x = %08x; ", write ? "write" : "read", reg, val);
 #endif
 
 	// Submit request
@@ -141,7 +143,7 @@ uint32_t timetagger::reg_cmd(bool write, uint16_t reg, uint32_t val)
 			 	  completed_cb, &completed, TIMEOUT);
 	ret = libusb_submit_transfer(transfer);
 	if (ret) {
-		fprintf(stderr, "Failed to send request: %d\n", ret);
+		fprintf(log_file, "Failed to send request: %d\n", ret);
 		throw std::runtime_error("Failed to send request");
 	}
 
@@ -154,7 +156,7 @@ uint32_t timetagger::reg_cmd(bool write, uint16_t reg, uint32_t val)
 			 	  completed_cb, &completed, TIMEOUT);
 	ret = libusb_submit_transfer(transfer);
 	if (ret) {
-		fprintf(stderr, "Failed to receive reply: %d\n", ret);
+		fprintf(log_file, "Failed to receive reply: %d\n", ret);
 		throw std::runtime_error("Failed to receive reply");
 	}
 
@@ -162,14 +164,14 @@ uint32_t timetagger::reg_cmd(bool write, uint16_t reg, uint32_t val)
 		libusb_handle_events_completed(ctx, &completed);
 
 #ifdef DEBUG
-	fprintf(stderr, "reply: ");
+	fprintf(log_file, "reply: ");
 	for (int i=0; i<transfer->actual_length; i++)
-		fprintf(stderr, " %02x ", buffer[i]);
-	fprintf(stderr, "\n");
+		fprintf(log_file, " %02x ", buffer[i]);
+	fprintf(log_file, "\n");
 #endif
 
 	if (transfer->actual_length != 4) {
-		fprintf(stderr, "Invalid reply (length=%d)\n", transfer->actual_length);
+		fprintf(log_file, "Invalid reply (length=%d)\n", transfer->actual_length);
 		throw std::runtime_error("Invalid reply");
 	}
 
@@ -352,13 +354,13 @@ void timetagger::set_send_window(unsigned int records)
 {
 	unsigned int bytes = RECORD_LENGTH*records;
 	if (bytes > 512) {
-		fprintf(stderr, "Error: Send window too large\n");
+		fprintf(log_file, "Error: Send window too large\n");
 		return;
 	}
 
 	libusb_transfer *transfer = libusb_alloc_transfer(0);
 	if (transfer == NULL) {
-		fprintf(stderr, "Error allocating transfer for flush\n");
+		fprintf(log_file, "Error allocating transfer for flush\n");
 		throw std::runtime_error("Error allocating transfer for flush\n");
 	}
 
@@ -372,7 +374,7 @@ void timetagger::set_send_window(unsigned int records)
 
 	int res = libusb_submit_transfer(transfer);
 	if (res != 0)
-		fprintf(stderr, "Error requesting window size change: %d\n", res);
+		fprintf(log_file, "Error requesting window size change: %d\n", res);
 
 	while (!completed)
 		libusb_handle_events_completed(ctx, &completed);
@@ -385,7 +387,7 @@ void timetagger::set_send_window(unsigned int records)
 void timetagger::flush_fx2_fifo() {
 	libusb_transfer *transfer = libusb_alloc_transfer(0);
 	if (transfer == NULL) {
-		fprintf(stderr, "Error allocating transfer for flush\n");
+		fprintf(log_file, "Error allocating transfer for flush\n");
 		throw std::runtime_error("Error allocating transfer for flush\n");
 	}
 
@@ -397,7 +399,7 @@ void timetagger::flush_fx2_fifo() {
 
 	int res = libusb_submit_transfer(transfer);
 	if (res != 0)
-		fprintf(stderr, "Error requesting FX2 FIFO flush: %d\n", res);
+		fprintf(log_file, "Error requesting FX2 FIFO flush: %d\n", res);
 
 	while (!completed)
 		libusb_handle_events_completed(ctx, &completed);
@@ -410,7 +412,7 @@ void timetagger::do_flush()
 	int completed;
 	libusb_transfer *transfer = libusb_alloc_transfer(0);
 	if (transfer == NULL) {
-		fprintf(stderr, "Error allocating transfer for flush\n");
+		fprintf(log_file, "Error allocating transfer for flush\n");
 		throw std::runtime_error("Error allocating transfer for flush\n");
 	}
 
@@ -421,7 +423,7 @@ void timetagger::do_flush()
 		completed = 0;
 		int ret = libusb_submit_transfer(transfer);
 		if (ret != 0)
-			fprintf(stderr, "Error flushing data FIFO: %d\n", ret);
+			fprintf(log_file, "Error flushing data FIFO: %d\n", ret);
 		while (!completed)
 			libusb_handle_events_completed(ctx, &completed);
 	} while (transfer->actual_length > 0);
@@ -433,7 +435,7 @@ void timetagger::do_flush()
 		completed = 0;
 		int ret = libusb_submit_transfer(transfer);
 		if (ret != 0)
-			fprintf(stderr, "Error flushing reply FIFO: %d\n", ret);
+			fprintf(log_file, "Error flushing reply FIFO: %d\n", ret);
 		while (!completed)
 			libusb_handle_events_completed(ctx, &completed);
 	} while (transfer->actual_length > 0);
@@ -450,7 +452,7 @@ void timetagger::readout_handler()
 
 	libusb_transfer *transfer = libusb_alloc_transfer(0);
 	if (transfer == NULL) {
-		fprintf(stderr, "Error allocating transfer for readout\n");
+		fprintf(log_file, "Error allocating transfer for readout\n");
 		throw std::runtime_error("Error allocating transfer for readout\n");
 	}
 	
@@ -462,7 +464,7 @@ void timetagger::readout_handler()
 	sched_param sp;
 	sp.sched_priority = 50;
 	if (sched_setscheduler(0, SCHED_FIFO, &sp))
-		fprintf(stderr, "FIFO scheduling failed\n");
+		fprintf(log_file, "FIFO scheduling failed\n");
 
 	while (!_stop_readout) {
 		completed = 0;
@@ -471,7 +473,7 @@ void timetagger::readout_handler()
 
 		int res = libusb_submit_transfer(transfer);
 		if (res) {
-			fprintf(stderr, "Failed to send request: %d\n", res);
+			fprintf(log_file, "Failed to send request: %d\n", res);
 			throw std::runtime_error("Failed to send request");
 		}
 
@@ -484,11 +486,11 @@ void timetagger::readout_handler()
 		case LIBUSB_TRANSFER_COMPLETED:
 		case LIBUSB_TRANSFER_OVERFLOW:
 #ifdef DEBUG
-			fprintf(stderr, "Read %d bytes (status=%d, res=%d)\n",
+			fprintf(log_file, "Read %d bytes (status=%d, res=%d)\n",
 				transfer->actual_length, transfer->status, res);
 #endif
 			if (transfer->actual_length % RECORD_LENGTH != 0)
-				fprintf(stderr, "Warning: Received partial record.");
+				fprintf(log_file, "Warning: Received partial record.");
 			data_cb(buffer, transfer->actual_length);
 			failed_xfers = 0;
 			break;
@@ -498,16 +500,16 @@ void timetagger::readout_handler()
 			break;
 
 		case LIBUSB_TRANSFER_ERROR:
-			fprintf(stderr, "Readout transfer failed: %d\n", res);
+			fprintf(log_file, "Readout transfer failed: %d\n", res);
 			failed_xfers++;
 			if (failed_xfers > 1000) {
-				fprintf(stderr, "Too many failed transfers. Read-out stopped\n");
+				fprintf(log_file, "Too many failed transfers. Read-out stopped\n");
 				break;
 			}
 			break;
 		
 		default:
-			fprintf(stderr, "Odd transfer status in readout: %d\n", transfer->status);
+			fprintf(log_file, "Odd transfer status in readout: %d\n", transfer->status);
 			break;
 		}
 	}

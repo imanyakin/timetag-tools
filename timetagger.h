@@ -34,6 +34,8 @@
 
 #define TIMETAG_NREGS 0x50
 
+extern FILE* log_file;
+
 class timetagger {
 public:
 	typedef std::function<void (const uint8_t* buffer, size_t length)> data_cb_t;
