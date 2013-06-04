@@ -526,10 +526,63 @@ void timetag_acquire::read_loop(FILE* ctrl_in, FILE* ctrl_out, int sock_fd)
 		fclose(ctrl_in);
 }
 
+static void daemonize()
+{
+	pid_t pid, sid;
+	
+	if (getppid() == 1) return;
+	pid = fork();
+	if (pid < 0)
+		exit(EXIT_FAILURE);
+	else if (pid > 0)
+		exit(EXIT_SUCCESS);
+
+	umask(0);
+
+	sid = setsid();
+	if (sid < 0) {
+		fprintf(stderr, "Failed to detach from parent\n");
+		exit(EXIT_FAILURE);
+	}
+}
+
+static void print_usage()
+{
+	printf("usage: timetag_acquire -s [SOCKET] -d -h\n");
+	printf(" ");
+	printf("arguments:\n");
+	printf("  -s [SOCKET]    Listen on the given UNIX domain control socket\n");
+	printf("  -d             Daemonize\n");
+	printf("  -h             Display help message\n");
+}
+
 int main(int argc, char** argv)
 {
 	libusb_context* ctx;
 	libusb_device_handle* dev;
+
+	bool daemon = false;
+	char *ctrl_sock_name = NULL;
+	int c;
+	while ((c = getopt(argc, argv, "s:dh")) != -1) {
+		switch (c) {
+		case 's':
+			ctrl_sock_name = optarg;
+			break;
+		case 'd':
+			daemon = true;
+			break;
+		case 'h':
+			print_usage();
+			exit(0);
+		default:
+			printf("Unknown option %c\n", optopt);
+			print_usage();
+		}
+	}
+
+	// Daemonize
+	if (daemon) daemonize();
 
 	// Handle SIGPIPE somewhat reasonably
 	signal(SIGPIPE, SIG_IGN);
@@ -552,8 +605,7 @@ int main(int argc, char** argv)
 	timetag_acquire ta(ctx, dev);
 
 #ifdef WITH_DOMAIN_SOCKET
-        if (argc > 1) {
-		char* ctrl_sock_name = argv[1];
+        if (ctrl_sock_name) {
                 int socket_fd = socket(PF_UNIX, SOCK_STREAM, 0);
                 if (socket_fd < 0) {
                         fprintf(stderr, "Error opening control fd: %s\n", strerror(errno));
