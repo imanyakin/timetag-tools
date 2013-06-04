@@ -37,3 +37,7 @@ clean :
 SOURCES = $(wildcard *.cpp) $(wildcard *.c)
 -include $(addprefix .deps/,$(addsuffix .d,$(SOURCES)))
 
+.PHONY : install-udev
+install-udev : timetag-acquire.rules
+	cp timetag-acquire.rules /etc/udev/rules.d/timetag-acquire.rules
+
