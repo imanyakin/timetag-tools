@@ -16,7 +16,7 @@ timetag_bin : timetag_bin.o record.o
 timetag_dump : timetag_dump.o record.o
 timetag_extract : timetag_extract.o record.o
 
-install : ${PROGS} install-upstart-job
+install : ${PROGS} install-udev
 	cp ${PROGS} ${PREFIX}/bin
 	chmod ug+s ${PREFIX}/bin/timetag_acquire
 	mkdir -p ${PREFIX}/share/timetag
@@ -39,5 +39,6 @@ SOURCES = $(wildcard *.cpp) $(wildcard *.c)
 
 .PHONY : install-udev
 install-udev : timetag-acquire.rules
+	rm /etc/init/timetag-acquire.conf # Ensure upstart job isn't installed as well
 	cp timetag-acquire.rules /etc/udev/rules.d/timetag-acquire.rules
 
