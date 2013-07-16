@@ -34,8 +34,8 @@ int main(int argc, char** argv) {
 		("help,h", "Display help message")
 		("strobe-on,s", po::value<unsigned int>(), "include only records with strobe channel N active")
 		("delta-on,d", po::value<unsigned int>(), "include only records with delta channel N active")
-		("start-time,t", po::value<uint64_t>(), "start at timestamp TIME")
-		("end-time,T", po::value<uint64_t>(), "end at timestamp TIME")
+		("start-time,t", po::value<float>(), "start at timestamp TIME")
+		("end-time,T", po::value<float>(), "end at timestamp TIME")
 		("skip-records,r", po::value<unsigned int>(), "skip N records")
                 ("truncate-records,R", po::value<unsigned int>(), "truncate all records past N");
 
@@ -60,10 +60,10 @@ int main(int argc, char** argv) {
 		delta_on = vm["delta-on"].as <unsigned int>();
 
 	if (vm.count("start-time"))
-		start_time = vm["start-time"].as<uint64_t>();
+		start_time = round(vm["start-time"].as<float>());
 
 	if (vm.count("end-time"))
-		end_time = vm["end-time"].as<uint64_t>();
+		end_time = round(vm["end-time"].as<float>());
 	
 	if (vm.count("skip-records"))
 		skip_records = vm["skip-records"].as<unsigned int>();
