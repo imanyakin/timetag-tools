@@ -23,7 +23,6 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include <endian.h>
 
 #include "record.h"
 
