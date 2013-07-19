@@ -23,6 +23,25 @@
 #include "record.h"
 #include <sys/stat.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/param.h>
+
+#ifdef __APPLE__
+#if BYTE_ORDER == LITTLE_ENDIAN
+uint64_t htobe64(uint64_t a)
+{
+	uint64_t b;
+	char* bb = (char*) &b;
+	char* aa = (char*) &a;
+	
+	for (unsigned int i=0; i<8; i++)
+		bb[i] = aa[7-i];
+	return b;
+}
+#else
+uint64_t htobe64(uint64_t a) { return a; }
+#endif
+#endif
 
 record::type record::get_type() const {
         return (data & REC_TYPE_MASK) ? DELTA : STROBE;
