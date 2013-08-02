@@ -357,6 +357,7 @@ class MainWindow(object):
                 get_obj('output_file').props.sensitive = False
                 get_obj('acq_time_enabled').props.sensitive = False
                 get_obj('acq_time_spin').props.sensitive = False
+                get_obj('description').props.sensitive = False
 
                 progressbar = get_obj('progressbar')
                 self.acq_time = 0
@@ -399,6 +400,7 @@ class MainWindow(object):
                 get_obj('output_file').props.sensitive = True
                 get_obj('acq_time_enabled').props.sensitive = True
                 get_obj('acq_time_spin').props.sensitive = True
+                get_obj('description').props.sensitive = True
                 get_obj('progressbar').props.text = 'Not running'
 
         def readout_running_toggled_cb(self, action):
