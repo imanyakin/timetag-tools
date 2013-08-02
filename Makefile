@@ -42,6 +42,6 @@ SOURCES = $(wildcard *.cpp) $(wildcard *.c)
 
 .PHONY : install-udev
 install-udev : timetag-acquire.rules
-	rm -f /etc/init/timetag-acquire.conf # Ensure upstart job isn't installed as well
+	-rm -f /etc/init/timetag-acquire.conf # Ensure upstart job isn't installed as well
 	cp timetag-acquire.rules /etc/udev/rules.d/timetag-acquire.rules
 
