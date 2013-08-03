@@ -198,11 +198,15 @@ class MainWindow(object):
 
                 self.set_default_output_file()
                 self.indicators = None
+                self.plot_processes = []
                 self.load_rc()
 
                 self.win.show_all()
 
         def quit(self, *args):
+                for p in self.plot_processes:
+                        p.terminate()
+
                 if self.pipeline:
                         self.stop_readout()
                         self.pipeline.stop()
@@ -414,19 +418,16 @@ class MainWindow(object):
                 self.indicators.rate_mode = bool(active)
 
         def show_hist_activate_cb(self, action):
-                p = subprocess.Popen(['timetag_photon_hist'])
+                self.plot_processes.append(subprocess.Popen(['timetag_photon_hist']))
                 #HistPlot(self.pipeline)
 
         def show_bin_series_activate_cb(self, action):
-                p = subprocess.Popen(['timetag_bin_series'])
+                self.plot_processes.append(subprocess.Popen(['timetag_bin_series']))
                 #BinSeriesPlot(self.pipeline)
 
         def show_fret_hist_activate_cb(self, action):
-                p = subprocess.Popen(['timetag_fret_hist'])
+                self.plot_processes.append(subprocess.Popen(['timetag_fret_hist']))
                 #FretHistPlot(self.pipeline)
-
-        def bin_series_win_closed(self):
-                self.builder.get_object('show_bin_series').props.active = False
 
 if __name__ == '__main__':
         from optparse import OptionParser
