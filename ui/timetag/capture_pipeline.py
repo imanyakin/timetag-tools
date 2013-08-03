@@ -58,9 +58,6 @@ class CapturePipeline(object):
                 self.hw_version = self._tagger_cmd('version?\n')
                 logging.info('Tagger HW version: %s' % self.hw_version)
 
-                self.stop_capture()
-                self.reset_counter()
-
         def _tagger_cmd(self, cmd):
                 logging.debug("Tagger command: %s" % cmd.strip())
                 self._control.write(cmd)
