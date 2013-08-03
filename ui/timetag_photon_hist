@@ -1,0 +1,10 @@
+#!/usr/bin/env python
+
+import gtk
+from timetag.capture_pipeline import CapturePipeline
+from timetag.hist_plot import HistPlot
+
+gtk.gdk.threads_init()
+pipeline = CapturePipeline()
+hp = HistPlot(pipeline)
+gtk.main()

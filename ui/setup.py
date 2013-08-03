@@ -9,7 +9,7 @@ setup(name = 'timetag_ui',
       description = 'User interface for acquiring data with FPGA timetagger',
       version = '1.0',
       packages = ['timetag'],
-      scripts = ['timetag_ui', 'timetag_seq_ui'],
+      scripts = ['timetag_ui', 'timetag_seq_ui', 'timetag_photon_hist'],
       package_data = {
               'timetag': ['main.glade', 'bin_series.glade', 'hist.glade', 'default.cfg',
                           'fret_hist.glade'
