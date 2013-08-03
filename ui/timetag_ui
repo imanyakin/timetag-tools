@@ -418,7 +418,8 @@ class MainWindow(object):
                 #HistPlot(self.pipeline)
 
         def show_bin_series_activate_cb(self, action):
-                BinSeriesPlot(self.pipeline)
+                p = subprocess.Popen(['timetag_bin_series'])
+                #BinSeriesPlot(self.pipeline)
 
         def show_fret_hist_activate_cb(self, action):
                 FretHistPlot(self.pipeline)

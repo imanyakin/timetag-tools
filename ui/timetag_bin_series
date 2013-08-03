@@ -1,0 +1,10 @@
+#!/usr/bin/env python
+
+import gtk
+from timetag.capture_pipeline import CapturePipeline
+from timetag.bin_series_plot import BinSeriesPlot
+
+gtk.gdk.threads_init()
+pipeline = CapturePipeline()
+hp = BinSeriesPlot(pipeline)
+gtk.main()
