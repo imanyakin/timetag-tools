@@ -1,0 +1,10 @@
+#!/usr/bin/env python
+
+import gtk
+from timetag.capture_pipeline import CapturePipeline
+from timetag.fret_hist_plot import FretHistPlot
+
+gtk.gdk.threads_init()
+pipeline = CapturePipeline()
+hp = FretHistPlot(pipeline)
+gtk.main()
