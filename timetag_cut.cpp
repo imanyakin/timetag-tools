@@ -38,7 +38,8 @@ int main(int argc, char** argv) {
 		("end-time,T", po::value<float>(), "end at timestamp TIME")
 		("skip-records,r", po::value<unsigned int>(), "skip N records")
                 ("truncate-records,R", po::value<unsigned int>(), "truncate all records past N")
-                ("drop-initial-wraps,W", po::value<unsigned int>(), "ignore data until the Nth wrap-around");
+                ("drop-initial-wraps,W", po::value<unsigned int>(), "ignore data until the Nth wrap-around")
+                ("preserve-wraps,w", po::value<bool>(), "Keep wrap records");
 
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -49,6 +50,7 @@ int main(int argc, char** argv) {
 	uint64_t start_time = 0,  end_time = 1ULL << 63;
 	unsigned int skip_records = 0, truncate_records = 0;
         unsigned int drop_wraps = 0;
+        bool preserve_wraps = false;
 
 	if (vm.count("help")) {
 		std::cout << desc << "\n";
@@ -76,6 +78,9 @@ int main(int argc, char** argv) {
 	if (vm.count("drop-initial-wraps"))
 		drop_wraps = vm["drop-initial-wraps"].as<unsigned int>();
 
+	if (vm.count("preserve-wraps"))
+		preserve_wraps = true;
+
 	record_stream stream(0, drop_wraps);
 	unsigned int i=0;
 	while (true) {
@@ -96,7 +101,7 @@ int main(int argc, char** argv) {
 			if (truncate_records != 0 && i >= truncate_records) drop = true;
 
                         // Always keep wrap records but drop set channels
-                        if (drop && r.get_wrap_flag()) {
+                        if (drop && r.get_wrap_flag() && preserve_wraps) {
                                 r.data &= ~CHANNEL_MASK;
                                 write_record(1, r);
                         } else if (drop) {
