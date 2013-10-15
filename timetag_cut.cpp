@@ -74,7 +74,7 @@ int main(int argc, char** argv) {
 		truncate_records = vm["truncate-records"].as<unsigned int>();
 
 	if (vm.count("drop-wraps"))
-		drop_wraps = vm["drop_wraps"].as<unsigned int>();
+		drop_wraps = vm["drop-wraps"].as<unsigned int>();
 
 	record_stream stream(0, drop_wraps);
 	unsigned int i=0;
