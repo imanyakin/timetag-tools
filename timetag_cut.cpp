@@ -37,7 +37,8 @@ int main(int argc, char** argv) {
 		("start-time,t", po::value<float>(), "start at timestamp TIME")
 		("end-time,T", po::value<float>(), "end at timestamp TIME")
 		("skip-records,r", po::value<unsigned int>(), "skip N records")
-                ("truncate-records,R", po::value<unsigned int>(), "truncate all records past N");
+                ("truncate-records,R", po::value<unsigned int>(), "truncate all records past N")
+                ("drop-wraps,W", po::value<unsigned int>(), "ignore data until the Nth wrap-around");
 
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -47,6 +48,7 @@ int main(int argc, char** argv) {
 	std::bitset<4> delta_status;
 	uint64_t start_time = 0,  end_time = 1ULL << 63;
 	unsigned int skip_records = 0, truncate_records = 0;
+        unsigned int drop_wraps = 0;
 
 	if (vm.count("help")) {
 		std::cout << desc << "\n";
@@ -71,7 +73,10 @@ int main(int argc, char** argv) {
 	if (vm.count("truncate-records"))
 		truncate_records = vm["truncate-records"].as<unsigned int>();
 
-	record_stream stream(0);
+	if (vm.count("drop-wraps"))
+		drop_wraps = vm["drop_wraps"].as<unsigned int>();
+
+	record_stream stream(0, drop_wraps);
 	unsigned int i=0;
 	while (true) {
 		try {
