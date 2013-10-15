@@ -67,7 +67,17 @@ std::bitset<4> record::get_channels() const {
         return std::bitset<4>((data & CHANNEL_MASK) >> TIME_BITS);
 }
 
-record_stream::record_stream(int fd) : time_offset(0), fd(fd) { }
+record_stream::record_stream(int fd) : record_stream(fd, 0) { }
+
+record_stream::record_stream(int fd, unsigned int drop_wraps) : time_offset(0), fd(fd) {
+        unsigned int i=0;
+        while (i < drop_wraps) {
+                record rec = get_record();
+                if (rec.get_wrap_flag())
+                        i++;
+        }
+        time_offset = 0;
+}
 
 unsigned int get_file_length(const char* path) {
         struct stat buf;

@@ -58,6 +58,7 @@ class record_stream {
        
 public:
         record_stream(int fd);
+        record_stream(int fd, unsigned int drop_wraps);
         record get_record();
         std::vector<parsed_record> parse_records(unsigned int n);
 };
