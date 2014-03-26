@@ -58,6 +58,7 @@ class BinSeriesPlot(ManagedBinner):
 
         def destroy_cb(self, a):
                 self.stop_binner()
+                gtk.main_quit()
                 
         def _setup_plot(self):
                 self.last_timestamp = 0

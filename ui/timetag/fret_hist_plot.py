@@ -55,6 +55,7 @@ class FretHistPlot(ManagedBinner):
 
         def destroy_cb(self, a):
                 self.stop_binner()
+                gtk.main_quit()
 
         def _update_plot(self):
                 binner = self.get_binner()

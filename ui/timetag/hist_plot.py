@@ -60,6 +60,7 @@ class HistPlot(ManagedBinner):
 
         def destroy_cb(self, a):
                 self.stop_binner()
+                gtk.main_quit()
 
         def _update_plot(self):
                 if self.get_binner() is None: return False
