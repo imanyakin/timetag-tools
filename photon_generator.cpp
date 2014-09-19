@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
 	const unsigned int period = 1e9 / atoi(argv[1]); // in nanoseconds
 	count_t counter = 0;
 
-	setvbuf(stdout, NULL, _IONBF, NULL);
+	setvbuf(stdout, NULL, _IONBF, 0);
 	while (true) {
 		record_t data;
 
