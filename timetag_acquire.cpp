@@ -169,7 +169,9 @@ void timetag_acquire::data_callback(const uint8_t* buf, size_t length)
 	std::unique_lock<std::mutex> fds_lock(output_fds_mutex);
 
 	for (auto i=output_fds.begin(); i != output_fds.end(); i++) {
-		if ((*i)->dead) continue;
+		if ((*i)->dead)
+                        continue;
+
 		{
 			buffer b(p, length);
 			std::unique_lock<std::mutex> buffers_lock((*i)->buffer_lock);
@@ -177,6 +179,7 @@ void timetag_acquire::data_callback(const uint8_t* buf, size_t length)
 		}
 		(*i)->buffer_ready.notify_one();
 	}
+        output_fds.remove_if([&](output_fd*& i) { return i->dead; });
 }
 
 void timetag_acquire::add_output_fd(int fd, std::string name, bool needs_close)
