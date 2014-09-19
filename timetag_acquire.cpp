@@ -274,8 +274,9 @@ bool timetag_acquire::handle_command(std::string line, FILE* ctrl_out, int sock_
 				// Make sure a stalled fd doesn't cause us to lose samples
 				fcntl(fd, F_SETFL, O_NONBLOCK);
 				add_output_fd(fd, name, true);
+                                fprintf(ctrl_out, "= %d\n", fd);
 			},
-			"Add an output (expects to be sent an fd over domain socket)",
+			"Add an output file (expects to be sent an fd over domain socket). Returns output id.",
 			"NAME"
 		},
 		{"add_output_file", 2,
@@ -290,25 +291,26 @@ bool timetag_acquire::handle_command(std::string line, FILE* ctrl_out, int sock_
 				// Make sure a stalled fd doesn't cause us to lose samples
 				fcntl(fd, F_SETFL, O_NONBLOCK);
 				add_output_fd(fd, name, true);
+                                fprintf(ctrl_out, "= %d\n", fd);
 			},
-			"Add an output file",
+			"Add an output file. Returns output id.",
 			"NAME FILENAME"
 		},
 		{"remove_output", 1,
 			[&]() {
-				std::string name = tokens[1];
-				remove_output_fd(name);
+                                int fd = lexical_cast<int>(tokens[1]);
+				remove_output_fd(fd);
 			},
 			"Remove an output",
-			"NAME"
+			"OUTPUT_ID"
 		},
 		{"list_outputs", 0,
 			[&]() {
 				for (auto fd=output_fds.begin(); fd != output_fds.end(); fd++)
-					fprintf(ctrl_out, "= %15s\t%d\t%d\n",
+					fprintf(ctrl_out, "= %32s\t%d\t%d\n",
 							(*fd)->name.c_str(), (*fd)->fd, (*fd)->lost_records);
 			},
-			"List outputs"
+			"List outputs (format: [name]\t[output id]\t[lost records])"
 		},
 		{"start_capture", 0,
 			[&]() { t.start_capture(); },
