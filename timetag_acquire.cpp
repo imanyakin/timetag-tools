@@ -66,7 +66,7 @@ class timetag_acquire {
 		int fd;
 		std::string name;
 		bool needs_close;
-		unsigned int lost_records;
+		unsigned int sent_records;
 		std::list<buffer> buffers;
 		std::condition_variable buffer_ready;
 		std::mutex buffer_lock;
@@ -80,7 +80,7 @@ class timetag_acquire {
 			: fd(fd)
 			, name(name)
 			, needs_close(needs_close)
-			, lost_records(0)
+			, sent_records(0)
 			, buffers()
 			, stop(false)
 			, dead(false)
@@ -149,7 +149,7 @@ void timetag_acquire::output_fd::writer() {
 			fprintf(log_file, "fd %d encountered error during write: %s", fd, strerror(errno));
 			break;
 		} else {
-			lost_records += (b.length - ret) / RECORD_LENGTH;
+			sent_records += ((b.length - b.offset) - ret) / RECORD_LENGTH;
 			buffers.front().offset += ret;
 		}
 
@@ -308,9 +308,10 @@ bool timetag_acquire::handle_command(std::string line, FILE* ctrl_out, int sock_
 			[&]() {
 				for (auto fd=output_fds.begin(); fd != output_fds.end(); fd++)
 					fprintf(ctrl_out, "= %32s\t%d\t%d\n",
-							(*fd)->name.c_str(), (*fd)->fd, (*fd)->lost_records);
+                                                (*fd)->name.c_str(), (*fd)->fd,
+                                                (*fd)->sent_records);
 			},
-			"List outputs (format: [name]\t[output id]\t[lost records])"
+			"List outputs (format: [name]\t[output id]\t[sent records])"
 		},
 		{"start_capture", 0,
 			[&]() { t.start_capture(); },
