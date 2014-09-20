@@ -46,6 +46,7 @@
 #include <thread>
 #include <condition_variable>
 #include <mutex>
+#include <queue>
 
 #include "timetagger.h"
 #include "record_format.h"
@@ -64,15 +65,17 @@ class timetag_acquire {
 
 	struct output_fd {
 		int fd;
-		std::string name;
-		bool needs_close;
-		unsigned int sent_records;
-		std::list<buffer> buffers;
+		std::string name;                        // friendly name
+		const bool needs_close;                  // fd should be closed on stop
+		unsigned int sent_records;               // number of records sent to this fd
+		std::queue<buffer> buffers;
+                std::mutex buffer_mutex;
 		std::condition_variable buffer_ready;
-		std::mutex buffer_lock;
 		bool stop, dead;
+		const unsigned int fall_behind_count;
+
+                // must be last due to initialization order
 		std::thread writer_thread;
-		unsigned int fall_behind_count;
 
 		void writer();
 
@@ -81,11 +84,13 @@ class timetag_acquire {
 			, name(name)
 			, needs_close(needs_close)
 			, sent_records(0)
-			, buffers()
+                        , buffers()
+                        , buffer_mutex()
 			, stop(false)
 			, dead(false)
+		        , fall_behind_count(1000)
 			, writer_thread(&output_fd::writer, this)
-		        , fall_behind_count(1000) {}
+                        {}
 
 		~output_fd()
 		{
@@ -133,17 +138,24 @@ public:
 void timetag_acquire::output_fd::writer() {
 	while (!stop) {
 		// Make sure we don't fall too far behind since we are holding memory buffers
-		std::unique_lock<std::mutex> lock(buffer_lock);
-		if (buffers.size() > fall_behind_count) {
-			fprintf(log_file, "fd %d fell behind by %d buffers. Giving up.\n", fd, fall_behind_count);
-			buffers.clear();
-			break;
-		}
+                {
+                        std::unique_lock<std::mutex> lock(buffer_mutex);
+                        if (buffers.size() > fall_behind_count) {
+                                fprintf(log_file, "fd %d fell behind by %d buffers. Giving up.\n", fd, fall_behind_count);
+                                break;
+                        }
+                        while (buffers.empty())
+                                buffer_ready.wait(lock);
 
-		while (buffers.size() == 0)
-			buffer_ready.wait(lock);
+                        // make sure buffer hasn't already been finished
+                        buffer b = buffers.front();
+                        if (b.length - b.offset == 0) {
+                                buffers.pop();
+                                continue;
+                        }
+                }
 
-		buffer b = buffers.front();
+                buffer b = buffers.front();
 		int ret = write(fd, b.buf.get() + b.offset, b.length - b.offset);
 		if (ret == -1) {
 			fprintf(log_file, "fd %d encountered error during write: %s", fd, strerror(errno));
@@ -152,10 +164,6 @@ void timetag_acquire::output_fd::writer() {
 			sent_records += ((b.length - b.offset) - ret) / RECORD_LENGTH;
 			buffers.front().offset += ret;
 		}
-
-		// Check if we're done with this buffer
-		if (b.length - b.offset == 0)
-			buffers.pop_front();
 	}
 	fprintf(log_file, "fd %d writer died\n", fd);
 	dead = true;
@@ -173,9 +181,8 @@ void timetag_acquire::data_callback(const uint8_t* buf, size_t length)
                         continue;
 
 		{
-			buffer b(p, length);
-			std::unique_lock<std::mutex> buffers_lock((*i)->buffer_lock);
-			(*i)->buffers.push_back(b);
+			std::unique_lock<std::mutex> lock((*i)->buffer_mutex);
+			(*i)->buffers.push(buffer(p, length));
 		}
 		(*i)->buffer_ready.notify_one();
 	}
