@@ -161,7 +161,7 @@ void timetag_acquire::output_fd::writer() {
                         fprintf(log_file, "fd %d encountered error during write: %s", fd, strerror(errno));
                         break;
                 } else {
-                        sent_records += ((b.length - b.offset) - ret) / RECORD_LENGTH;
+                        sent_records += ret / RECORD_LENGTH;
                         buffers.front().offset += ret;
                 }
         }
