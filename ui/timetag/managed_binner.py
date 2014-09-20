@@ -5,6 +5,7 @@ class ManagedBinner(object):
     POLL_PERIOD = 2
     def __init__(self, pipeline, name='managed_binner'):
         self._pipeline = pipeline
+        self._output_id = None
         self._binner = None
         self._binner_name = '%s:%x' % (name,id(self))
         self._pipeline.start_notifiers.append(self._start_binner)
@@ -24,16 +25,25 @@ class ManagedBinner(object):
             logging.warn("Binner already started")
             return
         self._binner = self.create_binner()
-        self._pipeline.add_output(self._binner_name, self._binner.get_data_fd())
+        self._output_id = self._pipeline.add_output(self._binner_name,
+                                                    self._binner.get_data_fd())
         self.on_started()
 
     def _stop_binner(self):
+        # Stop binner
         if self._binner is None:
             logging.warn("Binner already stopped")
-            return
-        self._pipeline.remove_output(self._binner_name)
-        self._binner.stop()
-        self._binner = None
+        else:
+            self._binner.stop()
+            self._binner = None
+
+        # Remove output
+        if self._output_id is None:
+            logging.warn("No associated output")
+        else:
+            self._pipeline.remove_output(self._output_id)
+            self._output_id = None
+
         self.on_stopped()
 
     def stop_binner(self):

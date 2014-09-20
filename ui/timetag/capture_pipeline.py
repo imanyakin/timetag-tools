@@ -35,7 +35,6 @@ class CapturePipeline(object):
                 self.stop_notifiers = []
                 self.start_notifiers = []
                 self._control_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM, 0)
-                self.outputs = {}
                 connected = False
                 for i in range(10):
                         sleep(0.05)
@@ -110,9 +109,8 @@ class CapturePipeline(object):
                 sleep(0.01) # HACK: Otherwise the packet gets lost
                 passfd.sendfd(self._control_sock, file)
                 oid = self._read_reply()
-                self.outputs[id] = oid
-                return oid
+                return int(oid)
 
         def remove_output(self, oid):
-                self._tagger_cmd('remove_output %s\n' % oid)
+                self._tagger_cmd('remove_output %d\n' % oid)
 
