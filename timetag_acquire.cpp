@@ -133,13 +133,13 @@ public:
 void timetag_acquire::output_fd::writer() {
 	while (!stop) {
 		// Make sure we don't fall too far behind since we are holding memory buffers
+		std::unique_lock<std::mutex> lock(buffer_lock);
 		if (buffers.size() > fall_behind_count) {
 			fprintf(log_file, "fd %d fell behind by %d buffers. Giving up.\n", fd, fall_behind_count);
 			buffers.clear();
 			break;
 		}
 
-		std::unique_lock<std::mutex> lock(buffer_lock);
 		while (buffers.size() == 0)
 			buffer_ready.wait(lock);
 
