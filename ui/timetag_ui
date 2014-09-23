@@ -286,7 +286,7 @@ class MainWindow(object):
                         self.remove_output(self._out_file_id)
 
                 self._out_file = open(filename, 'w')
-                self._out_file_id = self.pipeline.add_output('timetag-ui:%s' % filename,
+                self._out_file_id = self.pipeline.add_output('timetag-ui:%x' % hash(filename),
                                                              self._out_file)
 
         def get_metadata(self):
