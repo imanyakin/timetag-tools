@@ -65,7 +65,6 @@ public:
 	timetagger(libusb_context* ctx, libusb_device_handle* dev, data_cb_t data_cb);
 	~timetagger();
 	
-	void reset();
 	void set_send_window(unsigned int records);
 
 	unsigned int get_version();
@@ -83,7 +82,6 @@ public:
 	void stop_capture();
 	bool get_capture_en();
 	void reset_counter();
-	void flush_fifo();
 
 	unsigned int get_seq_clockrate();
 	unsigned int get_record_count();

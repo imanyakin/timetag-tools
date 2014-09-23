@@ -86,15 +86,12 @@ class CapturePipeline(object):
                 self._control.write('quit\n')
                 self._control.close()
 
-        def reset_counter(self):
-                self._tagger_cmd('reset_counter\n')
-
         def stop_capture(self):
                 self._tagger_cmd('stop_capture\n')
                 for n in self.stop_notifiers: n()
 
         def start_capture(self):
-                self._tagger_cmd('flush_fifo\n')
+                self._tagger_cmd('reset_counter\n')
                 self._tagger_cmd('start_capture\n')
                 for n in self.start_notifiers: n()
 

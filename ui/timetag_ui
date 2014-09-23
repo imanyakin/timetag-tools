@@ -283,7 +283,7 @@ class MainWindow(object):
 
         def new_out_file(self, filename):
                 if self._out_file_id is not None:
-                        self.remove_output(self._out_file_id)
+                        self.pipeline.remove_output(self._out_file_id)
 
                 self._out_file = open(filename, 'w')
                 self._out_file_id = self.pipeline.add_output('timetag-ui:%x' % hash(filename),
@@ -351,7 +351,6 @@ class MainWindow(object):
                         meta_file = outfile + ".meta"
                         json.dump(metadata, open(meta_file, 'w'), indent=2)
 
-                self.pipeline.reset_counter()
                 self.pipeline.start_capture()
                 self.readout_running = True
 

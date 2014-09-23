@@ -123,7 +123,7 @@ public:
                                 this->data_callback(buffer, length);
                   })
         {
-                t.reset();
+                t.reset_counter();
                 t.start_readout();
         }
 
@@ -333,14 +333,6 @@ bool timetag_acquire::handle_command(std::string line, FILE* ctrl_out, int sock_
                 {"capture?", 0,
                         [&]() { fprintf(ctrl_out, "= %d\n", t.get_capture_en()); },
                         "Return whether the timetagging engine is running"
-                },
-                {"reset", 0,
-                        [&]() { t.reset(); },
-                        "Perform hardware reset"
-                },
-                {"flush_fifo", 0,
-                        [&]() { t.flush_fifo(); },
-                        "Flush the hardware's record FIFO"
                 },
                 {"set_send_window", 1,
                         [&]() {

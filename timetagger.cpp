@@ -101,20 +101,6 @@ timetagger::~timetagger()
 	libusb_release_interface(dev, 0);
 }
 
-void timetagger::flush_fifo()
-{
-	// Clear sample FIFO
-	write_reg(REC_FIFO_REG, regs[REC_FIFO_REG] | 0x1);
-	write_reg(REC_FIFO_REG, regs[REC_FIFO_REG] & ~0x1);
-}
-
-void timetagger::reset()
-{
-	stop_capture();
-	flush_fx2_fifo();
-	needs_flush = true;
-}
-
 uint32_t timetagger::reg_cmd(bool write, uint16_t reg, uint32_t val)
 {
 	int ret;
@@ -248,6 +234,16 @@ void timetagger::reset_counter()
 {
 	write_reg(CAPCTL_REG, (regs[CAPCTL_REG] | CAPCTL_RESET_CNT) & ~CAPCTL_COUNT_EN);
 	write_reg(CAPCTL_REG, regs[CAPCTL_REG] & ~CAPCTL_RESET_CNT);
+
+        // Flush
+	stop_capture();
+
+	// Clear sample FIFO
+	write_reg(REC_FIFO_REG, regs[REC_FIFO_REG] | 0x1);
+	write_reg(REC_FIFO_REG, regs[REC_FIFO_REG] & ~0x1);
+
+	flush_fx2_fifo();
+	needs_flush = true;
 }
 
 unsigned int timetagger::get_record_count()
