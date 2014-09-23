@@ -116,8 +116,7 @@ public:
         void read_loop(FILE* ctrl_in, FILE* ctrl_out, int sock_fd=-1);
 
         void add_output_fd(int fd, std::string name, bool needs_close);
-        void remove_output_fd(int fd);
-        void remove_output_fd(std::string name);
+        bool remove_output_fd(int fd);
 
         timetag_acquire(libusb_context* ctx, libusb_device_handle* dev)
                 : t(ctx, dev, [=](const uint8_t* buffer, size_t length) {
@@ -233,16 +232,16 @@ static int recv_fd(int socket)
         return -1;
 }
 
-void timetag_acquire::remove_output_fd(std::string name)
+bool timetag_acquire::remove_output_fd(int fd)
 {
         std::unique_lock<std::mutex> fds_lock(output_fds_mutex);
-        output_fds.remove_if([=](output_fd* a) { return a->name == name; });
-}
-
-void timetag_acquire::remove_output_fd(int fd)
-{
-        std::unique_lock<std::mutex> fds_lock(output_fds_mutex);
-        output_fds.remove_if([=](output_fd* a) { return a->fd == fd; });
+        if (std::any_of(output_fds.begin(), output_fds.end(),
+                        [=](output_fd* a) { return a->fd == fd; })) {
+                output_fds.remove_if([=](output_fd* a) { return a->fd == fd; });
+                return true;
+        } else {
+                return false;
+        }
 }
 
 /*
@@ -306,7 +305,10 @@ bool timetag_acquire::handle_command(std::string line, FILE* ctrl_out, int sock_
                 {"remove_output", 1,
                         [&]() {
                                 int fd = lexical_cast<int>(tokens[1]);
-                                remove_output_fd(fd);
+                                bool success = remove_output_fd(fd);
+                                if (!success) {
+                                        fprintf(ctrl_out, "error: No matching output: id=%d\n", fd);
+                                }
                         },
                         "Remove an output",
                         "OUTPUT_ID"
