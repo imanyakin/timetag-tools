@@ -34,11 +34,23 @@ class CapturePipeline(object):
                     seconds. """
                 self.stop_notifiers = []
                 self.start_notifiers = []
+                self._control_sock_name = control_sock
+                self._control_sock = None
+                self._connect()
+
+                self.clockrate = int(self._tagger_cmd('clockrate?\n'))
+                logging.info('Tagger clockrate: %f MHz' % (self.clockrate / 1e6))
+                self.hw_version = self._tagger_cmd('version?\n')
+                logging.info('Tagger HW version: %s' % self.hw_version)
+
+        def _connect(self):
+                if self._control_sock is not None:
+                        self._control_sock.close()
                 self._control_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM, 0)
                 connected = False
                 for i in range(10):
                         sleep(0.05)
-                        try: self._control_sock.connect(control_sock)
+                        try: self._control_sock.connect(self._control_sock_name)
                         except: pass
                         else:
 				connected = True
@@ -53,15 +65,13 @@ class CapturePipeline(object):
                 if l.strip() != "ready":
                         raise RuntimeError('Invalid status message: %s' % l)
 
-                self.clockrate = int(self._tagger_cmd('clockrate?\n'))
-                logging.info('Tagger clockrate: %f MHz' % (self.clockrate / 1e6))
-                self.hw_version = self._tagger_cmd('version?\n')
-                logging.info('Tagger HW version: %s' % self.hw_version)
-
         def _tagger_cmd(self, cmd):
                 logging.debug("Tagger command: %s" % cmd.strip())
-                self._control.write(cmd)
-                return self._read_reply(cmd)
+                try:
+                        self._control.write(cmd)
+                        return self._read_reply(cmd)
+                except socket.error as e:
+                        self._connect()
 
         def _read_reply(self, cmd=''):
                 result = None
