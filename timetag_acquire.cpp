@@ -273,6 +273,7 @@ bool timetag_acquire::handle_command(std::string line, FILE* ctrl_out, int sock_
                                         fprintf(ctrl_out, "error: Command only support in socket mode\n");
                                         return;
                                 }
+                                fprintf(ctrl_out, "= waiting\nready\n");
                                 int fd = recv_fd(sock_fd);
                                 if (fd < 0) {
                                         fprintf(ctrl_out, "error: Error receiving fd: %s\n", strerror(errno));

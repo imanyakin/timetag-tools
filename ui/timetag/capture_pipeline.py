@@ -114,7 +114,7 @@ class CapturePipeline(object):
         def add_output(self, name, file):
                 logging.debug("Tagger command: add_output %s" % name)
                 self._control.write('add_output_fd %s\n' % name)
-                sleep(0.01) # HACK: Otherwise the packet gets lost
+                self._read_reply()
                 passfd.sendfd(self._control_sock, file)
                 oid = self._read_reply()
                 logging.debug("output_id = %s" % oid)
