@@ -8,7 +8,7 @@ PROGS=timetag_acquire photon_generator timetag_dump \
 
 all : ${PROGS}
 
-timetag_acquire : LDLIBS += -lboost_iostreams
+timetag_acquire : LDLIBS += -lboost_iostreams -lzmq
 timetag_acquire : EXTRA_FLAGS = -DWITH_DOMAIN_SOCKET
 timetag_acquire : timetag_acquire.o timetagger.o
 timetag_cut : LDLIBS += -lboost_program_options
