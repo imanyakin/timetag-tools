@@ -652,6 +652,7 @@ int main(int argc, char** argv)
                                         (socklen_t*) &address_len)) > -1)
                 {
                         FILE* conn = fdopen(conn_fd, "r+");
+                        setvbuf(conn, NULL, _IONBF, 0);
                         threads.push_back(new std::thread([&](){ ta.read_loop(conn, conn, conn_fd); }));
                 }
                 fprintf(log_file, "Cleaning up...\n");
