@@ -5,7 +5,7 @@ CC=$(CXX)
 
 PROGS=timetag_acquire photon_generator timetag_dump \
       timetag_cut timetag_extract timetag_bin \
-      timetag-cli
+      timetag-cli timetag-cat
 
 all : ${PROGS}
 
