@@ -41,7 +41,6 @@ from matplotlib.backends.backend_gtkagg import FigureCanvasGTKAgg
 from matplotlib.backends.backend_gtkcairo import FigureCanvasGTKCairo
 
 from timetag.capture_pipeline import CapturePipeline
-from timetag.test_pipeline import TestPipeline
 from timetag.bin_series_plot import BinSeriesPlot
 from timetag.hist_plot import HistPlot
 from timetag.fret_hist_plot import FretHistPlot
@@ -179,10 +178,7 @@ def run_channel_editor(parent, strobe_config, delta_config):
         
 class MainWindow(object):
         def __init__(self, n_inputs=4):
-                if use_test_pipeline:
-                        self.pipeline = TestPipeline()
-                else:
-                        self.pipeline = CapturePipeline()
+                self.pipeline = CapturePipeline()
                 self.readout_running = False
                 self._out_file = None
                 self._out_file_cat = None
@@ -432,10 +428,7 @@ if __name__ == '__main__':
         parser = OptionParser()
         parser.add_option('-d', '--debug', action='store_true',
                           help='Enable debugging output')
-        parser.add_option('-t', '--test', action='store_true',
-                          help="Use test input pipeline instead of actual hardware")
         opts, args = parser.parse_args()
-        use_test_pipeline = opts.test
         if opts.debug:
                 logging.basicConfig(level=logging.DEBUG)
 
