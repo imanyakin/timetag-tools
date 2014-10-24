@@ -73,9 +73,3 @@ class TestPipeline(object):
         def reset_counter(self):
                 self.t = 0
                 logging.info('reset_counter')
-
-        def add_output(self, id, file):
-                self._outputs[id] = file
-
-        def remove_output(self, id):
-                self._outputs.pop(id)

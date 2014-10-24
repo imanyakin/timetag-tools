@@ -185,7 +185,7 @@ class MainWindow(object):
                         self.pipeline = CapturePipeline()
                 self.readout_running = False
                 self._out_file = None
-                self._out_file_id = None
+                self._out_file_cat = None
 
                 self.builder = gtk.Builder()
                 src = pkgutil.get_data('timetag', 'main.glade')
@@ -209,7 +209,6 @@ class MainWindow(object):
 
                 if self.pipeline:
                         self.stop_readout()
-                        self.pipeline.stop()
                 gtk.main_quit()
 
         def load_rc(self):
@@ -282,12 +281,11 @@ class MainWindow(object):
                             fc.get_filename()
 
         def new_out_file(self, filename):
-                if self._out_file_id is not None:
-                        self.pipeline.remove_output(self._out_file_id)
+                if self._out_file_cat is not None:
+                        self._out_file_cat.terminate()
 
                 self._out_file = open(filename, 'w')
-                self._out_file_id = self.pipeline.add_output('timetag-ui:%x' % hash(filename),
-                                                             self._out_file)
+                self._out_file_cat = subprocess.Popen(['timetag-cat'], stdout=self._out_file)
 
         def get_metadata(self):
                 get_obj = self.builder.get_object
@@ -392,10 +390,10 @@ class MainWindow(object):
 
                 # Disable output file
                 get_obj('file_output_enabled').props.active = False
-                if self._out_file_id is not None:
-                    self.pipeline.remove_output(self._out_file_id)
+                if self._out_file_cat is not None:
+                    self._out_file_cat.terminate()
                     self._out_file.close()
-                    self._out_file_id = None
+                    self._out_file_cat = None
                     self._out_file = None
 
                 # So people don't overwrite the data they just took
