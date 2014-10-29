@@ -1,6 +1,6 @@
 PREFIX=/usr
 CXXFLAGS=-Wall -std=gnu++0x -ggdb $(shell pkg-config --cflags libusb-1.0) -fPIC $(EXTRA_FLAGS)
-LDLIBS=$(shell pkg-config --libs libusb-1.0)
+LDLIBS=$(shell pkg-config --libs libusb-1.0) -lpthread
 CC=$(CXX)
 
 PROGS=timetag_acquire photon_generator timetag_dump \
