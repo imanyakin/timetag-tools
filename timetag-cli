@@ -9,7 +9,13 @@ ctrl_sock.connect('ipc:///tmp/timetag-ctrl')
 def command_line():
     import readline
     while True:
-        cmd = raw_input('>>> ')
+        try:
+            cmd = raw_input('>>> ')
+        except EOFError:
+            break
+        except KeyboardInterrupt:
+            break
+
         ctrl_sock.send_string(cmd)
         print ctrl_sock.recv_string()
 
