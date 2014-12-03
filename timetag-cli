@@ -6,7 +6,14 @@ ctx = zmq.Context().instance()
 ctrl_sock = ctx.socket(zmq.REQ)
 ctrl_sock.connect('ipc:///tmp/timetag-ctrl')
 
-while True:
-    cmd = raw_input('>>> ')
-    ctrl_sock.send_string(cmd)
+def command_line():
+    while True:
+        cmd = raw_input('>>> ')
+        ctrl_sock.send_string(cmd)
+        print ctrl_sock.recv_string()
+
+if len(sys.argv) > 1:
+    ctrl_sock.send_string(' '.join(sys.argv[1:]))
     print ctrl_sock.recv_string()
+else:
+    command_line()
