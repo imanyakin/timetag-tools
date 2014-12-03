@@ -7,6 +7,7 @@ ctrl_sock = ctx.socket(zmq.REQ)
 ctrl_sock.connect('ipc:///tmp/timetag-ctrl')
 
 def command_line():
+    import readline
     while True:
         cmd = raw_input('>>> ')
         ctrl_sock.send_string(cmd)
