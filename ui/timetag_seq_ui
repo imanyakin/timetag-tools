@@ -3,13 +3,14 @@
 import gtk
 import socket
 import logging
+import zmq
 
 logging.basicConfig(level=logging.DEBUG)
 
 class SeqWindow(object):
         def operate_toggled_cb(self, button):
                 if button.props.active:
-                        self._tagger_cmd('reset_seq\n')
+                        self._tagger_cmd('reset_seq')
                         button.props.label = 'Running'
                         logging.info('Now running')
                         for w in self.widgets: w.props.sensitive = False
@@ -18,19 +19,19 @@ class SeqWindow(object):
                         logging.info('Now stopped')
                         for w in self.widgets: w.props.sensitive = True
 
-                self._tagger_cmd('seq_operate %d\n' % button.props.active)
+                self._tagger_cmd('seq_operate %d' % button.props.active)
 
         def reset_cb(self, button):
                 logging.info('Reset')
                 self.operate_btn.props.active = False
-                self._tagger_cmd('seq_operate 0\n')
-                self._tagger_cmd('reset_seq\n')
+                self._tagger_cmd('seq_operate 0')
+                self._tagger_cmd('reset_seq')
 
         def enabled_changed_cb(self, button, chan):
                 active = button.props.active
                 logging.info('%s channel %d' % ('Enable' if active else 'Disable', chan))
                 button.props.label = 'Enabled' if active else 'Disabled'
-                self._tagger_cmd('seqchan_operate %d %d\n' % (chan, active))
+                self._tagger_cmd('seqchan_operate %d %d' % (chan, active))
 
         def initial_state_changed_cb(self, button, chan):
                 active = button.props.active
@@ -52,7 +53,7 @@ class SeqWindow(object):
                 }
                 cmd = 'seqchan_config %(chan)d %(state)d %(initial)d %(low)d %(high)d' % params
                 logging.info(cmd)
-                self._tagger_cmd(cmd + '\n')
+                self._tagger_cmd(cmd)
 
         def _build_window(self):
                 self.widgets = []
@@ -69,7 +70,7 @@ class SeqWindow(object):
                 bbox = gtk.HButtonBox()
                 vbox.pack_start(bbox)
 
-                seq_active = int(self._tagger_cmd('seq_operate?\n'))
+                seq_active = int(self._tagger_cmd('seq_operate?'))
                 btn = gtk.ToggleButton('Running' if seq_active else 'Stopped')
                 btn.set_active(seq_active)
                 btn.connect('toggled', self.operate_toggled_cb)
@@ -131,7 +132,7 @@ class SeqWindow(object):
                         table.attach(w, col, col+1, c+1, c+2)
                         col += 1
 
-                        active = int(self._tagger_cmd('seqchan_operate? %d\n' % c))
+                        active = int(self._tagger_cmd('seqchan_operate? %d' % c))
                         state = gtk.ToggleButton('Enabled' if active else 'Disabled')
                         state.set_active(active)
                         state.connect('toggled', self.enabled_changed_cb, c)
@@ -139,7 +140,7 @@ class SeqWindow(object):
                         self.widgets.append(state)
                         col += 1
 
-                        active = int(self._tagger_cmd('seqchan_initial_state? %d\n' % c))
+                        active = int(self._tagger_cmd('seqchan_initial_state? %d' % c))
                         state = gtk.ToggleButton('High' if active else 'Low')
                         state.set_active(active)
                         state.connect('toggled', self.initial_state_changed_cb, c)
@@ -147,7 +148,7 @@ class SeqWindow(object):
                         self.widgets.append(state)
                         col += 1
 
-                        val = int(self._tagger_cmd('seqchan_initial_count? %d\n' % c)) / time_mult
+                        val = int(self._tagger_cmd('seqchan_initial_count? %d' % c)) / time_mult
                         initial_adj = gtk.Adjustment(value=val, lower=0, upper=1e9, step_incr=100)
                         initial_adj.connect('value-changed', lambda w,ch: self.reconfig_channel(ch), c)
                         w = gtk.SpinButton(initial_adj)
@@ -155,7 +156,7 @@ class SeqWindow(object):
                         self.widgets.append(w)
                         col += 1
 
-                        val = int(self._tagger_cmd('seqchan_low_count? %d\n' % c)) / time_mult
+                        val = int(self._tagger_cmd('seqchan_low_count? %d' % c)) / time_mult
                         low_adj = gtk.Adjustment(value=val, lower=0, upper=1e9, step_incr=100)
                         low_adj.connect('value-changed', lambda w,ch: self.reconfig_channel(ch), c)
                         w = gtk.SpinButton(low_adj)
@@ -163,7 +164,7 @@ class SeqWindow(object):
                         self.widgets.append(w)
                         col += 1
 
-                        val = int(self._tagger_cmd('seqchan_high_count? %d\n' % c)) / time_mult
+                        val = int(self._tagger_cmd('seqchan_high_count? %d' % c)) / time_mult
                         high_adj = gtk.Adjustment(value=val, lower=0, upper=1e9, step_incr=100)
                         high_adj.connect('value-changed', lambda w,ch: self.reconfig_channel(ch), c)
                         w = gtk.SpinButton(high_adj)
@@ -178,33 +179,17 @@ class SeqWindow(object):
 
         def __init__(self, socket):
                 self.socket = socket               
-                self.control = self.socket.makefile('rw', 0)
-                l = self.control.readline() # Read "ready"
-                if l.strip() != "ready":
-                        raise RuntimeError('Invalid status message: %s' % l)
-
-                self.freq = int(self._tagger_cmd('seq_clockrate?\n'))
+                self.freq = int(self._tagger_cmd('seq_clockrate?'))
                 self._build_window()
 
         def _tagger_cmd(self, cmd):
                 logging.debug("Tagger command: %s" % cmd.strip())
-                self.control.write(cmd)
-                result = None
-                while True:
-                        l = self.control.readline().strip()
-                        logging.debug('read: ' + l)
-                        if l.startswith('= '):
-                                result = l[2:]
-                                l = self.control.readline().strip()
-                        if l == 'ready':
-                                break
-                        else:
-                                raise RuntimeError('Invalid status message: %s' % l)
-                return result
+                self.socket.send_string(cmd)
+                return self.socket.recv_string()
 
-
-sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM, 0)
-sock.connect('/tmp/timetag.sock')
-win = SeqWindow(sock)
+ctx = zmq.Context().instance()
+ctrl_sock = ctx.socket(zmq.REQ)
+ctrl_sock.connect('ipc:///tmp/timetag-ctrl')
+win = SeqWindow(ctrl_sock)
 gtk.main()
 
