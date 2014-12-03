@@ -1,0 +1,73 @@
+# timetag-tools - FPGA Time-tagger tools
+
+These are a set of tools for operating the FPGA timetagger. These
+include a set of Python-based applications for data acquisition and
+low-level tools for manipulation, filtering, and extraction of photon
+data.
+
+## Data acquisition interface
+
+`timetag_ui` (found in the `ui/` directory) and `timetag_seq_ui` are
+Python-based applications wrapping the low-level utilities provided in
+this package in easy-to-use graphical interfaces.
+
+## Low-level utilities
+
+### Interacting with the hardware
+
+The hardware is managed by a system-wide daemon, `timetag_acquire`.
+This daemon accepts commands and publishes events on a set of local
+[ZeroMQ](http://www.zeromq.org/) sockets.
+
+ * `/tmp/timetag-ctrl` is a `REP` socket that allows users to submit
+   control commands. The `help` command provides a full listing of
+   available commands (see `timetag-cli` to conveniently work with
+   this interface).
+
+ * `/tmp/timetag-data` is a `PUB` socket to which records from the
+   device are written. See `timetag-cat` to conveniently dump data
+   from this interface.
+
+ * `/tmp/timetag-event` is a `PUB` socket which publishes hardware
+   events. The currently supported events are,
+
+	`capture start`
+	: The device has started capturing records.
+
+	`capture stop`
+	: The device has stopped capturing records.
+
+`timetag-cli` provides an easy-to-use command-line interface to
+`timetag_acquire`. If command-line arguments are given they will be
+interpretted as a command and the result printed to standard
+output. Otherwise the command acts as a simple read-evaluate-print
+loop. For instance,
+
+	$ timetag-cli start_capture
+    $ timetag-cli
+	>>> capture?
+    1
+
+`timetag-cat` prints incoming records from the device to `stdout`. For
+instance, to capture records to a file, one might use,
+
+	$ timetag-cli stop_capture
+	$ timetag-cli reset_counter
+    $ timetag-cat > my-records.timetag &
+	$ timetag-cli start_capture
+	$ sleep 10
+	$ timetag-cli stop_capture
+
+### Manipulating and extracting data
+
+`timetag_bin`
+: Bin photons into temporal bins.
+
+`timetag_dump`
+: Dump text representation of records in a file
+
+`timetag_cut`
+: Extract subsets of a `.timetag` file.
+
+`timetag_extract`
+: Extract binary timestamps
