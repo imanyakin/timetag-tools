@@ -1,4 +1,4 @@
-# timetag-tools - FPGA Time-tagger tools
+# timetag-tools — FPGA Time-tagger tools
 
 These are a set of tools for operating the FPGA timetagger. These
 include a set of Python-based applications for data acquisition and
