@@ -17,21 +17,6 @@
   <object class="GtkToggleAction" id="file_output_enabled">
     <property name="label">File output enabled</property>
   </object>
-  <object class="GtkAction" id="show_bin_series">
-    <property name="label" translatable="yes">Show bin series</property>
-    <property name="short_label" translatable="yes">Bin series</property>
-    <signal name="activate" handler="show_bin_series_activate_cb" swapped="no"/>
-  </object>
-  <object class="GtkAction" id="show_fret_hist">
-    <property name="label" translatable="yes">Show FRET efficiency</property>
-    <property name="short_label" translatable="yes">FRET efficiency</property>
-    <signal name="activate" handler="show_fret_hist_activate_cb" swapped="no"/>
-  </object>
-  <object class="GtkAction" id="show_hist">
-    <property name="label" translatable="yes">Photon counting histogram</property>
-    <property name="short_label" translatable="yes">Photon counting hist.</property>
-    <signal name="activate" handler="show_hist_activate_cb" swapped="no"/>
-  </object>
   <object class="GtkListStore" id="latency_store">
     <columns>
       <!-- column-name records -->
@@ -53,6 +38,21 @@
     <property name="label">Stopped</property>
     <signal name="toggled" handler="readout_running_toggled_cb" swapped="no"/>
   </object>
+  <object class="GtkAction" id="show_bin_series">
+    <property name="label" translatable="yes">Show bin series</property>
+    <property name="short_label" translatable="yes">Bin series</property>
+    <signal name="activate" handler="show_bin_series_activate_cb" swapped="no"/>
+  </object>
+  <object class="GtkAction" id="show_fret_hist">
+    <property name="label" translatable="yes">Show FRET efficiency</property>
+    <property name="short_label" translatable="yes">FRET efficiency</property>
+    <signal name="activate" handler="show_fret_hist_activate_cb" swapped="no"/>
+  </object>
+  <object class="GtkAction" id="show_hist">
+    <property name="label" translatable="yes">Photon counting histogram</property>
+    <property name="short_label" translatable="yes">Photon counting hist.</property>
+    <signal name="activate" handler="show_hist_activate_cb" swapped="no"/>
+  </object>
   <object class="GtkWindow" id="main_window">
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">FPGA Time-Tagger</property>
@@ -71,7 +71,6 @@
               <object class="GtkMenuItem" id="file_item">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">_File</property>
                 <property name="use_underline">True</property>
                 <child type="submenu">
@@ -80,9 +79,9 @@
                     <property name="can_focus">False</property>
                     <child>
                       <object class="GtkImageMenuItem" id="edit_channels_item">
+                        <property name="related_action">edit_channels</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="related_action">edit_channels</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
@@ -91,7 +90,6 @@
                       <object class="GtkSeparatorMenuItem" id="separatormenuitem1">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                       </object>
                     </child>
                     <child>
@@ -99,7 +97,6 @@
                         <property name="label">gtk-quit</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <signal name="activate" handler="quit" swapped="no"/>
@@ -113,7 +110,6 @@
               <object class="GtkMenuItem" id="windows_item">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">Windows</property>
                 <property name="use_underline">True</property>
                 <child type="submenu">
@@ -122,27 +118,27 @@
                     <property name="can_focus">False</property>
                     <child>
                       <object class="GtkImageMenuItem" id="show_bin_series_item">
+                        <property name="related_action">show_bin_series</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="related_action">show_bin_series</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="show_hist_item">
+                        <property name="related_action">show_hist</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="related_action">show_hist</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="show_fret_hist_item">
+                        <property name="related_action">show_fret_hist</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="related_action">show_fret_hist</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                       </object>
@@ -178,10 +174,10 @@
                     <child>
                       <object class="GtkCheckButton" id="file_output">
                         <property name="label" translatable="yes">File output enabled</property>
+                        <property name="related_action">file_output_enabled</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
-                        <property name="related_action">file_output_enabled</property>
                         <property name="use_underline">True</property>
                         <property name="draw_indicator">True</property>
                       </object>
@@ -195,11 +191,11 @@
                         <property name="can_focus">True</property>
                         <property name="invisible_char">●</property>
                         <property name="primary_icon_stock">gtk-open</property>
-                        <property name="primary_icon_activatable">False</property>
+                        <property name="primary_icon_activatable">True</property>
                         <property name="secondary_icon_activatable">False</property>
                         <property name="primary_icon_sensitive">True</property>
                         <property name="secondary_icon_sensitive">True</property>
-                        <signal name="icon-release" handler="output_file_icon_press_cb" swapped="no"/>
+                        <signal name="icon-press" handler="output_file_icon_press_cb" swapped="no"/>
                       </object>
                       <packing>
                         <property name="left_attach">1</property>
@@ -290,6 +286,9 @@
                     <property name="n_rows">2</property>
                     <property name="n_columns">5</property>
                     <child>
+                      <placeholder/>
+                    </child>
+                    <child>
                       <object class="GtkLabel" id="label10">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -334,10 +333,10 @@
                     <child>
                       <object class="GtkToggleButton" id="readout_enabled_btn">
                         <property name="label" translatable="yes">Stopped</property>
+                        <property name="related_action">readout_running</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <property name="related_action">readout_running</property>
                         <property name="use_underline">True</property>
                       </object>
                       <packing>
@@ -365,7 +364,6 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="draw_indicator">True</property>
                       </object>
                       <packing>
@@ -403,9 +401,6 @@
                         <property name="top_attach">1</property>
                         <property name="bottom_attach">2</property>
                       </packing>
-                    </child>
-                    <child>
-                      <placeholder/>
                     </child>
                   </object>
                 </child>
@@ -479,7 +474,6 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
-                            <property name="use_action_appearance">False</property>
                             <property name="use_underline">True</property>
                             <property name="active">True</property>
                             <property name="draw_indicator">True</property>
@@ -497,7 +491,6 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
-                            <property name="use_action_appearance">False</property>
                             <property name="use_underline">True</property>
                             <property name="draw_indicator">True</property>
                             <property name="group">show_rates</property>
@@ -548,10 +541,10 @@
                         <property name="can_focus">False</property>
                         <child>
                           <object class="GtkButton" id="show_hist_btn">
+                            <property name="related_action">show_hist</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
-                            <property name="related_action">show_hist</property>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -561,10 +554,10 @@
                         </child>
                         <child>
                           <object class="GtkButton" id="show_bin_series_btn">
+                            <property name="related_action">show_bin_series</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
-                            <property name="related_action">show_bin_series</property>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -574,10 +567,10 @@
                         </child>
                         <child>
                           <object class="GtkButton" id="show_fret_hist_btn">
+                            <property name="related_action">show_fret_hist</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
-                            <property name="related_action">show_fret_hist</property>
                           </object>
                           <packing>
                             <property name="expand">False</property>
