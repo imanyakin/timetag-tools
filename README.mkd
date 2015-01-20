@@ -5,6 +5,11 @@ include a set of Python-based applications for data acquisition and
 low-level tools for manipulation, filtering, and extraction of photon
 data.
 
+More details on the FPGA timetagger system can be found in the
+[Usage manual][usage].
+
+[usage]: https://goldnerlab.physics.umass.edu/wiki/FpgaTimeTagger?action=AttachFile&do=get&target=construction.pdf)
+
 ## Data acquisition interface
 
 `timetag_ui` (found in the `ui/` directory) and `timetag_seq_ui` are
