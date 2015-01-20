@@ -33,6 +33,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <pwd.h>
+#include <grp.h>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
@@ -86,9 +88,12 @@ public:
                 this->data_sock.bind("ipc:///tmp/timetag-data");
                 this->event_sock.bind("ipc:///tmp/timetag-event");
                 std::atomic_thread_fence(std::memory_order_seq_cst);
-                chmod("/tmp/timetag-ctrl", 0660);
-                chmod("/tmp/timetag-data", 0660);
-                chmod("/tmp/timetag-event", 0660);
+
+                struct group *grp = getgrnam("timetag");
+                mode_t mode = grp != NULL ? 0660 : 0666;
+                chmod("/tmp/timetag-ctrl", mode);
+                chmod("/tmp/timetag-data", mode);
+                chmod("/tmp/timetag-event", mode);
 
                 t.reset_counter();
                 t.start_readout();
@@ -422,6 +427,12 @@ int main(int argc, char** argv)
                 fprintf(log_file, "Failed to open device.\n");
                 exit(1);
         }
+
+        struct passwd *pw = getpwnam("timetag");
+        if (pw != NULL) seteuid(pw->pw_uid);
+
+        struct group *grp = getgrnam("timetag");
+        if (grp != NULL) setegid(grp->gr_gid);
 
         timetag_acquire ta(ctx, dev);
         ta.listen();
