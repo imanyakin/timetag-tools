@@ -428,11 +428,23 @@ int main(int argc, char** argv)
                 exit(1);
         }
 
-        struct passwd *pw = getpwnam("timetag");
-        if (pw != NULL) seteuid(pw->pw_uid);
-
         struct group *grp = getgrnam("timetag");
-        if (grp != NULL) setegid(grp->gr_gid);
+        if (grp != NULL) {
+                int res = setegid(grp->gr_gid);
+                if (res)
+                        fprintf(log_file, "Failed to set effective group: %d\n", res);
+        } else {
+                fprintf(log_file, "Couldn't find timetag group. Running in root group.\n");
+        }
+
+        struct passwd *pw = getpwnam("timetag");
+        if (pw != NULL) {
+                int res = seteuid(pw->pw_uid);
+                if (res)
+                        fprintf(log_file, "Failed to set effective group: %d\n", res);
+        } else {
+                fprintf(log_file, "Couldn't find timetag user. Running as root.\n");
+        }
 
         timetag_acquire ta(ctx, dev);
         ta.listen();
