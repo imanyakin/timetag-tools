@@ -118,8 +118,15 @@ void timetag_acquire::listen()
                 }
 
                 std::string cmd(buf, len);
-                std::string response = handle_command(cmd);
-                this->ctrl_sock.send(response.c_str(), response.length());
+                try {
+                        std::string response = handle_command(cmd);
+                        this->ctrl_sock.send(response.c_str(), response.length());
+                } catch (std::exception& e) {
+                        fprintf(log_file, "Caught exception while handling command '%s': %s\n",
+                                cmd.c_str(), e.what());
+                        std::string response = "error";
+                        this->ctrl_sock.send(response.c_str(), response.length());
+                }
         }
 }
 
