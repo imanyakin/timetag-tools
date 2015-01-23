@@ -287,7 +287,7 @@ std::string timetag_acquire::handle_command(std::string line)
                 {"seqchan_config", 5,
                         [&]() {
                                 int channel = lexical_cast<int>(tokens[1]);
-                                bool initial_state = lexical_cast<bool>(tokens[2]);
+                                bool initial_state = lexical_cast<int>(tokens[2]);
                                 int initial_count = lexical_cast<int>(tokens[3]);
                                 int low_count = lexical_cast<int>(tokens[4]);
                                 int high_count = lexical_cast<int>(tokens[5]);
