@@ -25,7 +25,10 @@ install-exec : ${PROGS}
 	mkdir -p ${PREFIX}/share/timetag
 	git rev-parse HEAD > ${PREFIX}/share/timetag/timetag-tools-ver
 
-install : install-exec install-udev
+install-passwd :
+	adduser --system --group --disabled-login --home /var/run/timetag --shell /bin/false timetag
+
+install : install-exec install-udev install-passwd
 
 install-upstart-job : timetag-acquire.conf
 	cp $< /etc/init/timetag-acquire.conf

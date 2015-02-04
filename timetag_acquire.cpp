@@ -33,6 +33,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <pwd.h>
+#include <grp.h>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
@@ -86,9 +88,12 @@ public:
                 this->data_sock.bind("ipc:///tmp/timetag-data");
                 this->event_sock.bind("ipc:///tmp/timetag-event");
                 std::atomic_thread_fence(std::memory_order_seq_cst);
-                chmod("/tmp/timetag-ctrl", 0660);
-                chmod("/tmp/timetag-data", 0660);
-                chmod("/tmp/timetag-event", 0660);
+
+                struct group *grp = getgrnam("timetag");
+                mode_t mode = grp != NULL ? 0660 : 0666;
+                chmod("/tmp/timetag-ctrl", mode);
+                chmod("/tmp/timetag-data", mode);
+                chmod("/tmp/timetag-event", mode);
 
                 t.reset_counter();
                 t.start_readout();
@@ -113,8 +118,15 @@ void timetag_acquire::listen()
                 }
 
                 std::string cmd(buf, len);
-                std::string response = handle_command(cmd);
-                this->ctrl_sock.send(response.c_str(), response.length());
+                try {
+                        std::string response = handle_command(cmd);
+                        this->ctrl_sock.send(response.c_str(), response.length());
+                } catch (std::exception& e) {
+                        fprintf(log_file, "Caught exception while handling command '%s': %s\n",
+                                cmd.c_str(), e.what());
+                        std::string response = "error";
+                        this->ctrl_sock.send(response.c_str(), response.length());
+                }
         }
 }
 
@@ -275,7 +287,7 @@ std::string timetag_acquire::handle_command(std::string line)
                 {"seqchan_config", 5,
                         [&]() {
                                 int channel = lexical_cast<int>(tokens[1]);
-                                bool initial_state = lexical_cast<bool>(tokens[2]);
+                                bool initial_state = lexical_cast<int>(tokens[2]);
                                 int initial_count = lexical_cast<int>(tokens[3]);
                                 int low_count = lexical_cast<int>(tokens[4]);
                                 int high_count = lexical_cast<int>(tokens[5]);
@@ -421,6 +433,24 @@ int main(int argc, char** argv)
         if (!dev) {
                 fprintf(log_file, "Failed to open device.\n");
                 exit(1);
+        }
+
+        struct group *grp = getgrnam("timetag");
+        if (grp != NULL) {
+                int res = setegid(grp->gr_gid);
+                if (res)
+                        fprintf(log_file, "Failed to set effective group: %d\n", res);
+        } else {
+                fprintf(log_file, "Couldn't find timetag group. Running in root group.\n");
+        }
+
+        struct passwd *pw = getpwnam("timetag");
+        if (pw != NULL) {
+                int res = seteuid(pw->pw_uid);
+                if (res)
+                        fprintf(log_file, "Failed to set effective group: %d\n", res);
+        } else {
+                fprintf(log_file, "Couldn't find timetag user. Running as root.\n");
         }
 
         timetag_acquire ta(ctx, dev);

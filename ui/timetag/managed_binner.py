@@ -11,13 +11,9 @@ class ManagedBinner(object):
 
         self._zmq = zmq.Context.instance()
 
-        # See if things are already running
-        ctrl = self._zmq.socket(zmq.REQ)
-        ctrl.connect('ipc:///tmp/timetag-ctrl')
-        ctrl.send_string('capture?')
-        reply = ctrl.recv_string()
-        if int(reply):
-            self._start_binner()
+        # Connect to control socket
+        self._ctrl_sock = self._zmq.socket(zmq.REQ)
+        self._ctrl_sock.connect('ipc:///tmp/timetag-ctrl')
 
         # Start watching for changes
         self._event_sock = self._zmq.socket(zmq.SUB)
@@ -26,6 +22,8 @@ class ManagedBinner(object):
         self._watch_thread = threading.Thread(target=self._watch)
         self._watch_thread.daemon = True
         self._watch_thread.start()
+
+        self.restart_binner()
     
     def _watch(self):
         while True:
@@ -66,7 +64,11 @@ class ManagedBinner(object):
 
     def restart_binner(self):
         self.stop_binner()
-        if self._pipeline.is_capture_running():
+
+        # See if things are already running
+        self._ctrl_sock.send_string('capture?')
+        reply = self._ctrl_sock.recv_string()
+        if int(reply):
             self._start_binner()
 
     def get_binner(self):
