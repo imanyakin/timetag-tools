@@ -4,7 +4,7 @@ LDLIBS=$(shell pkg-config --libs libusb-1.0) -lpthread
 CC=$(CXX)
 
 CPP_PROGS=timetag_acquire photon_generator timetag_dump \
-      timetag_cut timetag_extract timetag_bin timetag-elide
+      timetag_cut timetag_extract timetag_bin timetag_elide
 PROGS=timetag-cli timetag-cat ${CPP_PROGS}
 
 all : ${PROGS}
@@ -17,7 +17,7 @@ timetag_cut : timetag_cut.o record.o
 timetag_bin : timetag_bin.o record.o
 timetag_dump : timetag_dump.o record.o
 timetag_extract : timetag_extract.o record.o
-timetag-elide : timetag_elide.o record.o
+timetag_elide : timetag_elide.o record.o
 
 install-exec : ${PROGS}
 	cp ${PROGS} ${PREFIX}/bin
