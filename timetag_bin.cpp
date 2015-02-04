@@ -120,6 +120,7 @@ int main(int argc, char** argv) {
         
 	// Disable write buffering
 	setvbuf(stdout, NULL, _IONBF, 0);
+	setvbuf(stdin, NULL, _IOFBF, sizeof(record)*30);
 
         /*
          * We throw away the first photon to get the bin start times.
