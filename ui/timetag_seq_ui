@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from __future__ import division
 import gtk
 import socket
 import logging
@@ -152,6 +153,7 @@ class SeqWindow(object):
                         initial_adj = gtk.Adjustment(value=val, lower=0, upper=1e9, step_incr=100)
                         initial_adj.connect('value-changed', lambda w,ch: self.reconfig_channel(ch), c)
                         w = gtk.SpinButton(initial_adj)
+                        w.set_value(val)
                         table.attach(w, col, col+1, c+1, c+2)
                         self.widgets.append(w)
                         col += 1
@@ -160,6 +162,7 @@ class SeqWindow(object):
                         low_adj = gtk.Adjustment(value=val, lower=0, upper=1e9, step_incr=100)
                         low_adj.connect('value-changed', lambda w,ch: self.reconfig_channel(ch), c)
                         w = gtk.SpinButton(low_adj)
+                        w.set_value(val)
                         table.attach(w, col, col+1, c+1, c+2)
                         self.widgets.append(w)
                         col += 1
@@ -168,6 +171,7 @@ class SeqWindow(object):
                         high_adj = gtk.Adjustment(value=val, lower=0, upper=1e9, step_incr=100)
                         high_adj.connect('value-changed', lambda w,ch: self.reconfig_channel(ch), c)
                         w = gtk.SpinButton(high_adj)
+                        w.set_value(val)
                         table.attach(w, col, col+1, c+1, c+2)
                         self.widgets.append(w)
                         col += 1
