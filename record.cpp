@@ -25,6 +25,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/param.h>
+#include <cassert>
 
 #ifdef __APPLE__
 #if BYTE_ORDER == LITTLE_ENDIAN
@@ -67,9 +68,10 @@ std::bitset<4> record::get_channels() const {
         return std::bitset<4>((data & CHANNEL_MASK) >> TIME_BITS);
 }
 
-record_stream::record_stream(int fd) : record_stream(fd, 0) { }
+record_stream::record_stream(FILE* file) : record_stream(file, 0) { }
 
-record_stream::record_stream(int fd, unsigned int drop_wraps) : time_offset(0), fd(fd) {
+record_stream::record_stream(FILE* file, unsigned int drop_wraps) : time_offset(0), file(file) {
+        assert(file != NULL);
         unsigned int i=0;
         while (i < drop_wraps) {
                 record rec = get_record();
@@ -92,7 +94,7 @@ unsigned int get_file_length(const char* path) {
 
 record record_stream::get_record() {
         record_t data;
-        int res = read(fd, &data, RECORD_LENGTH);
+        int res = fread(&data, 1, RECORD_LENGTH, file);
         if (res == 0)
                 throw end_stream();
         else if (res < RECORD_LENGTH)

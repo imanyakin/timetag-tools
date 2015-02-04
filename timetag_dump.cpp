@@ -58,7 +58,7 @@ void dump_record(record& r, int count) {
 
 int main(int argc, char** argv) {
 	unsigned int count = 0;
-        record_stream stream(0);
+        record_stream stream(stdin);
 
 	setvbuf(stdout, NULL, _IONBF, 0);
 	while (true) {

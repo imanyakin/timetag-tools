@@ -40,7 +40,7 @@ namespace po = boost::program_options;
 
 int main(int argc, char** argv) {
 	unsigned int drop_wraps = 0;
-	record_stream stream(0, drop_wraps);
+	record_stream stream(stdin, drop_wraps);
 	try {
 		bool last_delta_valid = false;
 		record last_delta(0,0);

@@ -100,7 +100,7 @@ int main(int argc, char** argv) {
 	string name = string(argv[1]);
 	root = name.substr(0, name.find_last_of("."));
 	FILE* infd = fopen(argv[1], "r");
-	record_stream stream(fileno(infd));
+	record_stream stream(infd);
 
 	first_delta = true;
 	while (true) {

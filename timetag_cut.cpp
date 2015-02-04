@@ -81,7 +81,7 @@ int main(int argc, char** argv) {
 	if (vm.count("preserve-wraps"))
 		preserve_wraps = true;
 
-	record_stream stream(0, drop_wraps);
+	record_stream stream(stdin, drop_wraps);
 	unsigned int i=0;
 	while (true) {
 		try {

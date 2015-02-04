@@ -54,11 +54,11 @@ struct parsed_record {
 
 class record_stream {
         uint64_t time_offset;
-        int fd;
+        FILE* file;
        
 public:
-        record_stream(int fd);
-        record_stream(int fd, unsigned int drop_wraps);
+        record_stream(FILE* file);
+        record_stream(FILE* file, unsigned int drop_wraps);
         record get_record();
         std::vector<parsed_record> parse_records(unsigned int n);
 };

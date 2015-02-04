@@ -116,7 +116,7 @@ int main(int argc, char** argv) {
                 { input_channel(2) },
                 { input_channel(3) },
         };
-        record_stream stream(0);
+        record_stream stream(stdin);
         
 	// Disable write buffering
 	setvbuf(stdout, NULL, _IONBF, 0);
