@@ -72,7 +72,8 @@ struct input_channel {
 
 void print_bin(int chan_n, uint64_t bin_start, unsigned int count, unsigned int lost) {
 	bin_record b = { chan_n, bin_start, count, lost };
-	write(1, &b, sizeof(bin_record));
+	if (write(1, &b, sizeof(bin_record)) < (int) sizeof(bin_record))
+		throw new std::runtime_error("failed to write bin");
 }
 
 void bin_record(std::vector<input_channel>& chans, count_t bin_length, record& r) {
