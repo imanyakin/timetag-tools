@@ -7,6 +7,10 @@ CPP_PROGS=timetag_acquire photon_generator timetag_dump \
       timetag_cut timetag_extract timetag_bin timetag_elide
 PROGS=timetag-cli timetag-cat ${CPP_PROGS}
 
+ifndef DEBUG
+	CXXFLAGS+=-O
+endif
+
 all : ${PROGS}
 
 timetag_acquire : LDLIBS += -lboost_iostreams -lzmq
