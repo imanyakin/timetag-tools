@@ -3,9 +3,9 @@ CXXFLAGS=-Wall -std=gnu++0x -ggdb $(shell pkg-config --cflags libusb-1.0) -fPIC 
 LDLIBS=$(shell pkg-config --libs libusb-1.0) -lpthread
 CC=$(CXX)
 
-PROGS=timetag_acquire photon_generator timetag_dump \
-      timetag_cut timetag_extract timetag_bin \
-      timetag-cli timetag-cat timetag-elide
+CPP_PROGS=timetag_acquire photon_generator timetag_dump \
+      timetag_cut timetag_extract timetag_bin timetag-elide
+PROGS=timetag-cli timetag-cat ${CPP_PROGS}
 
 all : ${PROGS}
 
@@ -31,7 +31,7 @@ install-upstart-job : timetag-acquire.conf
 	cp $< /etc/init/timetag-acquire.conf
 
 clean :
-	rm -f ${PROGS} *.o
+	rm -f ${CPP_PROGS} *.o
 	python ui/setup.py clean
 
 # For automatic header dependencies
