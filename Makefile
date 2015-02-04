@@ -5,7 +5,7 @@ CC=$(CXX)
 
 PROGS=timetag_acquire photon_generator timetag_dump \
       timetag_cut timetag_extract timetag_bin \
-      timetag-cli timetag-cat
+      timetag-cli timetag-cat timetag-elide
 
 all : ${PROGS}
 
@@ -17,6 +17,7 @@ timetag_cut : timetag_cut.o record.o
 timetag_bin : timetag_bin.o record.o
 timetag_dump : timetag_dump.o record.o
 timetag_extract : timetag_extract.o record.o
+timetag-elide : timetag_elide.o record.o
 
 install-exec : ${PROGS}
 	cp ${PROGS} ${PREFIX}/bin
