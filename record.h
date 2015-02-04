@@ -64,5 +64,5 @@ public:
 };
 
 unsigned int get_file_length(const char* path);
-void write_record(int fd, record r);
+void write_record(FILE* fd, record r);
 

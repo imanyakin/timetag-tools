@@ -136,15 +136,15 @@ std::vector<parsed_record> record_stream::parse_records(unsigned int n) {
         return buf;
 }
 
-void write_record(int fd, record r) {
+void write_record(FILE* fout, record r) {
         record_t data;
         data = r.data;
         data = htobe64(data << 16);
 
-        int res = write(fd, &data, RECORD_LENGTH);
+        int res = fwrite(&data, 1, RECORD_LENGTH, fout);
         if (res == 0)
                 throw end_stream();
         else if (res < RECORD_LENGTH)
-                throw std::runtime_error("Incomplete record");
+                throw std::runtime_error("Incomplete record written");
 }
 

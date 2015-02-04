@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
 		unsigned int i=0;
 		while (true) {
 			record r = stream.get_record();
-			write_record(1, r);
+			write_record(stdout, r);
 			if (r.get_type() == record::DELTA) {
 				// Always keep the first 1000 delta events
 				last_delta = r;
@@ -63,14 +63,14 @@ int main(int argc, char** argv) {
 			record r = stream.get_record();
 			if (r.get_type() == record::STROBE) {
 				if (last_delta_valid) {
-					write_record(1, last_delta);
+					write_record(stdout, last_delta);
 					last_delta_valid = false;
 				}
-				write_record(1, r);
+				write_record(stdout, r);
 				write_next_delta = true;
 			} else {
 				if (write_next_delta) {
-					write_record(1, r);
+					write_record(stdout, r);
 					write_next_delta = false;
 				} else {
 					last_delta_valid = true;
