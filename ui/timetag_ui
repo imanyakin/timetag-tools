@@ -303,20 +303,27 @@ class MainWindow(object):
                         'channels': channels,
                 }
 
+                hook_env = self.get_hook_env()
                 hooks = glob('/etc/timetag/metadata-hooks.d/*') + \
                     glob(os.path.expanduser('~/.timetag/metadata-hooks.d/*'))
                 for f in hooks:
                         if not os.access(f, os.X_OK): continue
                         logging.info('Running metadata hook %s' % f)
                         try:
-                                p = subprocess.check_output([f])
+                                p = subprocess.check_output([f], env=hook_env)
                                 p = json.loads(p)
                                 if not isinstance(p, dict):
-                                        raise RuntimeError("Metadata hook returned invalid output")
+                                        raise RuntimeError("Metadata hook returned invalid JSON object")
                                 metadata.update(p)
                         except Exception as e:
                                 logging.warn('Metadata hook %s failed: %s' % (f, e))
                 return metadata
+
+        def get_hook_env(self):
+                env = {
+                        'TIMETAG_OUTPUT': '' if self._out_file is None else self._out_file.name
+                }
+                return env
 
         def start_readout(self):
                 get_obj = self.builder.get_object
