@@ -403,8 +403,11 @@ class MainWindow(object):
                 # Kill running acquisition hook processes
                 for p in self.acquire_hook_processes:
                         try:
-                                if p.poll() is not None:
+                                ret = p.poll()
+                                if ret is None:
                                         p.terminate()
+                                elif ret != 0:
+                                        logging.warn('Acquisition hook failed with exit code %d' % ret)
                         except Exception as e:
                                 logging.warn('Failed to kill acquisition hook: %s' % e)
                 self.acquire_hook_processes = []
