@@ -197,6 +197,8 @@ class MainWindow(object):
                 self.plot_processes = []
                 self.load_rc()
 
+                self.acquire_hook_processes = []
+
                 self.win.show_all()
 
         def quit(self, *args):
@@ -385,7 +387,28 @@ class MainWindow(object):
 
                 gobject.timeout_add_seconds(1, timer_cb)
 
+                hook_env = self.get_hook_env()
+                hooks = glob('/etc/timetag/acquire-hooks.d/*') + \
+                    glob(os.path.expanduser('~/.timetag/acquire-hooks.d/*'))
+                for f in hooks:
+                        if not os.access(f, os.X_OK): continue
+                        logging.info('Running acquisition hook %s' % f)
+                        try:
+                                p = subprocess.Popen([f], env=hook_env)
+                                self.acquire_hook_processes.append(p)
+                        except Exception as e:
+                                logging.warn('Acquisition hook %s failed: %s' % (f, e))
+
         def stop_readout(self):
+                # Kill running acquisition hook processes
+                for p in self.acquire_hook_processes:
+                        try:
+                                if p.poll() is not None:
+                                        p.terminate()
+                        except Exception as e:
+                                logging.warn('Failed to kill acquisition hook: %s' % e)
+                self.acquire_hook_processes = []
+
                 get_obj = self.builder.get_object
                 get_obj('readout_running').props.active = False
                 get_obj('readout_running').props.label = "Stopped"
