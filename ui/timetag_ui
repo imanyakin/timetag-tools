@@ -282,8 +282,9 @@ class MainWindow(object):
                 if self._out_file_cat is not None:
                         self._out_file_cat.terminate()
 
-                if not os.path.exists(os.path.dirname(filename)):
-                        os.makedirs(os.path.dirname(filename))
+                dirname = os.path.dirname(filename)
+                if not os.path.exists(dirname) and len(dirname) > 0:
+                        os.makedirs(dirname)
                 self._out_file = open(filename, 'w')
                 self._out_file_cat = subprocess.Popen(['timetag-cat'], stdout=self._out_file)
 
