@@ -18,6 +18,7 @@ timetag_acquire : EXTRA_FLAGS = -DWITH_DOMAIN_SOCKET
 timetag_acquire : timetag_acquire.o timetagger.o
 timetag_cut : LDLIBS += -lboost_program_options
 timetag_cut : timetag_cut.o record.o
+timetag_bin : LDLIBS += -lboost_program_options
 timetag_bin : timetag_bin.o record.o
 timetag_dump : timetag_dump.o record.o
 timetag_extract : timetag_extract.o record.o
