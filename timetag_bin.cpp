@@ -58,10 +58,10 @@ namespace po = boost::program_options;
  * bin record format
  */
 struct bin_record {
-	int chan_n;
-	uint64_t start_time;
-	unsigned int count;
-	unsigned int lost;
+        int chan_n;
+        uint64_t start_time;
+        unsigned int count;
+        unsigned int lost;
 };
 
 struct input_channel {
@@ -75,72 +75,72 @@ struct input_channel {
 };
 
 void print_text_bin(bin_record b) {
-	printf("%2d\t%10lu\t%5u\t%5u\n", b.chan_n, b.start_time, b.count, b.lost);
+        printf("%2d\t%10lu\t%5u\t%5u\n", b.chan_n, b.start_time, b.count, b.lost);
 }
 
 void print_bin(bin_record b) {
-	if (write(1, &b, sizeof(bin_record)) < (int) sizeof(bin_record))
-		throw new std::runtime_error("failed to write bin");
+        if (write(1, &b, sizeof(bin_record)) < (int) sizeof(bin_record))
+                throw new std::runtime_error("failed to write bin");
 }
 
 void handle_record(std::vector<input_channel>& chans, count_t bin_length, record& r,
-		   std::function<void(bin_record)> print, bool with_zeros=true) {
-	std::bitset<4> channels = r.get_channels();
-	uint64_t time = r.get_time();
-	for (auto c=chans.begin(); c != chans.end(); c++) {
-		if (time >= (c->bin_start + bin_length)) {
-			uint64_t new_bin_start = (time / bin_length) * bin_length;
-			
-			// First print photons in last bin
-			struct bin_record rec = { c->chan_n, c->bin_start, c->count, c->lost };
-			if (with_zeros || c->count > 0)
-				print(rec);
+                   std::function<void(bin_record)> print, bool with_zeros=true) {
+        std::bitset<4> channels = r.get_channels();
+        uint64_t time = r.get_time();
+        for (auto c=chans.begin(); c != chans.end(); c++) {
+                if (time >= (c->bin_start + bin_length)) {
+                        uint64_t new_bin_start = (time / bin_length) * bin_length;
+                        
+                        // First print photons in last bin
+                        struct bin_record rec = { c->chan_n, c->bin_start, c->count, c->lost };
+                        if (with_zeros || c->count > 0)
+                                print(rec);
 
-			// Then print zero bins
-			if (with_zeros) {
-				for (uint64_t t=c->bin_start+bin_length; t < new_bin_start; t += bin_length) {
-					struct bin_record rec = { c->chan_n, t, 0, 0 };
-					print(rec);
-				}
-			}
+                        // Then print zero bins
+                        if (with_zeros) {
+                                for (uint64_t t=c->bin_start+bin_length; t < new_bin_start; t += bin_length) {
+                                        struct bin_record rec = { c->chan_n, t, 0, 0 };
+                                        print(rec);
+                                }
+                        }
 
-			// Then start our new bin
-			c->lost = 0;
-			c->count = 0;
-			c->bin_start = new_bin_start;
-		}
+                        // Then start our new bin
+                        c->lost = 0;
+                        c->count = 0;
+                        c->bin_start = new_bin_start;
+                }
 
-		if (r.get_lost_flag())
-			c->lost++;
-		if (r.get_type() == record::type::STROBE && channels[c->chan_n])
-			c->count++;
-	}
+                if (r.get_lost_flag())
+                        c->lost++;
+                if (r.get_type() == record::type::STROBE && channels[c->chan_n])
+                        c->count++;
+        }
 }
 
 int main(int argc, char** argv) {
         count_t bin_length = 0;
 
-	po::options_description desc("Allowed options");
-	desc.add_options()
-		("help,h", "Display help message")
+        po::options_description desc("Allowed options");
+        desc.add_options()
+                ("help,h", "Display help message")
                 ("bin-width",  po::value<count_t>(&bin_length)->required(), "The desired bin width")
                 ("text,t", "Produce textual representation instead of usual binary output")
                 ("omit-zeros,z", "Omit empty bins");
 
-	po::positional_options_description pd;
-	pd.add("bin-width", 1);
+        po::positional_options_description pd;
+        pd.add("bin-width", 1);
 
-	po::variables_map vm;
-	po::store(po::command_line_parser(argc, argv).options(desc).positional(pd).run(), vm);
-	po::notify(vm);
+        po::variables_map vm;
+        po::store(po::command_line_parser(argc, argv).options(desc).positional(pd).run(), vm);
+        po::notify(vm);
 
-	if (vm.count("help")) {
-		std::cout << desc << "\n";
-		return 0;
-	}
+        if (vm.count("help")) {
+                std::cout << desc << "\n";
+                return 0;
+        }
 
-	bool text = vm.count("text");
-	bool with_zeros = ! vm.count("omit-zeros");
+        bool text = vm.count("text");
+        bool with_zeros = ! vm.count("omit-zeros");
 
         std::vector<input_channel> chans = {
                 { input_channel(0) },
@@ -150,9 +150,9 @@ int main(int argc, char** argv) {
         };
         record_stream stream(stdin);
         
-	// Disable write buffering
-	setvbuf(stdout, NULL, _IONBF, 0);
-	setvbuf(stdin, NULL, _IOFBF, sizeof(record)*30);
+        // Disable write buffering
+        setvbuf(stdout, NULL, _IONBF, 0);
+        setvbuf(stdin, NULL, _IOFBF, sizeof(record)*30);
 
         /*
          * We throw away the first photon to get the bin start times.
@@ -164,12 +164,12 @@ int main(int argc, char** argv) {
                         c->bin_start = (time / bin_length) * bin_length;
         }
 
-	std::function<void(struct bin_record)> print = text ? print_text_bin : print_bin;
+        std::function<void(struct bin_record)> print = text ? print_text_bin : print_bin;
         while (true) {
-		try {
-		record r = stream.get_record();
-			handle_record(chans, bin_length, r, print, with_zeros);
-		} catch (end_stream e) { break; }
+                try {
+                record r = stream.get_record();
+                        handle_record(chans, bin_length, r, print, with_zeros);
+                } catch (end_stream e) { break; }
         }
 
         return 0;
