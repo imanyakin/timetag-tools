@@ -7,5 +7,3 @@ ExecStart=/usr/bin/timetag_acquire
 User=timetag
 Group=timetag
 CPUSchedulingPolicy=fifo
-
-[Install]
