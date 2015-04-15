@@ -36,14 +36,14 @@ install-passwd :
 	adduser --system --group --disabled-login --home /var/run/timetag --shell /bin/false timetag
 
 .PHONY : install-systemd
-install-systemd :
+install-systemd : install-udev
 	cp systemd/timetag-acquire.service /lib/systemd/system
 
 .PHONY : install
 install : install-exec install-udev install-passwd
 
 .PHONY : install-upstart-job
-install-upstart-job : timetag-acquire.conf
+install-upstart-job : timetag-acquire.conf install-udev
 	@echo "Note that upstart support is deprecated. Use install-systemd if possible."
 	cp $< /etc/init/timetag-acquire.conf
 
