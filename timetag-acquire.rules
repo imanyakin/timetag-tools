@@ -1,1 +1,2 @@
+# FPGA timetagger
 SUBSYSTEMS=="usb", ACTION=="add", ATTR{idVendor}=="04b4", ATTR{idProduct}=="1004", OWNER="timetag", GROUP="timetag", MODE="0600", ENV{ID_MODEL}="FPGA timetagger", SYMLINK+="timetag%n", TAG+="systemd", ENV{SYSTEMD_WANTS}+="timetag-acquire.service"
