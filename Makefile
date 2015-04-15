@@ -33,9 +33,13 @@ install-exec : ${PROGS}
 install-passwd :
 	adduser --system --group --disabled-login --home /var/run/timetag --shell /bin/false timetag
 
+install-systemd :
+	cp systemd/timetag-acquire.service /lib/systemd/system
+
 install : install-exec install-udev install-passwd
 
 install-upstart-job : timetag-acquire.conf
+	@echo "Note that upstart support is deprecated. Use install-systemd if possible."
 	cp $< /etc/init/timetag-acquire.conf
 
 clean :
@@ -53,5 +57,6 @@ SOURCES = $(wildcard *.cpp) $(wildcard *.c)
 .PHONY : install-udev
 install-udev : timetag-acquire.rules
 	-rm -f /etc/init/timetag-acquire.conf # Ensure upstart job isn't installed as well
-	cp timetag-acquire.rules /etc/udev/rules.d/timetag-acquire.rules
+	-rm -f /etc/udev/rules.d/timetag-acquire.rules # Ensure old rules aren't present
+	cp timetag-acquire.rules /etc/udev/rules.d/99-timetag-acquire.rules
 
