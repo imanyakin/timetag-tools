@@ -1,6 +1,5 @@
 [Unit]
 Description=Data acquisition daemon for FPGA timetagger
-Requires=dev-timetag0.device
 
 [Service]
 ExecStart=/usr/bin/timetag_acquire
