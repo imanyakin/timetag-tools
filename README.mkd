@@ -30,7 +30,9 @@ in.
 
 On Ubuntu Vivid,
 ```bash
-$ sudo apt-get install python-matplotlib
+$ sudo apt-get install python-matplotlib python-zmq
+$ cd ui
+$ sudo ./setup.py install
 ```
 
 ## Data acquisition interface
