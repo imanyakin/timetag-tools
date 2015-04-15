@@ -24,6 +24,9 @@ timetag_dump : timetag_dump.o record.o
 timetag_extract : timetag_extract.o record.o
 timetag_elide : timetag_elide.o record.o
 
+.PHONY : install
+install : install-exec install-udev install-passwd install-systemd
+
 .PHONY : install-exec
 install-exec : ${PROGS}
 	cp ${PROGS} ${PREFIX}/bin
@@ -36,16 +39,19 @@ install-passwd :
 	adduser --system --group --disabled-login --home /var/run/timetag --shell /bin/false timetag
 
 .PHONY : install-systemd
-install-systemd : install-udev
-	cp systemd/timetag-acquire.service /lib/systemd/system
-
-.PHONY : install
-install : install-exec install-udev install-passwd
+install-systemd : systemd/timetag-acquire.service install-udev
+	cp $< /lib/systemd/system
 
 .PHONY : install-upstart-job
 install-upstart-job : timetag-acquire.conf install-udev
 	@echo "Note that upstart support is deprecated. Use install-systemd if possible."
 	cp $< /etc/init/timetag-acquire.conf
+
+.PHONY : install-udev
+install-udev : timetag-acquire.rules
+	-rm -f /etc/init/timetag-acquire.conf # Ensure upstart job isn't installed as well
+	-rm -f /etc/udev/rules.d/timetag-acquire.rules # Ensure old rules aren't present
+	cp timetag-acquire.rules /etc/udev/rules.d/99-timetag-acquire.rules
 
 clean :
 	rm -f ${CPP_PROGS} *.o
@@ -58,10 +64,4 @@ clean :
 
 SOURCES = $(wildcard *.cpp) $(wildcard *.c)
 -include $(addprefix .deps/,$(addsuffix .d,$(SOURCES)))
-
-.PHONY : install-udev
-install-udev : timetag-acquire.rules
-	-rm -f /etc/init/timetag-acquire.conf # Ensure upstart job isn't installed as well
-	-rm -f /etc/udev/rules.d/timetag-acquire.rules # Ensure old rules aren't present
-	cp timetag-acquire.rules /etc/udev/rules.d/99-timetag-acquire.rules
 
