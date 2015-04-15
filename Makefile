@@ -24,20 +24,25 @@ timetag_dump : timetag_dump.o record.o
 timetag_extract : timetag_extract.o record.o
 timetag_elide : timetag_elide.o record.o
 
+.PHONY : install-exec
 install-exec : ${PROGS}
 	cp ${PROGS} ${PREFIX}/bin
 	chmod ug+s ${PREFIX}/bin/timetag_acquire
 	mkdir -p ${PREFIX}/share/timetag
 	git rev-parse HEAD > ${PREFIX}/share/timetag/timetag-tools-ver
 
+.PHONY : install-passwd
 install-passwd :
 	adduser --system --group --disabled-login --home /var/run/timetag --shell /bin/false timetag
 
+.PHONY : install-systemd
 install-systemd :
 	cp systemd/timetag-acquire.service /lib/systemd/system
 
+.PHONY : install
 install : install-exec install-udev install-passwd
 
+.PHONY : install-upstart-job
 install-upstart-job : timetag-acquire.conf
 	@echo "Note that upstart support is deprecated. Use install-systemd if possible."
 	cp $< /etc/init/timetag-acquire.conf
