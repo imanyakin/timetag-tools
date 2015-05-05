@@ -32,7 +32,6 @@ struct end_stream : std::exception { };
 
 struct record {
         record_t data;
-        uint64_t rec_idx;
         uint64_t time_offset;
         enum type { STROBE, DELTA };
 
@@ -55,6 +54,7 @@ struct parsed_record {
 
 class record_stream {
         uint64_t time_offset;
+        uint64_t rec_idx;
         FILE* file;
 
 public:
