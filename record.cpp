@@ -31,13 +31,13 @@
 #if BYTE_ORDER == LITTLE_ENDIAN
 uint64_t htobe64(uint64_t a)
 {
-	uint64_t b;
-	char* bb = (char*) &b;
-	char* aa = (char*) &a;
-	
-	for (unsigned int i=0; i<8; i++)
-		bb[i] = aa[7-i];
-	return b;
+        uint64_t b;
+        char* bb = (char*) &b;
+        char* aa = (char*) &a;
+
+        for (unsigned int i=0; i<8; i++)
+                bb[i] = aa[7-i];
+        return b;
 }
 #else
 uint64_t htobe64(uint64_t a) { return a; }
@@ -88,7 +88,7 @@ unsigned int get_file_length(const char* path) {
         res = stat(path, &buf);
         if (res)
                 throw std::runtime_error("Error in stat()");
-        
+
         return buf.st_size / RECORD_LENGTH;
 }
 
@@ -109,7 +109,7 @@ record record_stream::get_record() {
 #else
 #error Either LITTLE_ENDIAN or BIG_ENDIAN must be defined.
 #endif
-        
+
         record rec(data);
         if (rec.get_wrap_flag())
                 time_offset += (1ULL<<TIME_BITS) - 1;
@@ -130,7 +130,7 @@ std::vector<parsed_record> record_stream::parse_records(unsigned int n) {
                 pr.lost = r.get_lost_flag();
 
                 std::bitset<4> ch = r.get_channels();
-                for (unsigned int j=0; j<4; j++) 
+                for (unsigned int j=0; j<4; j++)
                         pr.channels[j] = ch[j];
 
                 buf.push_back(pr);
