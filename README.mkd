@@ -14,9 +14,10 @@ More details on the FPGA timetagger system can be found in the
 
 Before `timetag-tools` can be started one must install the
 [`timetag-fx2`](http://github.com/goldner-lab/timetag-fx2) package. After this
-is installed simply run,
+is installed simply run (on Ubuntu Vivid),
 
 ```bash
+$ sudo apt-get install libusb-1.0-0-dev libboost-all-dev libzmq3-dev
 $ make
 $ sudo make install
 ```
@@ -24,6 +25,15 @@ $ sudo make install
 The `timetag-acquire` daemon should be started by
 [`systemd`](http://freedesktop.org/software/systemd) when the device is plugged
 in.
+
+### Installing `timetag_ui`
+
+On Ubuntu Vivid,
+```bash
+$ sudo apt-get install python-matplotlib python-zmq
+$ cd ui
+$ sudo ./setup.py install
+```
 
 ## Data acquisition interface
 
