@@ -99,6 +99,7 @@ record record_stream::get_record() {
                 throw end_stream();
         else if (res < RECORD_LENGTH)
                 throw std::runtime_error("Incomplete record");
+        rec_idx++;
 
 #if defined(LITTLE_ENDIAN)
         uint8_t* d = (uint8_t*) &data;
@@ -111,7 +112,7 @@ record record_stream::get_record() {
 #endif
 
         record rec(data);
-        if (rec.get_wrap_flag())
+        if (rec_idx > 1 && rec.get_wrap_flag())
                 time_offset += (1ULL<<TIME_BITS) - 1;
         rec.time_offset = time_offset;
         return rec;
@@ -149,4 +150,3 @@ void write_record(FILE* fout, record r) {
         else if (res < RECORD_LENGTH)
                 throw std::runtime_error("Incomplete record written");
 }
-
