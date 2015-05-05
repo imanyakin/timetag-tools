@@ -70,7 +70,7 @@ std::bitset<4> record::get_channels() const {
 
 record_stream::record_stream(FILE* file) : record_stream(file, 0) { }
 
-record_stream::record_stream(FILE* file, unsigned int drop_wraps) : time_offset(0), file(file) {
+record_stream::record_stream(FILE* file, unsigned int drop_wraps) : time_offset(0), rec_idx(0), file(file) {
         assert(file != NULL);
         unsigned int i=0;
         while (i < drop_wraps) {
