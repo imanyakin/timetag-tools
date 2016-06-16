@@ -24,6 +24,7 @@
 #include <vector>
 #include <cstdio>
 #include <cstdlib>
+#include <iostream>
 #include <unistd.h>
 
 #include <boost/program_options.hpp>
