@@ -54,8 +54,9 @@ struct parsed_record {
 
 class record_stream {
         uint64_t time_offset;
+        uint64_t rec_idx;
         FILE* file;
-       
+
 public:
         record_stream(FILE* file);
         record_stream(FILE* file, unsigned int drop_wraps);

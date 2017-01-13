@@ -31,13 +31,13 @@
 #if BYTE_ORDER == LITTLE_ENDIAN
 uint64_t htobe64(uint64_t a)
 {
-	uint64_t b;
-	char* bb = (char*) &b;
-	char* aa = (char*) &a;
-	
-	for (unsigned int i=0; i<8; i++)
-		bb[i] = aa[7-i];
-	return b;
+        uint64_t b;
+        char* bb = (char*) &b;
+        char* aa = (char*) &a;
+
+        for (unsigned int i=0; i<8; i++)
+                bb[i] = aa[7-i];
+        return b;
 }
 #else
 uint64_t htobe64(uint64_t a) { return a; }
@@ -70,7 +70,7 @@ std::bitset<4> record::get_channels() const {
 
 record_stream::record_stream(FILE* file) : record_stream(file, 0) { }
 
-record_stream::record_stream(FILE* file, unsigned int drop_wraps) : time_offset(0), file(file) {
+record_stream::record_stream(FILE* file, unsigned int drop_wraps) : time_offset(0), rec_idx(0), file(file) {
         assert(file != NULL);
         unsigned int i=0;
         while (i < drop_wraps) {
@@ -88,7 +88,7 @@ unsigned int get_file_length(const char* path) {
         res = stat(path, &buf);
         if (res)
                 throw std::runtime_error("Error in stat()");
-        
+
         return buf.st_size / RECORD_LENGTH;
 }
 
@@ -99,6 +99,7 @@ record record_stream::get_record() {
                 throw end_stream();
         else if (res < RECORD_LENGTH)
                 throw std::runtime_error("Incomplete record");
+        rec_idx++;
 
 #if defined(LITTLE_ENDIAN)
         uint8_t* d = (uint8_t*) &data;
@@ -109,9 +110,9 @@ record record_stream::get_record() {
 #else
 #error Either LITTLE_ENDIAN or BIG_ENDIAN must be defined.
 #endif
-        
+
         record rec(data);
-        if (rec.get_wrap_flag())
+        if (rec_idx > 1 && rec.get_wrap_flag())
                 time_offset += (1ULL<<TIME_BITS) - 1;
         rec.time_offset = time_offset;
         return rec;
@@ -130,7 +131,7 @@ std::vector<parsed_record> record_stream::parse_records(unsigned int n) {
                 pr.lost = r.get_lost_flag();
 
                 std::bitset<4> ch = r.get_channels();
-                for (unsigned int j=0; j<4; j++) 
+                for (unsigned int j=0; j<4; j++)
                         pr.channels[j] = ch[j];
 
                 buf.push_back(pr);
@@ -149,4 +150,3 @@ void write_record(FILE* fout, record r) {
         else if (res < RECORD_LENGTH)
                 throw std::runtime_error("Incomplete record written");
 }
-
