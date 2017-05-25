@@ -7,3 +7,6 @@ User=timetag
 Group=timetag
 CPUSchedulingPolicy=fifo
 Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target
