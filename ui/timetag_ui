@@ -36,7 +36,6 @@ import json
 import gobject, gtk
 import matplotlib
 from matplotlib.figure import Figure
-from matplotlib.backends.backend_gtk import FigureCanvasGTK
 from matplotlib.backends.backend_gtkagg import FigureCanvasGTKAgg
 from matplotlib.backends.backend_gtkcairo import FigureCanvasGTKCairo
 

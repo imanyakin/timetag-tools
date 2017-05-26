@@ -5,7 +5,6 @@ import pkgutil
 import gobject, gtk
 import matplotlib
 from matplotlib.figure import Figure
-from matplotlib.backends.backend_gtk import FigureCanvasGTK
 from matplotlib.backends.backend_gtkagg import FigureCanvasGTKAgg
 from matplotlib.backends.backend_gtkcairo import FigureCanvasGTKCairo
 
@@ -18,7 +17,7 @@ def fix_color(c):
         return (c.red_float, c.green_float, c.blue_float)
 
 class BinSeriesPlot(ManagedBinner):
-        FigureCanvas = FigureCanvasGTK
+        FigureCanvas = FigureCanvasGTKAgg
 
         def __init__(self, pipeline):
                 self.pipeline = pipeline

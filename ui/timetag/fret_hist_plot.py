@@ -4,7 +4,6 @@ import pkgutil
 import gobject, gtk
 import matplotlib
 from matplotlib.figure import Figure
-from matplotlib.backends.backend_gtk import FigureCanvasGTK
 from matplotlib.backends.backend_gtkagg import FigureCanvasGTKAgg
 from matplotlib.backends.backend_gtkcairo import FigureCanvasGTKCairo
 from collections import defaultdict
@@ -13,7 +12,7 @@ from timetag.binner import FretHistBinner
 from timetag.managed_binner import ManagedBinner
 
 class FretHistPlot(ManagedBinner):
-        FigureCanvas = FigureCanvasGTK
+        FigureCanvas = FigureCanvasGTKAgg
 
         def __init__(self, pipeline):
                 self.pipeline = pipeline
