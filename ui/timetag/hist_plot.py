@@ -38,7 +38,7 @@ class HistPlot(ManagedBinner):
                 self.figure = Figure()
                 self.axes = {}
                 for n in self.colors:
-                        axes = self.figure.add_subplot(len(self.colors),1,n)
+                        axes = self.figure.add_subplot(len(self.colors),1,n+1)
                         axes.get_xaxis().set_major_formatter(
                                         matplotlib.ticker.ScalarFormatter(useOffset=False))
                         self.axes[n] = axes
