@@ -133,7 +133,7 @@ class BinSeriesPlot(ManagedBinner):
         def n_points(self):
                 """ The required number of points to fill the entire
                 width of the plot at the given bin_time """
-                return self.plot_width / self.bin_time
+                return int(self.plot_width / self.bin_time)
 
         @property
         def bin_time(self):
