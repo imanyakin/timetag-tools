@@ -101,7 +101,7 @@ int main(int argc, char** argv) {
                         if (truncate_records != 0 && i >= truncate_records) drop = true;
 
                         // Always keep wrap records but drop set channels
-                        if (drop && r.get_wrap_flag() && preserve_wraps) {
+                        if (!drop && r.get_wrap_flag() && preserve_wraps) {
                                 r.data &= ~CHANNEL_MASK;
                                 write_record(stdout, r);
                         } else if (drop) {
