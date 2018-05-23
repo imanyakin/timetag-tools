@@ -29,6 +29,7 @@
 #include <array>
 #include <memory>
 #include <thread>
+#include <functional>
 
 #include "record_format.h"
 
