@@ -10,10 +10,10 @@ setup(name = 'timetag_ui',
       version = '1.0',
       packages = ['timetag'],
       scripts = ['timetag_ui', 'timetag_seq_ui',
-                 'timetag_photon_hist', 'timetag_bin_series', 'timetag_fret_hist'],
+                 'timetag_photon_hist', 'timetag_bin_series', 'timetag_fret_hist','timetag_correlate'],
       package_data = {
               'timetag': ['main.glade', 'bin_series.glade', 'hist.glade', 'default.cfg',
-                          'fret_hist.glade'
+                          'fret_hist.glade','correlate.glade'
                           ]
       },
       data_files = [

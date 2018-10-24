@@ -453,6 +453,9 @@ class MainWindow(object):
                 self.plot_processes.append(subprocess.Popen(['timetag_bin_series']))
                 #BinSeriesPlot(self.pipeline)
 
+        def show_correlation_activate_cb(self,action):
+                self.plot_processes.append(subprocess.Popen(['timetag_correlate']))
+                
         def show_fret_hist_activate_cb(self, action):
                 self.plot_processes.append(subprocess.Popen(['timetag_fret_hist']))
                 #FretHistPlot(self.pipeline)
