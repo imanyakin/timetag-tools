@@ -127,7 +127,7 @@ class CorrelationPlot(ManagedBinner):
         # if self.xcs0 == self.xcs1:
             # acf = acs(b1["counts"])
             # self.axes.plot(range(len(acf)),acf,color="red")
-        ymax = 1.1*xcorr[1]
+        ymax = 1.1*np.max(xcorr[1:500])
         print ymax
         self.axes.set_ylim(0,ymax)
         try:
